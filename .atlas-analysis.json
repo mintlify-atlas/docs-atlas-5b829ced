@@ -1,0 +1,208 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "PhpSpreadsheet",
+  "projectDescription": "A pure PHP library for reading and writing spreadsheet files",
+  "theme": "linden",
+  "primaryColor": "#5d6c75",
+  "lightColor": "#b5bec1",
+  "darkColor": "#040404",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/architecture",
+              "concepts/spreadsheets-and-worksheets",
+              "concepts/cells-and-ranges",
+              "concepts/file-formats"
+            ]
+          },
+          {
+            "group": "Reading & Writing",
+            "pages": [
+              "reading-writing/reading-files",
+              "reading-writing/writing-files",
+              "reading-writing/readers",
+              "reading-writing/writers",
+              "reading-writing/pdf-export"
+            ]
+          },
+          {
+            "group": "Working with Data",
+            "pages": [
+              "data/accessing-cells",
+              "data/cell-values",
+              "data/formulas",
+              "data/defined-names",
+              "data/data-validation"
+            ]
+          },
+          {
+            "group": "Formatting",
+            "pages": [
+              "formatting/number-formats",
+              "formatting/styles",
+              "formatting/conditional-formatting",
+              "formatting/themes"
+            ]
+          },
+          {
+            "group": "Advanced Features",
+            "pages": [
+              "advanced/calculation-engine",
+              "advanced/autofilters",
+              "advanced/tables",
+              "advanced/charts",
+              "advanced/images",
+              "advanced/comments"
+            ]
+          },
+          {
+            "group": "Performance",
+            "pages": [
+              "performance/memory-optimization",
+              "performance/caching",
+              "performance/read-filters"
+            ]
+          },
+          {
+            "group": "Migration & Compatibility",
+            "pages": [
+              "migration/from-phpexcel",
+              "migration/version-upgrades"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core Classes",
+            "pages": [
+              "api/spreadsheet",
+              "api/worksheet",
+              "api/cell",
+              "api/iofactory"
+            ]
+          },
+          {
+            "group": "Readers",
+            "pages": [
+              "api/readers/overview",
+              "api/readers/xlsx",
+              "api/readers/xls",
+              "api/readers/ods",
+              "api/readers/csv",
+              "api/readers/html"
+            ]
+          },
+          {
+            "group": "Writers",
+            "pages": [
+              "api/writers/overview",
+              "api/writers/xlsx",
+              "api/writers/xls",
+              "api/writers/ods",
+              "api/writers/csv",
+              "api/writers/html",
+              "api/writers/pdf"
+            ]
+          },
+          {
+            "group": "Calculation",
+            "pages": [
+              "api/calculation/engine",
+              "api/calculation/functions",
+              "api/calculation/function-reference"
+            ]
+          },
+          {
+            "group": "Styling",
+            "pages": [
+              "api/style",
+              "api/font",
+              "api/fill",
+              "api/borders",
+              "api/alignment",
+              "api/number-format"
+            ]
+          },
+          {
+            "group": "Charts & Graphics",
+            "pages": [
+              "api/chart",
+              "api/drawing",
+              "api/comment"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Examples",
+        "groups": [
+          {
+            "group": "Basic Examples",
+            "pages": [
+              "examples/hello-world",
+              "examples/reading-spreadsheet",
+              "examples/creating-spreadsheet",
+              "examples/modifying-cells"
+            ]
+          },
+          {
+            "group": "Advanced Examples",
+            "pages": [
+              "examples/formulas",
+              "examples/styling",
+              "examples/charts",
+              "examples/autofilter",
+              "examples/data-validation"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Read and write Excel (XLSX, XLS), OpenDocument (ODS), CSV, HTML and other spreadsheet formats",
+    "Comprehensive calculation engine with 450+ Excel formula functions",
+    "Rich cell formatting with styles, fonts, colors, borders, and conditional formatting",
+    "Advanced features including charts, images, autofilters, tables, and data validation",
+    "Memory-efficient reading and writing with chunked operations and caching",
+    "Export spreadsheets to PDF using multiple rendering engines"
+  ],
+  "publicApiSurface": [
+    "PhpOffice\\PhpSpreadsheet\\Spreadsheet",
+    "PhpOffice\\PhpSpreadsheet\\Worksheet\\Worksheet",
+    "PhpOffice\\PhpSpreadsheet\\Cell\\Cell",
+    "PhpOffice\\PhpSpreadsheet\\IOFactory",
+    "PhpOffice\\PhpSpreadsheet\\Reader\\Xlsx",
+    "PhpOffice\\PhpSpreadsheet\\Reader\\Xls",
+    "PhpOffice\\PhpSpreadsheet\\Reader\\Ods",
+    "PhpOffice\\PhpSpreadsheet\\Reader\\Csv",
+    "PhpOffice\\PhpSpreadsheet\\Writer\\Xlsx",
+    "PhpOffice\\PhpSpreadsheet\\Writer\\Xls",
+    "PhpOffice\\PhpSpreadsheet\\Writer\\Ods",
+    "PhpOffice\\PhpSpreadsheet\\Writer\\Csv",
+    "PhpOffice\\PhpSpreadsheet\\Writer\\Html",
+    "PhpOffice\\PhpSpreadsheet\\Writer\\Pdf",
+    "PhpOffice\\PhpSpreadsheet\\Style\\Style",
+    "PhpOffice\\PhpSpreadsheet\\Calculation\\Calculation",
+    "PhpOffice\\PhpSpreadsheet\\Chart\\Chart",
+    "PhpOffice\\PhpSpreadsheet\\Worksheet\\Drawing",
+    "PhpOffice\\PhpSpreadsheet\\ReferenceHelper",
+    "PhpOffice\\PhpSpreadsheet\\Settings"
+  ]
+}
