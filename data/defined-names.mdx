@@ -1,0 +1,430 @@
+---
+title: 'Defined Names'
+description: 'Named ranges and named formulas for readable, maintainable spreadsheets'
+---
+
+## Overview
+
+Defined Names provide meaningful references to cells, ranges, or formulas in your spreadsheets. There are two types:
+
+- **Named Ranges**: Provide name references to cells or cell ranges
+- **Named Formulas**: Store formulas that can be referenced by name
+
+Both make spreadsheets more readable and maintainable.
+
+## Named Ranges
+
+### Creating Named Ranges
+
+A Named Range assigns a name to a cell or range of cells:
+
+```php
+use PhpOffice\PhpSpreadsheet\NamedRange;
+
+$worksheet->setCellValue('B1', 0.19)  // Tax rate: 19%
+    ->setCellValue('B3', 12.99);     // Net price
+
+// Define named ranges
+$spreadsheet->addNamedRange(
+    new NamedRange('TAX_RATE', $worksheet, '=$B$1')
+);
+$spreadsheet->addNamedRange(
+    new NamedRange('PRICE', $worksheet, '=$B$3')
+);
+
+// Use in formulas
+$worksheet->setCellValue('B4', '=PRICE*TAX_RATE')
+    ->setCellValue('B5', '=PRICE*(1+TAX_RATE)');
+```
+
+<Info>
+Named ranges make formulas self-documenting. `=PRICE*TAX_RATE` is much clearer than `=B3*B1`.
+</Info>
+
+### Absolute Named Ranges
+
+When you use `$` before both row and column, the named range always refers to the same cell:
+
+```php
+$worksheet
+    ->setCellValue('A1', 'Charge Rate/hour:')
+    ->setCellValue('B1', 7.50);
+
+// Absolute reference - always points to B1
+$spreadsheet->addNamedRange(
+    new NamedRange('CHARGE_RATE', $worksheet, '=$B$1')
+);
+
+// Use in multiple rows - always references B1
+for ($row = 4; $row <= 8; $row++) {
+    $worksheet->setCellValue("C{$row}", "=B{$row}*CHARGE_RATE");
+}
+```
+
+No matter where `CHARGE_RATE` is used, it always references cell `B1`.
+
+### Relative Named Ranges
+
+Relative references adapt based on where they're used. Use `$` only before the column or row you want to fix:
+
+```php
+// Absolute column (B), relative row
+$spreadsheet->addNamedRange(
+    new NamedRange('HOURS_PER_DAY', $worksheet, '=$B1')
+);
+
+// Used in row 4, references B4
+// Used in row 5, references B5
+$worksheet
+    ->setCellValue('C4', '=HOURS_PER_DAY*CHARGE_RATE')
+    ->setCellValue('C5', '=HOURS_PER_DAY*CHARGE_RATE');
+```
+
+<Tabs>
+  <Tab title="Relative Column">
+    ```php
+    // Relative column (uses A), absolute rows (4-8)
+    $spreadsheet->addNamedRange(
+        new NamedRange('COLUMN_DATA', $worksheet, '=A$4:A$8')
+    );
+    
+    // In column B, references B4:B8
+    $worksheet->setCellValue('B9', '=SUM(COLUMN_DATA)');
+    
+    // In column C, references C4:C8
+    $worksheet->setCellValue('C9', '=SUM(COLUMN_DATA)');
+    ```
+  </Tab>
+  <Tab title="Relative Row">
+    ```php
+    // Absolute columns (B-D), relative row (uses 1)
+    $spreadsheet->addNamedRange(
+        new NamedRange('ROW_DATA', $worksheet, '=$B1:$D1')
+    );
+    
+    // In row 2, references B2:D2
+    $worksheet->setCellValue('E2', '=SUM(ROW_DATA)');
+    
+    // In row 3, references B3:D3
+    $worksheet->setCellValue('E3', '=SUM(ROW_DATA)');
+    ```
+  </Tab>
+</Tabs>
+
+### Named Range Scope
+
+#### Global Scope (Default)
+
+Global named ranges are accessible from any worksheet:
+
+```php
+// First worksheet
+$sheet1 = $spreadsheet->getActiveSheet();
+$sheet1->setCellValue('B1', 7.50);
+
+// Global named range (4th parameter is false or omitted)
+$spreadsheet->addNamedRange(
+    new NamedRange('CHARGE_RATE', $sheet1, '=$B$1', false)
+);
+
+// Second worksheet can use the same name
+$sheet2 = $spreadsheet->addSheet(new Worksheet($spreadsheet));
+$sheet2->setCellValue('A1', '=CHARGE_RATE*5');
+// This references Sheet1!B1
+```
+
+#### Local Scope
+
+Local named ranges are only accessible from their specific worksheet:
+
+```php
+$clients = ['Client A', 'Client B', 'Client C'];
+
+foreach ($clients as $clientName) {
+    $sheet = $spreadsheet->addSheet(new Worksheet($spreadsheet, $clientName));
+    
+    $sheet->setCellValue('B1', 7.50); // Default rate
+    
+    // Local scope (4th parameter is true)
+    $spreadsheet->addNamedRange(
+        new NamedRange('RATE', $sheet, '=$B$1', true)
+    );
+}
+
+// Now each sheet has its own 'RATE' that points to its own B1
+$spreadsheet->getSheetByName('Client A')
+    ->setCellValue('B1', 10.00);  // Premium rate
+
+// Formulas on each sheet reference their sheet's own RATE
+```
+
+<Note>
+When resolving names, PhpSpreadsheet first looks for locally scoped names, then falls back to global names.
+</Note>
+
+## Named Formulas
+
+### Creating Named Formulas
+
+Named Formulas store reusable calculation logic:
+
+```php
+use PhpOffice\PhpSpreadsheet\NamedFormula;
+
+// Store tax rate as a formula
+$spreadsheet->addNamedFormula(
+    new NamedFormula('TAX_RATE', $worksheet, '=19%')
+);
+
+// Store tax calculation
+$spreadsheet->addNamedFormula(
+    new NamedFormula('TAX', $worksheet, '=PRICE*TAX_RATE')
+);
+
+// Define the price as a named range
+$spreadsheet->addNamedRange(
+    new NamedRange('PRICE', $worksheet, '=$B$3')
+);
+
+// Use named formula in cells
+$worksheet->setCellValue('B1', '=TAX_RATE');      // Display rate
+$worksheet->setCellValue('B4', '=TAX');           // Calculate tax
+$worksheet->setCellValue('B5', '=PRICE+TAX');     // Total with tax
+```
+
+### Named Formulas with Functions
+
+```php
+// Formula to get next month
+$spreadsheet->addNamedFormula(
+    new NamedFormula('NEXT_MONTH', $worksheet, '=EDATE(OFFSET($A1,-1,0),1)')
+);
+
+// Formula to calculate growth between sheets
+$spreadsheet->addNamedFormula(
+    new NamedFormula(
+        'GROWTH',
+        $worksheet,
+        "=IF('2024'!\$B1=\"\",\"-\",(('2024'!\$B1/'2023'!\$B1)-1))"
+    )
+);
+
+// Use in cells
+$worksheet->setCellValue('A2', '2024-01-01');
+for ($row = 3; $row <= 13; $row++) {
+    $worksheet->setCellValue("A{$row}", '=NEXT_MONTH');
+}
+```
+
+<Warning>
+Generally, specify `null` for the worksheet parameter when creating Named Formulas. Specifying a worksheet can lead to Excel errors when the file is opened.
+</Warning>
+
+### Combining Named Ranges and Formulas
+
+```php
+// Define supporting named ranges
+$spreadsheet->addNamedRange(
+    new NamedRange('CHARGE_RATE', $worksheet, '=$B$1')
+);
+$spreadsheet->addNamedRange(
+    new NamedRange('HOURS_PER_DAY', $worksheet, '=$B1')  // Relative
+);
+$spreadsheet->addNamedRange(
+    new NamedRange('COLUMN_DATA_VALUES', $worksheet, "=A\$4:A\$8")
+);
+
+// Define named formulas that use the ranges
+$spreadsheet->addNamedFormula(
+    new NamedFormula('DAILY_CHARGE', null, '=HOURS_PER_DAY*CHARGE_RATE')
+);
+$spreadsheet->addNamedFormula(
+    new NamedFormula('COLUMN_TOTALS', null, '=SUM(COLUMN_DATA_VALUES)')
+);
+
+// Use the formulas
+$worksheet->setCellValue('C4', '=DAILY_CHARGE');
+$worksheet->setCellValue('B9', '=COLUMN_TOTALS');
+```
+
+<Info>
+You can define Named Ranges and Formulas in any order. They only need to exist before you save the file or calculate cell values.
+</Info>
+
+## Helper Method
+
+Use the `DefinedName::createInstance()` helper to automatically determine if a value is a range or formula:
+
+```php
+use PhpOffice\PhpSpreadsheet\DefinedName;
+
+// Automatically determines this is a range
+$spreadsheet->addDefinedName(
+    DefinedName::createInstance('PRICE', $spreadsheet, $sheet, '=$B$3', true)
+);
+
+// Automatically determines this is a formula
+$spreadsheet->addDefinedName(
+    DefinedName::createInstance('TAX_RATE', $spreadsheet, $sheet, '=19%', false)
+);
+```
+
+## Naming Rules
+
+<AccordionGroup>
+  <Accordion title="Valid Name Format">
+    - First character: letter (including UTF-8), underscore (`_`)
+    - Remaining characters: letters, numbers, periods (`.`), underscores (`_`)
+    - No spaces allowed
+    - Cannot look like cell addresses (e.g., `A35`, `R2C2`)
+    - Not case sensitive (`NORTH` and `North` are the same)
+  </Accordion>
+  
+  <Accordion title="Examples">
+    **Valid names:**
+    - `TAX_RATE`
+    - `Q1_Sales`
+    - `Total.2024`
+    - `_Private`
+    - `Müller_Gruppe` (UTF-8 characters OK)
+    
+    **Invalid names:**
+    - `Tax Rate` (space)
+    - `2024Q1` (starts with number)
+    - `A1` (looks like cell address)
+    - `Sum-Total` (hyphen not allowed)
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+PhpSpreadsheet doesn't fully validate names yet. Invalid names may create files that Excel cannot open.
+</Warning>
+
+## Best Practices
+
+<Steps>
+  <Step title="Use Descriptive Names">
+    Choose names that clearly indicate their purpose:
+    - Good: `ANNUAL_INTEREST_RATE`, `TOTAL_REVENUE`
+    - Bad: `RATE`, `X`, `TEMP`
+  </Step>
+  
+  <Step title="Avoid Function Name Conflicts">
+    While you *can* name something `SUM`, it's confusing. Use names like `SUM_OF_HOURS` instead.
+  </Step>
+  
+  <Step title="Use Local Scope Strategically">
+    - Use global scope for values used across multiple sheets
+    - Use local scope when different sheets need different values for the same name
+  </Step>
+  
+  <Step title="Document Complex Formulas">
+    Use named formulas to break complex calculations into understandable pieces:
+    ```php
+    // Instead of one complex formula
+    $sheet->setCellValue('D1', '=IF(B1>0,(C1/B1-1)*100,0)');
+    
+    // Use named formulas
+    $spreadsheet->addNamedFormula(
+        new NamedFormula('HAS_LAST_YEAR', null, '=LAST_YEAR>0')
+    );
+    $spreadsheet->addNamedFormula(
+        new NamedFormula('GROWTH_PCT', null, '=(THIS_YEAR/LAST_YEAR-1)*100')
+    );
+    $sheet->setCellValue('D1', '=IF(HAS_LAST_YEAR, GROWTH_PCT, 0)');
+    ```
+  </Step>
+</Steps>
+
+## Working with Defined Names
+
+### Retrieving Named Ranges
+
+```php
+// Get a named range
+$namedRange = $spreadsheet->getNamedRange('TAX_RATE');
+
+if ($namedRange) {
+    $worksheet = $namedRange->getWorksheet();
+    $range = $namedRange->getValue(); // e.g., "=$B$1"
+    $cellsInRange = $namedRange->getCellsInRange(); // e.g., ["B1"]
+}
+
+// Get all named ranges
+foreach ($spreadsheet->getNamedRanges() as $namedRange) {
+    echo $namedRange->getName() . ": " . $namedRange->getValue() . "\n";
+}
+```
+
+### Removing Named Ranges
+
+```php
+// Remove a specific named range
+$spreadsheet->removeNamedRange('TAX_RATE');
+
+// Remove all named ranges
+$spreadsheet->removeNamedRange();
+```
+
+## Real-World Example: Timesheet
+
+Complete example combining absolute, relative, and scoped names:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\NamedRange;
+use PhpOffice\PhpSpreadsheet\NamedFormula;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+$spreadsheet = new Spreadsheet();
+
+$clients = [
+    'Client A - Regular Rate' => ['hours' => [7.5, 7.25, 6.5, 7.0, 5.5]],
+    'Client B - Regular Rate' => ['hours' => [1.5, 2.75, 0.0, 4.5, 3.5]],
+    'Client C - Discounted Rate' => ['hours' => [3.5, 2.5, 1.5, 0.0, 1.25]],
+];
+
+foreach ($clients as $clientName => $data) {
+    $sheet = $spreadsheet->addSheet(new Worksheet($spreadsheet, $clientName));
+    
+    $sheet->setCellValue('B1', 7.50);  // Will be changed for Client C
+    
+    // Local scope - each sheet has its own CHARGE_RATE
+    $spreadsheet->addNamedRange(
+        new NamedRange('CHARGE_RATE', $sheet, '=$B$1', true)
+    );
+    
+    // Relative - adapts to each row
+    $spreadsheet->addNamedRange(
+        new NamedRange('HOURS_PER_DAY', $sheet, '=$B1', true)
+    );
+    
+    $row = 4;
+    foreach ($data['hours'] as $hours) {
+        $sheet->setCellValue("B{$row}", $hours);
+        $sheet->setCellValue("C{$row}", '=HOURS_PER_DAY*CHARGE_RATE');
+        $row++;
+    }
+}
+
+// Set discounted rate for Client C
+$spreadsheet->getSheetByName('Client C - Discounted Rate')
+    ->setCellValue('B1', 4.50);
+```
+
+## Related Topics
+
+<CardGroup cols={2}>
+  <Card title="Formulas" icon="function" href="/data/formulas">
+    Using named ranges in formulas
+  </Card>
+  <Card title="Accessing Cells" icon="table-cells" href="/data/accessing-cells">
+    Cell references and coordinates
+  </Card>
+  <Card title="Worksheets" icon="file" href="/worksheets/basics">
+    Working with multiple worksheets
+  </Card>
+  <Card title="Calculation Engine" icon="calculator" href="/data/formulas">
+    How formulas are evaluated
+  </Card>
+</CardGroup>

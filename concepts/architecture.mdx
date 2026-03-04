@@ -1,0 +1,243 @@
+---
+title: Architecture
+description: Understanding how PhpSpreadsheet works internally - the in-memory model, readers/writers architecture, and design principles
+---
+
+## Overview
+
+PhpSpreadsheet is designed as an in-memory spreadsheet library with a clean separation between the core data model and file I/O operations. This architecture allows you to work with spreadsheet data programmatically without being tied to any specific file format.
+
+## Core Design Principles
+
+### In-Memory Spreadsheet Model
+
+PhpSpreadsheet's architecture is built to serve as an **in-memory spreadsheet**. This means that all spreadsheet data, formulas, styles, and other properties are maintained in memory as PHP objects while you work with them.
+
+Just like desktop spreadsheet software, PhpSpreadsheet represents:
+- A `Spreadsheet` containing one or more worksheets
+- `Worksheet` objects containing cells with data, formulas, images, and more
+- Complete style information, formatting, and metadata
+
+This design enables you to:
+- Create web-based spreadsheet applications
+- Manipulate spreadsheet data without file I/O overhead
+- Build custom spreadsheet processing pipelines
+- Convert between different spreadsheet formats
+
+<Info>
+**Web Application Potential**: If you want to create a web-based view of a spreadsheet that communicates with PhpSpreadsheet's object model, you only need to write the front-end code. The back-end object model is already complete.
+</Info>
+
+### The Spreadsheet Class
+
+The `\PhpOffice\PhpSpreadsheet\Spreadsheet` class is the core of the library. It represents your workbook and contains:
+
+- Collection of `Worksheet` objects
+- Document properties (creator, title, description, etc.)
+- Document security settings
+- Named ranges and defined names
+- Calculation engine
+- Cell style collections
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+// Create a new workbook
+$spreadsheet = new Spreadsheet();
+
+// Get the active worksheet
+$sheet = $spreadsheet->getActiveSheet();
+
+// Work with cells
+$sheet->setCellValue('A1', 'Hello World');
+```
+
+## Readers and Writers Architecture
+
+### Separation of Concerns
+
+On its own, the `Spreadsheet` class does not provide functionality to read from or write to persisted storage (files on disk or in a database). This separation is intentional and provides flexibility.
+
+To handle file I/O, PhpSpreadsheet implements two key interfaces:
+- `\PhpOffice\PhpSpreadsheet\Reader\IReader` - For reading files
+- `\PhpOffice\PhpSpreadsheet\Writer\IWriter` - For writing files
+
+<img src="/images/architecture-diagram.png" alt="Readers and Writers Architecture" />
+
+### Built-in Readers
+
+PhpSpreadsheet provides readers for multiple formats:
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+use PhpOffice\PhpSpreadsheet\Reader\Ods;
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+use PhpOffice\PhpSpreadsheet\Reader\Html;
+use PhpOffice\PhpSpreadsheet\Reader\Xml;
+use PhpOffice\PhpSpreadsheet\Reader\Gnumeric;
+use PhpOffice\PhpSpreadsheet\Reader\Slk;
+```
+
+### Built-in Writers
+
+PhpSpreadsheet provides writers for several formats:
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+use PhpOffice\PhpSpreadsheet\Writer\Ods;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Dompdf;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf;
+```
+
+### Using IOFactory
+
+The `IOFactory` class provides convenient methods to create readers and writers:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Automatic format detection
+$spreadsheet = IOFactory::load('file.xlsx');
+
+// Explicit reader creation
+$reader = IOFactory::createReader('Xlsx');
+$reader->setReadDataOnly(true);
+$spreadsheet = $reader->load('file.xlsx');
+
+// Create a writer
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->save('output.xlsx');
+```
+
+### Custom Readers and Writers
+
+You can implement custom readers and writers for proprietary or unsupported formats:
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\IReader;
+use PhpOffice\PhpSpreadsheet\Writer\IWriter;
+
+class CustomReader implements IReader
+{
+    public function load(string $filename)
+    {
+        // Your custom reading logic
+        $spreadsheet = new Spreadsheet();
+        // ... populate spreadsheet
+        return $spreadsheet;
+    }
+}
+
+class CustomWriter implements IWriter
+{
+    public function save(string $filename): void
+    {
+        // Your custom writing logic
+    }
+}
+```
+
+## Fluent Interfaces
+
+PhpSpreadsheet supports **fluent interfaces** in most locations, allowing you to chain method calls for cleaner, more readable code.
+
+### Traditional Approach
+
+```php
+$spreadsheet->getProperties()->setCreator('John Doe');
+$spreadsheet->getProperties()->setLastModifiedBy('John Doe');
+$spreadsheet->getProperties()->setTitle('Sample Document');
+$spreadsheet->getProperties()->setSubject('Office 2007 XLSX Test');
+$spreadsheet->getProperties()->setDescription('Test document');
+$spreadsheet->getProperties()->setKeywords('office 2007 openxml php');
+$spreadsheet->getProperties()->setCategory('Test result file');
+```
+
+### Fluent Interface Approach
+
+```php
+$spreadsheet->getProperties()
+    ->setCreator('John Doe')
+    ->setLastModifiedBy('John Doe')
+    ->setTitle('Sample Document')
+    ->setSubject('Office 2007 XLSX Test')
+    ->setDescription('Test document')
+    ->setKeywords('office 2007 openxml php')
+    ->setCategory('Test result file');
+```
+
+<Note>
+**Performance Benefit**: Using fluent interfaces reduces the number of method calls. In the example above, `getProperties()` is called only once instead of 7 times, improving performance.
+</Note>
+
+## Dependency Management
+
+### Composer Autoloader
+
+PhpSpreadsheet relies on Composer for dependency management and autoloading:
+
+```bash
+# Install PhpSpreadsheet
+composer require phpoffice/phpspreadsheet
+
+# For development with samples
+composer require phpoffice/phpspreadsheet --prefer-source
+```
+
+### Required PHP Extensions
+
+PhpSpreadsheet requires certain PHP extensions. These are enforced by Composer. Check the `require` section of the `composer.json` file for current requirements.
+
+## Memory Management
+
+### Cyclic References
+
+The `Spreadsheet` object contains cyclic references (the workbook links to worksheets, and worksheets link back to their parent workbook). This causes memory leaks when PHP tries to clear objects from memory.
+
+### Proper Cleanup
+
+Always disconnect worksheets before unsetting a Spreadsheet object:
+
+```php
+// When you're done with a spreadsheet
+$spreadsheet->disconnectWorksheets();
+unset($spreadsheet);
+```
+
+<Warning>
+**Memory Leaks**: Failing to call `disconnectWorksheets()` before unsetting can lead to significant memory leaks, especially when processing multiple spreadsheets in a loop.
+</Warning>
+
+## Cell Caching
+
+For large spreadsheets, PhpSpreadsheet implements cell caching strategies to reduce memory usage. Cells may be temporarily stored outside of PHP memory and retrieved on demand.
+
+```php
+use PhpOffice\PhpSpreadsheet\Settings;
+use PhpOffice\PhpSpreadsheet\Collection\Memory;
+
+// Configure cell caching (if needed)
+// Most applications work fine with default settings
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="File Formats" icon="file" href="/concepts/file-formats">
+    Learn about supported file formats and their capabilities
+  </Card>
+  <Card title="Spreadsheets & Worksheets" icon="table" href="/concepts/spreadsheets-and-worksheets">
+    Working with workbooks and sheets
+  </Card>
+  <Card title="Cells & Ranges" icon="grid" href="/concepts/cells-and-ranges">
+    Understanding cell references and ranges
+  </Card>
+  <Card title="Reading Files" icon="book-open" href="/essentials/reading-files">
+    Load spreadsheets from various formats
+  </Card>
+</CardGroup>

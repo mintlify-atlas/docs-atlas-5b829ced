@@ -1,0 +1,503 @@
+---
+title: Cells and Ranges
+description: Understanding cell references, coordinate systems, ranges, and iterating through cells in PhpSpreadsheet
+---
+
+## Cell References
+
+PhpSpreadsheet supports multiple ways to reference cells, providing flexibility for different use cases.
+
+### Cell Coordinate Formats
+
+#### A1 Notation (String)
+
+The most common format, using column letters and row numbers:
+
+```php
+// Set cell value using A1 notation
+$sheet->setCellValue('A1', 'Hello');
+$sheet->setCellValue('B5', 123);
+$sheet->setCellValue('AA100', 'Column AA, Row 100');
+
+// Get cell value
+$value = $sheet->getCell('C3')->getValue();
+```
+
+#### Array Notation (Column Index, Row Index)
+
+Use numeric indices where both column and row are 1-based:
+
+```php
+// [column_index, row_index]
+$sheet->setCellValue([1, 1], 'A1');   // Column 1, Row 1 = A1
+$sheet->setCellValue([2, 3], 'B3');   // Column 2, Row 3 = B3
+$sheet->setCellValue([27, 10], 'AA10'); // Column 27, Row 10 = AA10
+
+// Get cell value
+$value = $sheet->getCell([5, 10])->getValue(); // E10
+```
+
+<Note>
+**1-Based Indexing**: In PhpSpreadsheet, column and row indices are 1-based, not 0-based. This means `A1` equals `[1, 1]`, not `[0, 0]`. This matches Excel's `COLUMN()` and `ROW()` functions.
+</Note>
+
+#### CellAddress Objects
+
+For more complex scenarios, use `CellAddress` objects:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\CellAddress;
+
+// Create CellAddress
+$address = new CellAddress('B3');
+$sheet->setCellValue($address, 'Value');
+
+// With optional worksheet reference
+$address = new CellAddress('B3', $sheet);
+```
+
+### Absolute vs Relative References
+
+Cell references can be absolute (fixed) or relative:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+
+// Make reference absolute
+$absolute = Coordinate::absoluteReference('A1');
+echo $absolute; // '$A$1'
+
+$absolute = Coordinate::absoluteReference('B5');
+echo $absolute; // '$B$5'
+
+// In formulas
+$sheet->setCellValue('C1', '=A1+B1');      // Relative
+$sheet->setCellValue('C2', '=$A$1+$B$1');  // Absolute
+```
+
+## The Coordinate Class
+
+The `\PhpOffice\PhpSpreadsheet\Cell\Coordinate` class provides utilities for working with cell coordinates:
+
+### Converting Between Formats
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+
+// Split coordinate into column and row
+[$column, $row] = Coordinate::coordinateFromString('B5');
+// $column = 'B', $row = '5'
+
+// Get column index from column letter
+$columnIndex = Coordinate::columnIndexFromString('B');
+echo $columnIndex; // 2
+
+$columnIndex = Coordinate::columnIndexFromString('AA');
+echo $columnIndex; // 27
+
+// Get column letter from index
+$columnLetter = Coordinate::stringFromColumnIndex(2);
+echo $columnLetter; // 'B'
+
+// Get full coordinate info
+[$colIndex, $row, $colString] = Coordinate::indexesFromString('B5');
+// $colIndex = 2, $row = 5, $colString = 'B'
+```
+
+### Validating Coordinates
+
+```php
+// Check if a coordinate is a range
+$isRange = Coordinate::coordinateIsRange('A1:B5');
+// true
+
+$isRange = Coordinate::coordinateIsRange('A1');
+// false
+```
+
+## Cell Ranges
+
+### Range Notation
+
+Ranges are specified using colon notation:
+
+```php
+// Single range
+'A1:C10'    // Columns A through C, rows 1 through 10
+
+// Multiple ranges (comma-separated)
+'A1:A10,C1:C10'  // Column A and column C
+```
+
+### Working with Ranges
+
+#### Setting Values from Arrays
+
+Populate a range from a 2D array:
+
+```php
+$data = [
+    [null, 2010, 2011, 2012],
+    ['Q1',   12,   15,   21],
+    ['Q2',   56,   73,   86],
+    ['Q3',   52,   61,   69],
+    ['Q4',   30,   32,   40],
+];
+
+$sheet->fromArray(
+    $data,      // The data to set
+    null,       // Array values with this value will not be set
+    'C3'        // Top left coordinate where to start
+);
+```
+
+#### Setting a Row
+
+```php
+// Set a single row
+$rowData = ['Value1', 'Value2', 'Value3', 'Value4'];
+$sheet->fromArray($rowData, null, 'A1');
+```
+
+#### Setting a Column
+
+```php
+// Convert 1D array to 2D for column insertion
+$columnData = ['Value1', 'Value2', 'Value3', 'Value4'];
+$columnArray = array_chunk($columnData, 1);
+$sheet->fromArray($columnArray, null, 'A1');
+```
+
+#### Retrieving Values from Ranges
+
+```php
+// Get entire worksheet as array
+$allData = $sheet->toArray();
+
+// Get specific range
+$rangeData = $sheet->rangeToArray(
+    'C3:E5',    // Range to retrieve
+    null,       // Value for empty cells
+    true,       // Calculate formulas
+    true,       // Format values
+    true        // Index by cell row and column
+);
+
+// Get named range
+$namedData = $sheet->namedRangeToArray('SalesData');
+```
+
+## Accessing Cells
+
+### Getting Cell Objects
+
+```php
+// Get a cell object
+$cell = $sheet->getCell('A1');
+
+// Set value via cell object
+$cell->setValue('Hello World');
+
+// Get value
+$value = $cell->getValue();
+
+// Get calculated value (for formulas)
+$calculatedValue = $cell->getCalculatedValue();
+
+// Get formatted value (with number formatting)
+$formattedValue = $cell->getFormattedValue();
+```
+
+<Warning>
+**Detached Cell References**: When you assign a cell to a variable (e.g., `$cell = $sheet->getCell('A1')`), subsequent calls to `getCell()` for other cells will detach that variable's link to the cell collection. The cell's **value** remains accessible, but methods requiring the collection link (like `getCoordinate()`) will fail.
+
+To avoid this issue, either:
+- Don't store cell objects in variables for long periods
+- Re-fetch the cell when needed
+- Use cell values directly instead of storing cell objects
+</Warning>
+
+### Setting Cell Values
+
+#### Automatic Type Detection
+
+By default, PhpSpreadsheet detects the data type:
+
+```php
+// String
+$sheet->setCellValue('A1', 'PhpSpreadsheet');
+
+// Number
+$sheet->setCellValue('A2', 12345.6789);
+
+// Boolean
+$sheet->setCellValue('A3', true);
+
+// Formula
+$sheet->setCellValue('A4', '=SUM(A1:A3)');
+```
+
+#### Explicit Type Setting
+
+Force a specific data type:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+
+// Force string type (preserves leading zeros)
+$sheet->setCellValueExplicit(
+    'A1',
+    '01234567890',
+    DataType::TYPE_STRING
+);
+
+// Force numeric
+$sheet->setCellValueExplicit(
+    'A2',
+    '123',
+    DataType::TYPE_NUMERIC
+);
+```
+
+## Iterating Through Cells
+
+### Using Row and Cell Iterators
+
+The most efficient way to iterate:
+
+```php
+foreach ($sheet->getRowIterator() as $row) {
+    echo '<tr>';
+    
+    $cellIterator = $row->getCellIterator();
+    $cellIterator->setIterateOnlyExistingCells(false); // Include empty cells
+    
+    foreach ($cellIterator as $cell) {
+        echo '<td>' . $cell->getValue() . '</td>';
+    }
+    
+    echo '</tr>';
+}
+```
+
+<Note>
+**Iterator Options**:
+- `setIterateOnlyExistingCells(true)` - Only loop through cells with values (memory efficient)
+- `setIterateOnlyExistingCells(false)` - Loop through all cells in the range (includes empty cells)
+</Note>
+
+### Using Numeric Indices
+
+```php
+// Get the data range
+$highestRow = $sheet->getHighestDataRow(); // e.g., 10
+$highestColumn = $sheet->getHighestDataColumn(); // e.g., 'F'
+$highestColumnIndex = Coordinate::columnIndexFromString($highestColumn); // e.g., 6
+
+// Loop through all cells
+for ($row = 1; $row <= $highestRow; $row++) {
+    for ($col = 1; $col <= $highestColumnIndex; $col++) {
+        $value = $sheet->getCell([$col, $row])->getValue();
+        echo "[$col, $row]: $value\n";
+    }
+}
+```
+
+### Using Column Letter Increments
+
+```php
+$highestRow = $sheet->getHighestDataRow();
+$highestColumn = $sheet->getHighestDataColumn();
+$highestColumn++; // Increment past the last column for loop termination
+
+for ($row = 1; $row <= $highestRow; $row++) {
+    for ($col = 'A'; $col != $highestColumn; $col++) {
+        $cellAddress = $col . $row;
+        $value = $sheet->getCell($cellAddress)->getValue();
+        echo "$cellAddress: $value\n";
+    }
+}
+```
+
+<Warning>
+**PHP 8.5+ String Increment Change**: In PHP 8.5+, the behavior of `++` on strings changed. Use `StringHelper::stringIncrement($col)` instead of `++$col` for column letter incrementing.
+
+```php
+use PhpOffice\PhpSpreadsheet\Shared\StringHelper;
+
+// For PHP 8.5+
+for ($col = 'A'; $col != $highestColumn; $col = StringHelper::stringIncrement($col)) {
+    // ...
+}
+```
+</Warning>
+
+## Advanced Cell Operations
+
+### Checking if Row is Empty
+
+```php
+foreach ($sheet->getRowIterator() as $row) {
+    if ($row->isEmpty()) {
+        continue; // Skip empty rows
+    }
+    
+    // Process non-empty rows
+    $cellIterator = $row->getCellIterator();
+    foreach ($cellIterator as $cell) {
+        // ...
+    }
+}
+```
+
+### Getting Cell Coordinates
+
+```php
+$cell = $sheet->getCell('B5');
+
+// Get coordinate
+$coordinate = $cell->getCoordinate(); // 'B5'
+
+// Get column and row separately
+$column = $cell->getColumn(); // 'B'
+$row = $cell->getRow();       // 5
+```
+
+### Working with Merged Cells
+
+```php
+// Merge cells
+$sheet->mergeCells('A1:C1');
+
+// Unmerge cells
+$sheet->unmergeCells('A1:C1');
+
+// Check if cell is in a merged range
+$isMerged = $sheet->getCell('B1')->isInMergeRange();
+
+// Get all merged cell ranges
+$mergedRanges = $sheet->getMergeCells();
+```
+
+### Copying Cells
+
+```php
+// Copy cell value and style
+$fromCell = $sheet->getCell('A1');
+$toCell = $sheet->getCell('B2');
+
+// Copy value
+$toCell->setValue($fromCell->getValue());
+
+// Copy style
+$sheet->duplicateStyle($fromCell->getStyle(), 'B2');
+```
+
+#### Copy with Formula Adjustment (PhpSpreadsheet 5.1.0+)
+
+```php
+// Copy formula with automatic adjustment
+// If A1 contains '=B1', after copying to C3, it will become '=D3'
+$sheet->copyFormula('A1', 'C3');
+```
+
+## Worksheet Dimensions
+
+### Getting Data Boundaries
+
+```php
+// Get the highest row with data
+$highestRow = $sheet->getHighestDataRow();
+
+// Get the highest column with data
+$highestColumn = $sheet->getHighestDataColumn();
+
+// Get as a coordinate
+$highestCell = $sheet->getHighestDataColumn() . $sheet->getHighestDataRow();
+echo $highestCell; // e.g., 'F10'
+
+// Get dimension range
+$dimension = $sheet->calculateWorksheetDimension();
+echo $dimension; // e.g., 'A1:F10'
+```
+
+## Practical Examples
+
+### Reading Data from a Spreadsheet
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$spreadsheet = IOFactory::load('data.xlsx');
+$sheet = $spreadsheet->getActiveSheet();
+
+$data = [];
+foreach ($sheet->getRowIterator(2) as $row) { // Start from row 2 (skip header)
+    $rowData = [];
+    $cellIterator = $row->getCellIterator();
+    $cellIterator->setIterateOnlyExistingCells(true);
+    
+    foreach ($cellIterator as $cell) {
+        $rowData[] = $cell->getValue();
+    }
+    
+    $data[] = $rowData;
+}
+```
+
+### Writing Data to a Spreadsheet
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Write headers
+$headers = ['Name', 'Email', 'Age', 'City'];
+$sheet->fromArray($headers, null, 'A1');
+
+// Write data rows
+$data = [
+    ['John Doe', 'john@example.com', 30, 'New York'],
+    ['Jane Smith', 'jane@example.com', 25, 'Los Angeles'],
+];
+$sheet->fromArray($data, null, 'A2');
+```
+
+### Creating a Formula Table
+
+```php
+$sheet->setCellValue('A1', 'Item');
+$sheet->setCellValue('B1', 'Price');
+$sheet->setCellValue('C1', 'Quantity');
+$sheet->setCellValue('D1', 'Total');
+
+// Data rows
+for ($row = 2; $row <= 10; $row++) {
+    $sheet->setCellValue("A{$row}", "Item {$row}");
+    $sheet->setCellValue("B{$row}", rand(10, 100));
+    $sheet->setCellValue("C{$row}", rand(1, 10));
+    $sheet->setCellValue("D{$row}", "=B{$row}*C{$row}");
+}
+
+// Grand total
+$sheet->setCellValue('D11', '=SUM(D2:D10)');
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Formulas" icon="calculator" href="/essentials/formulas">
+    Working with formulas and calculations
+  </Card>
+  <Card title="Styling" icon="paintbrush" href="/essentials/styling">
+    Apply formatting and styles to cells
+  </Card>
+  <Card title="Data Validation" icon="check-circle" href="/advanced/data-validation">
+    Add input validation to cells
+  </Card>
+  <Card title="Reading Files" icon="book-open" href="/essentials/reading-files">
+    Load and parse spreadsheet files
+  </Card>
+</CardGroup>

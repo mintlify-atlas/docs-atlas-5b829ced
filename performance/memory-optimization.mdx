@@ -1,0 +1,215 @@
+---
+title: Memory Optimization
+description: Learn how to reduce memory usage when working with large spreadsheets using cell caching and PSR-16 implementations
+---
+
+## Overview
+
+PhpSpreadsheet uses approximately **1KB per cell** (1.6KB on 64-bit PHP) in your worksheets. Large workbooks can quickly consume available memory. Cell caching provides a mechanism to maintain cell objects in a smaller memory footprint or off-memory storage (disk, APCu, Memcache, or Redis).
+
+<Warning>
+  Cell caching reduces memory usage at the cost of access speed. Choose the appropriate cache implementation based on your workbook size and performance requirements.
+</Warning>
+
+## How Cell Caching Works
+
+By default, PhpSpreadsheet holds all cell objects in memory. You can specify alternatives by providing your own [PSR-16](https://www.php-fig.org/psr/psr-16/) cache implementation.
+
+### Key Features
+
+- **Automatic namespacing**: Cache keys are automatically namespaced
+- **Automatic cleanup**: Cache is cleaned up after use
+- **Shared instances**: A single cache instance can be shared across multiple PhpSpreadsheet instances
+- **Per-worksheet caching**: Each worksheet maintains a separate cache
+
+## Configuring Cell Caching
+
+Cell caching must be configured **before** reading a workbook or creating your first worksheet. Configuration cannot be changed once worksheets are instantiated.
+
+### Basic Setup
+
+```php
+use PhpOffice\PhpSpreadsheet\Settings;
+
+$cache = new MyCustomPsr16Implementation();
+Settings::setCache($cache);
+```
+
+Source: [Settings.php:85-90](/home/daytona/workspace/source/src/PhpSpreadsheet/Settings.php#L85-90)
+
+<Warning>
+  **Critical: Beware of TTL**
+  
+  Unlike typical cache usage, PhpSpreadsheet data cannot be regenerated if lost. If cached data becomes unavailable, PhpSpreadsheet will throw an exception.
+  
+  Ensure TTL (Time To Live) is either:
+  - Deactivated completely
+  - Set long enough to cover the entire PhpSpreadsheet usage period
+</Warning>
+
+## Cache Implementations
+
+PhpSpreadsheet does not ship with alternative cache implementations. You must select the most appropriate implementation for your environment using [pre-existing PSR-16 libraries](https://packagist.org/search/?q=psr-16).
+
+### APCu Cache
+
+Ideal for applications with APCu extension enabled. Provides in-memory caching with excellent performance.
+
+#### Installation
+
+```bash
+composer require cache/simple-cache-bridge cache/apcu-adapter
+```
+
+#### Configuration
+
+```php
+use PhpOffice\PhpSpreadsheet\Settings;
+use Cache\Adapter\Apcu\ApcuCachePool;
+use Cache\Bridge\SimpleCache\SimpleCacheBridge;
+
+$pool = new ApcuCachePool();
+$simpleCache = new SimpleCacheBridge($pool);
+
+Settings::setCache($simpleCache);
+```
+
+### Redis Cache
+
+Best for distributed applications or when you need persistent caching across requests.
+
+#### Installation
+
+```bash
+composer require cache/simple-cache-bridge cache/redis-adapter
+```
+
+#### Configuration
+
+```php
+use PhpOffice\PhpSpreadsheet\Settings;
+use Cache\Adapter\Redis\RedisCachePool;
+use Cache\Bridge\SimpleCache\SimpleCacheBridge;
+
+$client = new \Redis();
+$client->connect('127.0.0.1', 6379);
+
+$pool = new RedisCachePool($client);
+$simpleCache = new SimpleCacheBridge($pool);
+
+Settings::setCache($simpleCache);
+```
+
+### Memcache Cache
+
+Suitable for distributed caching environments.
+
+#### Installation
+
+```bash
+composer require cache/simple-cache-bridge cache/memcache-adapter
+```
+
+#### Configuration
+
+```php
+use PhpOffice\PhpSpreadsheet\Settings;
+use Cache\Adapter\Memcache\MemcacheCachePool;
+use Cache\Bridge\SimpleCache\SimpleCacheBridge;
+
+$client = new \Memcache();
+$client->connect('localhost', 11211);
+
+$pool = new MemcacheCachePool($client);
+$simpleCache = new SimpleCacheBridge($pool);
+
+Settings::setCache($simpleCache);
+```
+
+## Complete Example
+
+Here's a complete example showing how to configure caching before loading a large spreadsheet:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Settings;
+use Cache\Adapter\Apcu\ApcuCachePool;
+use Cache\Bridge\SimpleCache\SimpleCacheBridge;
+
+// Configure cache BEFORE loading
+$pool = new ApcuCachePool();
+$simpleCache = new SimpleCacheBridge($pool);
+Settings::setCache($simpleCache);
+
+// Now load your large spreadsheet
+$reader = IOFactory::createReader('Xlsx');
+$spreadsheet = $reader->load('large-file.xlsx');
+
+// Process data
+foreach ($spreadsheet->getActiveSheet()->getRowIterator() as $row) {
+    // Your processing logic
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Choose the Right Cache Backend">
+    - **Small to medium workbooks**: Use default memory caching
+    - **Large workbooks (single server)**: Use APCu for best performance
+    - **Large workbooks (distributed)**: Use Redis or Memcache
+    - **Very large workbooks**: Consider Redis with sufficient memory allocation
+  </Accordion>
+
+  <Accordion title="Configure Cache Before Loading">
+    Always set up caching before creating or loading spreadsheets. Configuration cannot be changed after worksheet instantiation.
+  </Accordion>
+
+  <Accordion title="Disable TTL">
+    Ensure your cache backend has TTL disabled or set long enough to prevent data loss during processing.
+  </Accordion>
+
+  <Accordion title="Monitor Memory Usage">
+    Use PHP's `memory_get_peak_usage()` to monitor memory consumption and verify cache effectiveness:
+    
+    ```php
+    echo 'Peak memory: ' . (memory_get_peak_usage(true) / 1024 / 1024) . ' MB';
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Memory Usage Comparison
+
+| Configuration | Memory per Cell | 10,000 Cells | 100,000 Cells |
+|---------------|----------------|--------------|---------------|
+| No caching (32-bit) | ~1 KB | ~10 MB | ~100 MB |
+| No caching (64-bit) | ~1.6 KB | ~16 MB | ~160 MB |
+| With PSR-16 cache | Varies | Significantly reduced | Significantly reduced |
+
+<Note>
+  Actual memory savings depend on your cache implementation and configuration. APCu and Redis typically provide the best memory reduction.
+</Note>
+
+## Troubleshooting
+
+### "Cell entry no longer exists in cache"
+
+This error occurs when cached data is prematurely deleted. Common causes:
+
+- TTL expiration (disable or increase TTL)
+- Cache storage limit reached (increase cache size)
+- External process cleared the cache
+
+### Performance Issues with Caching
+
+If caching makes your application slower:
+
+- Verify network latency to Redis/Memcache servers
+- Consider APCu for local caching
+- Check if your workbook is small enough to process without caching
+
+## See Also
+
+- [Read Filters](/performance/read-filters) - Load only specific data
+- [Caching Strategies](/performance/caching) - Advanced cache configuration
+- [Reading Large Files](/api/readers/overview#performance-tips) - Additional optimization techniques

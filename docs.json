@@ -1,122 +1,195 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "PhpSpreadsheet",
+  "theme": "linden",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#5d6c75",
+    "light": "#b5bec1",
+    "dark": "#040404"
   },
   "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo-light.png",
+    "dark": "/logo-dark.png"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/PHPOffice/PhpSpreadsheet"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/PHPOffice/PhpSpreadsheet"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "installation",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "concepts/architecture",
+              "concepts/spreadsheets-and-worksheets",
+              "concepts/cells-and-ranges",
+              "concepts/file-formats"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Reading & Writing",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "reading-writing/reading-files",
+              "reading-writing/writing-files",
+              "reading-writing/readers",
+              "reading-writing/writers",
+              "reading-writing/pdf-export"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Working with Data",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "data/accessing-cells",
+              "data/cell-values",
+              "data/formulas",
+              "data/defined-names",
+              "data/data-validation"
+            ]
+          },
+          {
+            "group": "Formatting",
+            "pages": [
+              "formatting/number-formats",
+              "formatting/styles",
+              "formatting/conditional-formatting",
+              "formatting/themes"
+            ]
+          },
+          {
+            "group": "Advanced Features",
+            "pages": [
+              "advanced/calculation-engine",
+              "advanced/autofilters",
+              "advanced/tables",
+              "advanced/charts",
+              "advanced/images",
+              "advanced/comments"
+            ]
+          },
+          {
+            "group": "Performance",
+            "pages": [
+              "performance/memory-optimization",
+              "performance/caching",
+              "performance/read-filters"
+            ]
+          },
+          {
+            "group": "Migration & Compatibility",
+            "pages": [
+              "migration/from-phpexcel",
+              "migration/version-upgrades"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Core Classes",
             "pages": [
-              "api-reference/introduction"
+              "api/spreadsheet",
+              "api/worksheet",
+              "api/cell",
+              "api/iofactory"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Readers",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/readers/overview",
+              "api/readers/xlsx",
+              "api/readers/xls",
+              "api/readers/ods",
+              "api/readers/csv",
+              "api/readers/html"
+            ]
+          },
+          {
+            "group": "Writers",
+            "pages": [
+              "api/writers/overview",
+              "api/writers/xlsx",
+              "api/writers/xls",
+              "api/writers/ods",
+              "api/writers/csv",
+              "api/writers/html",
+              "api/writers/pdf"
+            ]
+          },
+          {
+            "group": "Calculation",
+            "pages": [
+              "api/calculation/engine",
+              "api/calculation/functions",
+              "api/calculation/function-reference"
+            ]
+          },
+          {
+            "group": "Styling",
+            "pages": [
+              "api/style",
+              "api/font",
+              "api/fill",
+              "api/borders",
+              "api/alignment",
+              "api/number-format"
+            ]
+          },
+          {
+            "group": "Charts & Graphics",
+            "pages": [
+              "api/chart",
+              "api/drawing",
+              "api/comment"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Examples",
+        "groups": [
+          {
+            "group": "Basic Examples",
+            "pages": [
+              "examples/hello-world",
+              "examples/reading-spreadsheet",
+              "examples/creating-spreadsheet",
+              "examples/modifying-cells"
+            ]
+          },
+          {
+            "group": "Advanced Examples",
+            "pages": [
+              "examples/formulas",
+              "examples/styling",
+              "examples/charts",
+              "examples/autofilter",
+              "examples/data-validation"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

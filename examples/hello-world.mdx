@@ -1,0 +1,106 @@
+---
+title: 'Hello World'
+description: 'Create your first spreadsheet with PhpSpreadsheet'
+---
+
+## Basic Hello World Example
+
+This example demonstrates the simplest way to create a spreadsheet with PhpSpreadsheet. We'll create a new spreadsheet, add some data to cells, and save it to a file.
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+require 'vendor/autoload.php';
+
+// Create new Spreadsheet object
+$spreadsheet = new Spreadsheet();
+
+// Add some data
+$spreadsheet->setActiveSheetIndex(0)
+    ->setCellValue('A1', 'Hello')
+    ->setCellValue('B2', 'world!')
+    ->setCellValue('C1', 'Hello')
+    ->setCellValue('D2', 'world!');
+
+// Rename worksheet
+$spreadsheet->getActiveSheet()->setTitle('Simple');
+
+// Save to file
+$writer = new Xlsx($spreadsheet);
+$writer->save('hello_world.xlsx');
+
+echo 'Spreadsheet created successfully!';
+```
+
+## What This Code Does
+
+1. **Creates a new spreadsheet**: `new Spreadsheet()` initializes an empty spreadsheet with one worksheet
+2. **Sets cell values**: Uses `setCellValue()` to add text to specific cells (A1, B2, C1, D2)
+3. **Renames the worksheet**: Changes the default sheet name from "Worksheet" to "Simple"
+4. **Saves the file**: Creates an Xlsx writer and saves the spreadsheet as `hello_world.xlsx`
+
+## Adding UTF-8 Characters
+
+PhpSpreadsheet fully supports UTF-8 characters, allowing you to work with international text:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+
+// Add UTF-8 text
+$spreadsheet->setActiveSheetIndex(0)
+    ->setCellValue('A1', 'Miscellaneous glyphs')
+    ->setCellValue('A2', 'éàèùâêîôûëïüÿäöüç');
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('utf8_example.xlsx');
+```
+
+## Multi-line Text in Cells
+
+You can add multi-line text to cells by using newline characters (`\n`) and enabling text wrapping:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+
+// Add multi-line text
+$spreadsheet->getActiveSheet()
+    ->setCellValue('A1', "Hello\nWorld");
+
+// Enable text wrapping and auto-height
+$spreadsheet->getActiveSheet()
+    ->getRowDimension(1)
+    ->setRowHeight(-1);  // -1 = auto-height
+
+$spreadsheet->getActiveSheet()
+    ->getStyle('A1')
+    ->getAlignment()
+    ->setWrapText(true);
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('multiline_example.xlsx');
+```
+
+## Key Takeaways
+
+- Always require the autoloader before using PhpSpreadsheet classes
+- Use `setCellValue()` to add data to cells
+- Cell references use Excel notation (A1, B2, etc.)
+- Method chaining is supported for cleaner code
+- Save files using writer classes like `Xlsx`, `Xls`, or `Ods`

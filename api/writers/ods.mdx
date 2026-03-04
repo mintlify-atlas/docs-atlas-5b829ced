@@ -1,0 +1,233 @@
+---
+title: Ods Writer
+description: OpenDocument Spreadsheet writer class reference
+---
+
+The `Ods` writer exports spreadsheets to OpenDocument Spreadsheet format (.ods), the native format for LibreOffice Calc and OpenOffice Calc.
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Writer\Ods`
+
+**Extends:** `BaseWriter`
+
+## Class Overview
+
+The Ods writer creates ZIP archives containing XML files that conform to the OASIS OpenDocument Format (ODF) standard. The format is open, XML-based, and widely supported by open-source office suites.
+
+## Constructor
+
+```php
+public function __construct(Spreadsheet $spreadsheet)
+```
+
+Creates a new Ods writer instance.
+
+<ParamField path="spreadsheet" type="Spreadsheet" required>
+  The spreadsheet object to write
+</ParamField>
+
+## Key Methods
+
+### save()
+
+```php
+public function save($filename, int $flags = 0): void
+```
+
+Saves the spreadsheet as an .ods file.
+
+<ParamField path="filename" type="string|resource" required>
+  File path or resource to write to
+</ParamField>
+
+<ParamField path="flags" type="int" default="0">
+  Optional flags (see [IWriter constants](/api/writers/overview#save))
+</ParamField>
+
+### useAdditionalNumberFormats()
+
+```php
+public function useAdditionalNumberFormats(array $additionalNumberFormats): void
+```
+
+Registers additional number format converters for custom formats.
+
+<ParamField path="additionalNumberFormats" type="array<string, callable>" required>
+  Array mapping format codes to converter functions
+</ParamField>
+
+## Usage Examples
+
+### Basic Export
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Ods;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setCellValue('A1', 'Hello World!');
+
+$writer = new Ods($spreadsheet);
+$writer->save('hello.ods');
+```
+
+### Download to Browser
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Ods;
+
+// Set headers for download
+header('Content-Type: application/vnd.oasis.opendocument.spreadsheet');
+header('Content-Disposition: attachment;filename="report.ods"');
+header('Cache-Control: max-age=0');
+
+$writer = new Ods($spreadsheet);
+$writer->save('php://output');
+exit;
+```
+
+### With Custom Number Formats
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Ods;
+
+$writer = new Ods($spreadsheet);
+
+// Add custom number format converter
+$writer->useAdditionalNumberFormats([
+    'CUSTOM_FORMAT' => function($format) {
+        // Convert custom format to ODS format
+        return convertToOdsFormat($format);
+    }
+]);
+
+$writer->save('output.ods');
+```
+
+### Disable Formula Calculation
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Ods;
+
+$writer = new Ods($spreadsheet);
+$writer->setPreCalculateFormulas(false);
+$writer->save('output.ods');
+```
+
+## Format Features
+
+The Ods writer supports:
+
+- ✅ Multiple worksheets
+- ✅ Cell formatting (fonts, colors, borders, fills)
+- ✅ Number formats
+- ✅ Formulas
+- ⚠️ Charts (limited support)
+- ⚠️ Images (limited support)
+- ✅ Rich text
+- ✅ Merged cells
+- ⚠️ Data validation (basic support)
+- ⚠️ Conditional formatting (limited)
+- ✅ Page setup
+- ✅ Headers and footers (basic)
+- ✅ Document properties
+- ✅ Named ranges
+- ✅ Autofilters
+- ⚠️ Tables (limited support)
+- ✅ Comments
+- ✅ Hyperlinks
+
+## File Structure
+
+The ODS file is a ZIP archive containing:
+
+- **content.xml** - Spreadsheet data and formulas
+- **styles.xml** - Style definitions
+- **meta.xml** - Document metadata
+- **settings.xml** - View settings
+- **META-INF/manifest.xml** - Package manifest
+- **mimetype** - MIME type declaration
+- **Thumbnails/thumbnail.png** - Preview thumbnail
+
+## OpenDocument Compliance
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Ods;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Set document metadata (ODF properties)
+$props = $spreadsheet->getProperties();
+$props->setCreator('John Doe');
+$props->setTitle('My Document');
+$props->setSubject('Sales Report');
+$props->setDescription('Q4 2024 sales data');
+$props->setKeywords('sales, report, q4');
+$props->setCategory('Reports');
+
+$writer = new Ods($spreadsheet);
+$writer->save('report.ods');
+```
+
+## LibreOffice Compatibility
+
+The Ods writer is optimized for LibreOffice Calc and OpenOffice Calc:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Ods;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Set print area
+$sheet->getPageSetup()->setPrintArea('A1:E50');
+
+// Set page orientation
+$sheet->getPageSetup()->setOrientation(
+    \PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE
+);
+
+$writer = new Ods($spreadsheet);
+$writer->save('calc.ods');
+```
+
+## Formula Handling
+
+ODS uses OpenFormula syntax, which is similar to Excel but has some differences:
+
+```php
+// Standard formulas work across formats
+$sheet->setCellValue('A1', 10);
+$sheet->setCellValue('A2', 20);
+$sheet->setCellValue('A3', '=SUM(A1:A2)');
+
+// Pre-calculate formulas for immediate display
+$writer = new Ods($spreadsheet);
+$writer->setPreCalculateFormulas(true);
+$writer->save('output.ods');
+```
+
+## When to Use ODS
+
+Use the Ods writer when:
+
+- ✅ Targeting LibreOffice or OpenOffice users
+- ✅ Open standards compliance is required
+- ✅ Cross-platform compatibility is important
+- ✅ Working in open-source environments
+
+Consider other formats when:
+
+- ❌ Advanced Excel-specific features are needed
+- ❌ Target users primarily use Microsoft Excel
+- ❌ Complex charts are required
+- ❌ Rich image embedding is needed
+
+## Related
+
+- [Xlsx Writer](/api/writers/xlsx) - Excel 2007+ format
+- [Xls Writer](/api/writers/xls) - Legacy Excel format
+- [Writers Overview](/api/writers/overview) - Common writer patterns

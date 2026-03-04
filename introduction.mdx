@@ -1,0 +1,104 @@
+---
+title: Introduction
+description: Overview of PhpSpreadsheet, a PHP library for reading and writing spreadsheet files
+---
+
+PhpSpreadsheet is a library written in pure PHP that offers a set of classes to read and write various spreadsheet file formats such as Excel and LibreOffice Calc.
+
+## What is PhpSpreadsheet?
+
+PhpSpreadsheet is the next version of PHPExcel. It breaks compatibility to dramatically improve the code base quality with modern PHP features including namespaces, PSR compliance, and use of the latest PHP language features.
+
+The library provides a comprehensive set of tools for:
+
+- Creating spreadsheets from scratch
+- Reading existing spreadsheet files
+- Modifying spreadsheet data and formatting
+- Writing spreadsheets to various file formats
+- Working with formulas, charts, and images
+- Applying styles, formatting, and conditional formatting
+
+## Key features
+
+### Data manipulation
+
+- Read and write cell values with support for multiple data types (strings, numbers, booleans, dates, rich text)
+- Formula calculation engine
+- Support for named ranges and defined names
+- Cell comments and hyperlinks
+- Data validation and conditional formatting
+
+### Formatting and styling
+
+- Number formatting with various masks
+- Font styling (bold, italic, colors, sizes)
+- Cell alignment and text wrapping
+- Borders and fills
+- Column widths and row heights
+
+### Advanced features
+
+- Charts and images
+- AutoFilters and tables
+- Worksheet protection
+- Document properties and metadata
+- Page setup and printing options
+
+## Supported file formats
+
+PhpSpreadsheet supports reading and writing multiple spreadsheet formats:
+
+### Read and write
+
+- **Xlsx** - Excel 2007 and above (Office Open XML)
+- **Xls** - Excel 97-2003 (BIFF)
+- **Ods** - OpenDocument Spreadsheet
+- **Csv** - Comma Separated Values
+- **Html** - HTML tables
+
+### Read only
+
+- **Slk** - SYLK (Symbolic Link)
+- **Gnumeric** - Gnumeric spreadsheets
+- **Xml** - Excel 2003 XML
+
+### Write only
+
+- **Pdf** - Export to PDF (requires additional libraries)
+
+## PHP version support
+
+PhpSpreadsheet requires **PHP 8.1 or higher**. The library maintains support for PHP versions for six months beyond their official end of life.
+
+<Note>
+  The current minimum PHP version is 8.1, which will be supported until June 30, 2026.
+</Note>
+
+## PHPExcel vs PhpSpreadsheet
+
+If you're migrating from PHPExcel, PhpSpreadsheet offers significant improvements:
+
+- Modern PHP features (namespaces, type hints, etc.)
+- Better performance and memory management
+- Active maintenance and security updates
+- PSR compliance
+- Improved code quality and testing
+
+<Warning>
+  PHPExcel is no longer maintained. All new projects should use PhpSpreadsheet, and existing projects should consider migrating.
+</Warning>
+
+## License
+
+PhpSpreadsheet is licensed under [MIT](https://github.com/PHPOffice/PhpSpreadsheet/blob/master/LICENSE), making it free to use in both open source and commercial projects.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Learn how to install PhpSpreadsheet via Composer
+  </Card>
+  <Card title="Quick start" icon="rocket" href="/quickstart">
+    Create your first spreadsheet in minutes
+  </Card>
+</CardGroup>

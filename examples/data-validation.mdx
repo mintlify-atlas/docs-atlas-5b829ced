@@ -1,0 +1,403 @@
+---
+title: 'Data Validation Examples'
+description: 'Learn how to create data validation rules to control user input in Excel cells'
+icon: 'circle-check'
+---
+
+## Overview
+
+Data validation allows you to control what users can enter into cells. You can create dropdown lists, restrict input to specific ranges, require specific data types, and provide helpful messages to guide users.
+
+## Basic Data Validation
+
+Here's a simple example with different validation types:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add some labels and initial values
+$sheet->setCellValue('A1', 'Cell B3 and B5 contain data validation...')
+    ->setCellValue('A3', 'Number:')
+    ->setCellValue('B3', '10')
+    ->setCellValue('A5', 'List:')
+    ->setCellValue('B5', 'Item A');
+```
+
+## Numeric Validation
+
+Restrict input to numbers within a specific range:
+
+```php
+// Validate that B3 contains a whole number between 10 and 20
+$validation = $sheet->getCell('B3')->getDataValidation();
+$validation->setType(DataValidation::TYPE_WHOLE);
+$validation->setErrorStyle(DataValidation::STYLE_STOP);
+$validation->setAllowBlank(true);
+$validation->setShowInputMessage(true);
+$validation->setShowErrorMessage(true);
+$validation->setErrorTitle('Input error');
+$validation->setError('Only numbers between 10 and 20 are allowed!');
+$validation->setPromptTitle('Allowed input');
+$validation->setPrompt('Only numbers between 10 and 20 are allowed.');
+$validation->setFormula1('10'); // Minimum value
+$validation->setFormula2('20'); // Maximum value
+```
+
+### Validation Types
+
+Available validation types:
+
+- `TYPE_NONE` - No validation
+- `TYPE_WHOLE` - Whole number
+- `TYPE_DECIMAL` - Decimal number
+- `TYPE_LIST` - List of values (dropdown)
+- `TYPE_DATE` - Date
+- `TYPE_TIME` - Time
+- `TYPE_TEXTLENGTH` - Text length
+- `TYPE_CUSTOM` - Custom formula
+
+## Dropdown Lists
+
+Create dropdown lists for users to select from:
+
+### Static List (Comma-Separated)
+
+```php
+$validation = $sheet->getCell('B5')->getDataValidation();
+$validation->setType(DataValidation::TYPE_LIST);
+$validation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+$validation->setAllowBlank(false);
+$validation->setShowInputMessage(true);
+$validation->setShowErrorMessage(true);
+$validation->setShowDropDown(true);
+$validation->setErrorTitle('Input error');
+$validation->setError('Value is not in list.');
+$validation->setPromptTitle('Pick from list');
+$validation->setPrompt('Please pick a value from the drop-down list.');
+$validation->setFormula1('"Item A,Item B,Item C"'); // Note the double quotes!
+```
+
+<Warning>
+  When using a comma-separated list, you must enclose the entire list in double quotes: `'"Item A,Item B,Item C"'`
+</Warning>
+
+### Dynamic List (Cell Range)
+
+```php
+// First, populate the source cells
+$sheet->setCellValue('A7', 'List #2:')
+    ->setCellValue('B7', 'Item #2')
+    ->setCellValue('D2', 'Item #1')
+    ->setCellValue('D3', 'Item #2')
+    ->setCellValue('D4', 'Item #3')
+    ->setCellValue('D5', 'Item #4')
+    ->setCellValue('D6', 'Item #5');
+
+// Create validation referencing the cell range
+$validation = $sheet->getCell('B7')->getDataValidation();
+$validation->setType(DataValidation::TYPE_LIST);
+$validation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+$validation->setAllowBlank(false);
+$validation->setShowInputMessage(true);
+$validation->setShowErrorMessage(true);
+$validation->setShowDropDown(true);
+$validation->setErrorTitle('Input error');
+$validation->setError('Value is not in list.');
+$validation->setPromptTitle('Pick from list');
+$validation->setPrompt('Please pick a value from the drop-down list.');
+$validation->setFormula1('$D$2:$D$6'); // Note: NO quotes for ranges
+```
+
+<Info>
+  When referencing a cell range, do NOT enclose it in quotes. Use absolute references (e.g., `$D$2:$D$6`) for best results.
+</Info>
+
+## Date Validation
+
+Restrict input to dates within a specific range:
+
+```php
+$validation = $sheet->getCell('B9')->getDataValidation();
+$validation->setType(DataValidation::TYPE_DATE);
+$validation->setErrorStyle(DataValidation::STYLE_STOP);
+$validation->setOperator(DataValidation::OPERATOR_BETWEEN);
+$validation->setShowInputMessage(true);
+$validation->setShowErrorMessage(true);
+$validation->setErrorTitle('Invalid Date');
+$validation->setError('Date must be between 2024-01-01 and 2024-12-31');
+$validation->setPromptTitle('Enter Date');
+$validation->setPrompt('Please enter a date in 2024.');
+$validation->setFormula1('2024-01-01');
+$validation->setFormula2('2024-12-31');
+```
+
+### Validation Operators
+
+For numeric, date, and time validations:
+
+- `OPERATOR_BETWEEN` - Between two values
+- `OPERATOR_NOTBETWEEN` - Not between two values
+- `OPERATOR_EQUAL` - Equal to
+- `OPERATOR_NOTEQUAL` - Not equal to
+- `OPERATOR_GREATERTHAN` - Greater than
+- `OPERATOR_GREATERTHANOREQUAL` - Greater than or equal to
+- `OPERATOR_LESSTHAN` - Less than
+- `OPERATOR_LESSTHANOREQUAL` - Less than or equal to
+
+## Text Length Validation
+
+Restrict the length of text input:
+
+```php
+$validation = $sheet->getCell('B11')->getDataValidation();
+$validation->setType(DataValidation::TYPE_TEXTLENGTH);
+$validation->setErrorStyle(DataValidation::STYLE_STOP);
+$validation->setOperator(DataValidation::OPERATOR_LESSTHANOREQUAL);
+$validation->setAllowBlank(false);
+$validation->setShowInputMessage(true);
+$validation->setShowErrorMessage(true);
+$validation->setErrorTitle('Text too long');
+$validation->setError('Text must be 50 characters or less.');
+$validation->setPromptTitle('Enter text');
+$validation->setPrompt('Maximum 50 characters allowed.');
+$validation->setFormula1('50'); // Maximum length
+```
+
+## Custom Formula Validation
+
+Use a custom formula for complex validation:
+
+```php
+// Validate that B13 is greater than B3
+$validation = $sheet->getCell('B13')->getDataValidation();
+$validation->setType(DataValidation::TYPE_CUSTOM);
+$validation->setErrorStyle(DataValidation::STYLE_STOP);
+$validation->setAllowBlank(false);
+$validation->setShowInputMessage(true);
+$validation->setShowErrorMessage(true);
+$validation->setErrorTitle('Invalid value');
+$validation->setError('Value must be greater than the number in B3.');
+$validation->setPromptTitle('Enter value');
+$validation->setPrompt('Enter a number greater than B3.');
+$validation->setFormula1('=B13>$B$3');
+```
+
+## Error Styles
+
+Control how validation errors are handled:
+
+```php
+// STYLE_STOP - Prevents invalid input (default)
+$validation->setErrorStyle(DataValidation::STYLE_STOP);
+
+// STYLE_WARNING - Shows warning but allows invalid input
+$validation->setErrorStyle(DataValidation::STYLE_WARNING);
+
+// STYLE_INFORMATION - Shows info message but allows invalid input
+$validation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+```
+
+## Input Messages
+
+Provide helpful guidance to users:
+
+```php
+$validation->setShowInputMessage(true);
+$validation->setPromptTitle('Instructions');
+$validation->setPrompt('Enter a value between 1 and 100. Decimals are allowed.');
+```
+
+## Decimal Number Validation
+
+```php
+$validation = $sheet->getCell('B15')->getDataValidation();
+$validation->setType(DataValidation::TYPE_DECIMAL);
+$validation->setErrorStyle(DataValidation::STYLE_STOP);
+$validation->setOperator(DataValidation::OPERATOR_BETWEEN);
+$validation->setAllowBlank(true);
+$validation->setShowInputMessage(true);
+$validation->setShowErrorMessage(true);
+$validation->setErrorTitle('Invalid decimal');
+$validation->setError('Decimal must be between 0.0 and 1.0');
+$validation->setPromptTitle('Enter decimal');
+$validation->setPrompt('Enter a decimal between 0.0 and 1.0');
+$validation->setFormula1('0.0');
+$validation->setFormula2('1.0');
+```
+
+## Time Validation
+
+```php
+$validation = $sheet->getCell('B17')->getDataValidation();
+$validation->setType(DataValidation::TYPE_TIME);
+$validation->setErrorStyle(DataValidation::STYLE_STOP);
+$validation->setOperator(DataValidation::OPERATOR_BETWEEN);
+$validation->setAllowBlank(false);
+$validation->setShowInputMessage(true);
+$validation->setShowErrorMessage(true);
+$validation->setErrorTitle('Invalid time');
+$validation->setError('Time must be between 09:00 and 17:00');
+$validation->setPromptTitle('Enter time');
+$validation->setPrompt('Enter a time during business hours (9 AM - 5 PM)');
+$validation->setFormula1('09:00');
+$validation->setFormula2('17:00');
+```
+
+## Copying Validation to Multiple Cells
+
+Apply the same validation to multiple cells:
+
+```php
+// Create validation for one cell
+$validation = $sheet->getCell('B3')->getDataValidation();
+$validation->setType(DataValidation::TYPE_WHOLE);
+$validation->setFormula1('1');
+$validation->setFormula2('100');
+
+// Copy to other cells
+for ($row = 4; $row <= 10; $row++) {
+    $sheet->getCell("B{$row}")->setDataValidation(clone $validation);
+}
+```
+
+<Note>
+  Always use `clone` when copying validation to prevent all cells from sharing the same validation object.
+</Note>
+
+## Complete Example
+
+Here's a complete example with multiple validation types:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add form labels
+$sheet->setCellValue('A1', 'Employee Data Entry Form');
+$sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+
+$sheet->setCellValue('A3', 'Employee ID:')
+    ->setCellValue('A4', 'Name:')
+    ->setCellValue('A5', 'Department:')
+    ->setCellValue('A6', 'Hire Date:')
+    ->setCellValue('A7', 'Salary:')
+    ->setCellValue('A8', 'Comments:');
+
+// Employee ID: Whole number 1-9999
+$validation = $sheet->getCell('B3')->getDataValidation();
+$validation->setType(DataValidation::TYPE_WHOLE)
+    ->setOperator(DataValidation::OPERATOR_BETWEEN)
+    ->setErrorStyle(DataValidation::STYLE_STOP)
+    ->setAllowBlank(false)
+    ->setShowInputMessage(true)
+    ->setShowErrorMessage(true)
+    ->setErrorTitle('Invalid ID')
+    ->setError('Employee ID must be a number between 1 and 9999')
+    ->setPromptTitle('Employee ID')
+    ->setPrompt('Enter employee ID (1-9999)')
+    ->setFormula1('1')
+    ->setFormula2('9999');
+
+// Name: Text length 1-50 characters
+$validation = $sheet->getCell('B4')->getDataValidation();
+$validation->setType(DataValidation::TYPE_TEXTLENGTH)
+    ->setOperator(DataValidation::OPERATOR_BETWEEN)
+    ->setErrorStyle(DataValidation::STYLE_STOP)
+    ->setAllowBlank(false)
+    ->setShowInputMessage(true)
+    ->setShowErrorMessage(true)
+    ->setErrorTitle('Invalid Name')
+    ->setError('Name must be between 1 and 50 characters')
+    ->setPromptTitle('Employee Name')
+    ->setPrompt('Enter full name (max 50 characters)')
+    ->setFormula1('1')
+    ->setFormula2('50');
+
+// Department: Dropdown list
+$validation = $sheet->getCell('B5')->getDataValidation();
+$validation->setType(DataValidation::TYPE_LIST)
+    ->setErrorStyle(DataValidation::STYLE_STOP)
+    ->setAllowBlank(false)
+    ->setShowInputMessage(true)
+    ->setShowErrorMessage(true)
+    ->setShowDropDown(true)
+    ->setErrorTitle('Invalid Department')
+    ->setError('Please select a department from the list')
+    ->setPromptTitle('Department')
+    ->setPrompt('Select employee department')
+    ->setFormula1('"Sales,Marketing,Engineering,HR,Finance"');
+
+// Hire Date: Date between 2020-01-01 and today
+$validation = $sheet->getCell('B6')->getDataValidation();
+$validation->setType(DataValidation::TYPE_DATE)
+    ->setOperator(DataValidation::OPERATOR_BETWEEN)
+    ->setErrorStyle(DataValidation::STYLE_STOP)
+    ->setAllowBlank(false)
+    ->setShowInputMessage(true)
+    ->setShowErrorMessage(true)
+    ->setErrorTitle('Invalid Date')
+    ->setError('Hire date must be between 2020-01-01 and today')
+    ->setPromptTitle('Hire Date')
+    ->setPrompt('Enter employee hire date')
+    ->setFormula1('2020-01-01')
+    ->setFormula2('=TODAY()');
+
+// Salary: Decimal between 30000 and 200000
+$validation = $sheet->getCell('B7')->getDataValidation();
+$validation->setType(DataValidation::TYPE_DECIMAL)
+    ->setOperator(DataValidation::OPERATOR_BETWEEN)
+    ->setErrorStyle(DataValidation::STYLE_STOP)
+    ->setAllowBlank(false)
+    ->setShowInputMessage(true)
+    ->setShowErrorMessage(true)
+    ->setErrorTitle('Invalid Salary')
+    ->setError('Salary must be between $30,000 and $200,000')
+    ->setPromptTitle('Annual Salary')
+    ->setPrompt('Enter annual salary ($30,000 - $200,000)')
+    ->setFormula1('30000')
+    ->setFormula2('200000');
+
+// Comments: Optional text up to 200 characters
+$validation = $sheet->getCell('B8')->getDataValidation();
+$validation->setType(DataValidation::TYPE_TEXTLENGTH)
+    ->setOperator(DataValidation::OPERATOR_LESSTHANOREQUAL)
+    ->setErrorStyle(DataValidation::STYLE_WARNING)
+    ->setAllowBlank(true)
+    ->setShowInputMessage(true)
+    ->setShowErrorMessage(true)
+    ->setErrorTitle('Text too long')
+    ->setError('Comments should be 200 characters or less')
+    ->setPromptTitle('Comments')
+    ->setPrompt('Enter any additional comments (optional, max 200 characters)')
+    ->setFormula1('200');
+
+// Format the sheet
+$sheet->getColumnDimension('A')->setWidth(15);
+$sheet->getColumnDimension('B')->setWidth(30);
+
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->save('employee_form.xlsx');
+```
+
+## Expected Behavior
+
+When users open the Excel file:
+
+- Cells with validation show an input message when selected
+- Dropdown arrows appear for list validations
+- Invalid input triggers error messages
+- Error style determines whether invalid input is prevented or allowed
+
+## Related Topics
+
+- [AutoFilter](/examples/autofilter)
+- [Cell Values](/topics/accessing-cells)
+- [Conditional Formatting](/examples/conditional-formatting)

@@ -1,80 +1,367 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick start
+description: Create your first spreadsheet with PhpSpreadsheet in minutes
 ---
 
-## Get started in three steps
+This guide will walk you through creating, reading, and manipulating spreadsheets using PhpSpreadsheet.
 
-Get your documentation site running locally and make your first customization.
+## Prerequisites
 
-### Step 1: Set up your local environment
+Before starting, make sure you have [installed PhpSpreadsheet](/installation) via Composer.
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+## Create your first spreadsheet
+
+Let's create a simple spreadsheet with some data and save it as an Excel file.
+
+<Steps>
+  <Step title="Create a new PHP file">
+    Create a file called `create-spreadsheet.php` in your project directory.
+  </Step>
+  
+  <Step title="Add the basic code">
+    ```php create-spreadsheet.php
+    <?php
+    require 'vendor/autoload.php';
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    use PhpOffice\PhpSpreadsheet\Spreadsheet;
+    use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    // Create new Spreadsheet object
+    $spreadsheet = new Spreadsheet();
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    // Set document properties
+    $spreadsheet->getProperties()
+        ->setCreator('Your Name')
+        ->setTitle('My First Spreadsheet')
+        ->setSubject('PhpSpreadsheet Test')
+        ->setDescription('Test document for PhpSpreadsheet');
+    
+    // Add data to cells
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setCellValue('A1', 'Hello')
+          ->setCellValue('B2', 'World!');
+    
+    // Rename worksheet
+    $sheet->setTitle('My First Sheet');
+    
+    // Save to file
+    $writer = new Xlsx($spreadsheet);
+    $writer->save('hello-world.xlsx');
+    
+    echo "Spreadsheet created successfully!\n";
+    ```
+  </Step>
+  
+  <Step title="Run the script">
+    ```bash
+    php create-spreadsheet.php
+    ```
+    
+    This will create a file named `hello-world.xlsx` in your current directory.
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Read an existing spreadsheet
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+Now let's read data from an existing Excel file.
 
-### Step 3: Go live
+```php read-spreadsheet.php
+<?php
+require 'vendor/autoload.php';
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Load existing file
+$spreadsheet = IOFactory::load('hello-world.xlsx');
+
+// Get active sheet
+$sheet = $spreadsheet->getActiveSheet();
+
+// Read cell values
+echo "A1: " . $sheet->getCell('A1')->getValue() . "\n";
+echo "B2: " . $sheet->getCell('B2')->getValue() . "\n";
+
+// Get all data as array
+$data = $sheet->toArray(null, true, true, true);
+print_r($data);
+```
+
+<Note>
+  `IOFactory::load()` automatically detects the file format (Excel, CSV, ODS, etc.) and uses the appropriate reader.
+</Note>
+
+## Working with different data types
+
+PhpSpreadsheet supports various data types including strings, numbers, booleans, dates, and rich text.
+
+```php data-types.php
+<?php
+require 'vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// String
+$sheet->setCellValue('A1', 'Product Name')
+      ->setCellValue('B1', 'Widget');
+
+// Number
+$sheet->setCellValue('A2', 'Price')
+      ->setCellValue('B2', 29.99);
+
+// Integer
+$sheet->setCellValue('A3', 'Quantity')
+      ->setCellValue('B3', 42);
+
+// Boolean
+$sheet->setCellValue('A4', 'In Stock')
+      ->setCellValue('B4', true);
+
+// Date
+$sheet->setCellValue('A5', 'Order Date')
+      ->setCellValue('B5', Date::PHPToExcel(time()));
+$sheet->getStyle('B5')
+      ->getNumberFormat()
+      ->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDD);
+
+// Formula
+$sheet->setCellValue('A6', 'Total')
+      ->setCellValue('B6', '=B2*B3');
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('data-types.xlsx');
+
+echo "Spreadsheet with various data types created!\n";
+```
+
+## Basic formatting
+
+Add styling to make your spreadsheet more readable.
+
+```php formatting.php
+<?php
+require 'vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add header row
+$sheet->setCellValue('A1', 'Name')
+      ->setCellValue('B1', 'Email')
+      ->setCellValue('C1', 'Status');
+
+// Style the header
+$headerStyle = $sheet->getStyle('A1:C1');
+$headerStyle->getFont()->setBold(true)->setSize(12);
+$headerStyle->getFill()
+    ->setFillType(Fill::FILL_SOLID)
+    ->getStartColor()->setARGB('FF4CAF50');
+$headerStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+// Add data
+$sheet->setCellValue('A2', 'John Doe')
+      ->setCellValue('B2', 'john@example.com')
+      ->setCellValue('C2', 'Active');
+
+// Auto-size columns
+$sheet->getColumnDimension('A')->setAutoSize(true);
+$sheet->getColumnDimension('B')->setAutoSize(true);
+$sheet->getColumnDimension('C')->setAutoSize(true);
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('formatted.xlsx');
+
+echo "Formatted spreadsheet created!\n";
+```
+
+## Save to different formats
+
+PhpSpreadsheet can export to multiple formats.
+
+<CodeGroup>
+```php Excel 2007+ (.xlsx)
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('output.xlsx');
+```
+
+```php Excel 97-2003 (.xls)
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+
+$writer = new Xls($spreadsheet);
+$writer->save('output.xls');
+```
+
+```php OpenDocument (.ods)
+use PhpOffice\PhpSpreadsheet\Writer\Ods;
+
+$writer = new Ods($spreadsheet);
+$writer->save('output.ods');
+```
+
+```php CSV
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$writer = new Csv($spreadsheet);
+$writer->save('output.csv');
+```
+
+```php HTML
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$writer = new Html($spreadsheet);
+$writer->save('output.html');
+```
+
+```php PDF (requires mpdf/dompdf/tcpdf)
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+$writer = new Mpdf($spreadsheet);
+$writer->save('output.pdf');
+```
+</CodeGroup>
+
+<Warning>
+  PDF export requires installing an additional library. See the [installation guide](/installation#pdf-export-libraries) for details.
+</Warning>
+
+## Working with multiple sheets
+
+Create and manage multiple worksheets in a single workbook.
+
+```php multiple-sheets.php
+<?php
+require 'vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$spreadsheet = new Spreadsheet();
+
+// First sheet
+$sheet1 = $spreadsheet->getActiveSheet();
+$sheet1->setTitle('Sales');
+$sheet1->setCellValue('A1', 'Q1 Sales');
+$sheet1->setCellValue('A2', 1000);
+
+// Create second sheet
+$sheet2 = $spreadsheet->createSheet();
+$sheet2->setTitle('Expenses');
+$sheet2->setCellValue('A1', 'Q1 Expenses');
+$sheet2->setCellValue('A2', 500);
+
+// Create third sheet
+$sheet3 = $spreadsheet->createSheet();
+$sheet3->setTitle('Summary');
+$sheet3->setCellValue('A1', 'Profit');
+$sheet3->setCellValue('A2', '=Sales!A2-Expenses!A2');
+
+// Set first sheet as active
+$spreadsheet->setActiveSheetIndex(0);
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('multi-sheet.xlsx');
+
+echo "Multi-sheet spreadsheet created!\n";
+```
+
+## Common operations
+
+### Iterate through rows
+
+```php
+$sheet = $spreadsheet->getActiveSheet();
+
+foreach ($sheet->getRowIterator() as $row) {
+    $cellIterator = $row->getCellIterator();
+    $cellIterator->setIterateOnlyExistingCells(false);
+    
+    foreach ($cellIterator as $cell) {
+        echo $cell->getValue() . " ";
+    }
+    echo "\n";
+}
+```
+
+### Get highest row and column
+
+```php
+$highestRow = $sheet->getHighestRow();
+$highestColumn = $sheet->getHighestColumn();
+
+echo "Data range: A1:{$highestColumn}{$highestRow}\n";
+```
+
+### Set column width
+
+```php
+// Set specific width
+$sheet->getColumnDimension('A')->setWidth(20);
+
+// Auto-size
+$sheet->getColumnDimension('B')->setAutoSize(true);
+```
+
+### Set row height
+
+```php
+// Set specific height
+$sheet->getRowDimension(1)->setRowHeight(25);
+
+// Auto-fit
+$sheet->getRowDimension(2)->setRowHeight(-1);
+```
+
+## Best practices
+
+<Note>
+  **Memory management**: When working with large spreadsheets, consider using read filters or processing data in chunks to minimize memory usage.
+</Note>
+
+<Note>
+  **Dispose of objects**: After saving, you can free memory by calling `$spreadsheet->disconnectWorksheets();`
+</Note>
+
+<Note>
+  **Error handling**: Always wrap file operations in try-catch blocks to handle potential errors gracefully.
+</Note>
+
+```php
+try {
+    $spreadsheet = IOFactory::load('file.xlsx');
+    // Process spreadsheet
+} catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
+    echo "Error loading file: " . $e->getMessage();
+}
+```
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
+Now that you understand the basics, explore more advanced features:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Formulas" icon="function" href="/formulas">
+    Work with Excel formulas and calculations
+  </Card>
+  <Card title="Styling" icon="palette" href="/styling">
+    Advanced cell formatting and styles
+  </Card>
+  <Card title="Charts" icon="chart-line" href="/charts">
+    Create and manipulate charts
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference">
+    Detailed class and method documentation
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

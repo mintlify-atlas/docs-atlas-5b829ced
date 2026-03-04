@@ -1,0 +1,529 @@
+---
+title: Spreadsheet Writers
+description: Complete reference of available writers and their format-specific options
+---
+
+## Overview
+
+PhpSpreadsheet provides writers for various output formats. Each writer implements the `IWriter` interface and supports different features and options.
+
+## Writer Comparison
+
+| Format | Class | Charts | Formulas | Pre-calc | Formatting | Images |
+|--------|-------|:---:|:---:|:---:|:---:|:---:|
+| **Xlsx** | `Writer\Xlsx` | ✓ | ✓ | ✓ | Full | ✓ |
+| **Xls** | `Writer\Xls` | - | ✓ | - | Limited | ✓ |
+| **Ods** | `Writer\Ods` | - | ✓ | ✓ | Good | ✓ |
+| **Csv** | `Writer\Csv` | - | ✓ | ✓ | None | - |
+| **Html** | `Writer\Html` | ✓ | ✓ | ✓ | CSS | ✓ |
+| **Pdf** | `Writer\Pdf\*` | ✓ | ✓ | ✓ | CSS | ✓ |
+
+## Xlsx Writer
+
+**Format:** Office Open XML Spreadsheet (.xlsx)  
+**Class:** `PhpOffice\PhpSpreadsheet\Writer\Xlsx`
+
+The primary writer for modern Excel files with full feature support.
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('output.xlsx');
+```
+
+### Features
+
+- Complete formatting preservation
+- Formulas
+- Charts (when enabled)
+- Data validation
+- Conditional formatting
+- Images and drawings
+- Hyperlinks
+- Page setup
+- Multiple worksheets
+- Named ranges
+- Cell comments
+- Merged cells
+
+### Xlsx Options
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$writer = new Xlsx($spreadsheet);
+
+// Disable formula pre-calculation
+$writer->setPreCalculateFormulas(false);
+
+// Include charts
+$writer->setIncludeCharts(true);
+
+// Office 2003 compatibility mode
+$writer->setOffice2003Compatibility(true);
+
+// Restrict column widths to Excel UI limit (255)
+$writer->setRestrictMaxColumnWidth(true);
+
+// Enable disk caching for large files
+$writer->setUseDiskCaching(true, '/tmp/cache');
+
+$writer->save('output.xlsx');
+```
+
+### Formula Calculation Control
+
+```php
+// Since PhpSpreadsheet 4.0.0, control force full calculation
+$writer = new Xlsx($spreadsheet);
+$writer->setPreCalculateFormulas(false);
+$writer->setForceFullCalc(false); // Default is false
+$writer->save('output.xlsx');
+```
+
+<Note>
+  Prior to version 4.0.0, disabling pre-calculation could cause Excel to not auto-recalculate formulas. The `setForceFullCalc(false)` setting (now the default) prevents this issue.
+</Note>
+
+## Xls Writer
+
+**Format:** Excel Binary File Format (.xls)  
+**Class:** `PhpOffice\PhpSpreadsheet\Writer\Xls`
+
+Writes legacy Excel files for compatibility with Excel 97-2003.
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+
+$writer = new Xls($spreadsheet);
+$writer->save('output.xls');
+```
+
+### Features
+
+- Cell data and formulas
+- Basic formatting (fonts, colors, borders)
+- Multiple worksheets
+- Named ranges
+- Images
+
+### Limitations
+
+<Warning>
+  The Xls (BIFF) format has significant limitations:
+  - Maximum 65,536 rows (65K limit)
+  - Maximum 256 columns
+  - Limited styling options
+  - No chart support
+  - File size limitations
+  - Large spreadsheets may have performance issues
+</Warning>
+
+### When to Use Xls
+
+Only use Xls format when:
+- Compatibility with Excel 97-2003 is required
+- Target users don't have Excel 2007 or later
+- Working with legacy systems
+
+Otherwise, use Xlsx format for better features and performance.
+
+## Ods Writer
+
+**Format:** OpenDocument Spreadsheet (.ods)  
+**Class:** `PhpOffice\PhpSpreadsheet\Writer\Ods`
+
+Writes OpenOffice and LibreOffice Calc compatible files.
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Ods;
+
+$writer = new Ods($spreadsheet);
+$writer->save('output.ods');
+```
+
+### Ods Options
+
+```php
+$writer = new Ods($spreadsheet);
+$writer->setPreCalculateFormulas(false);
+$writer->save('output.ods');
+```
+
+## Csv Writer
+
+**Format:** Comma Separated Values (.csv)  
+**Class:** `PhpOffice\PhpSpreadsheet\Writer\Csv`
+
+Writes plain text CSV files. No formatting is preserved.
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$writer = new Csv($spreadsheet);
+$writer->save('output.csv');
+```
+
+### CSV Options
+
+```php
+$writer = new Csv($spreadsheet);
+
+// Set delimiter
+$writer->setDelimiter(';');
+
+// Set enclosure
+$writer->setEnclosure('"');
+
+// Control enclosure usage
+$writer->setEnclosureRequired(false); // Only when necessary
+
+// Set line ending
+$writer->setLineEnding("\r\n");
+
+// Set which sheet to export
+$writer->setSheetIndex(0);
+
+// Disable formula pre-calculation
+$writer->setPreCalculateFormulas(false);
+
+$writer->save('output.csv');
+```
+
+### UTF-8 with BOM
+
+Add BOM for Excel compatibility:
+
+```php
+$writer = new Csv($spreadsheet);
+$writer->setUseBOM(true);
+$writer->save('output.csv');
+```
+
+<Note>
+  Use BOM when the CSV contains non-ASCII characters or starts with "ID" to ensure Excel opens it correctly.
+</Note>
+
+### Output Encoding
+
+```php
+$writer = new Csv($spreadsheet);
+$writer->setUseBOM(false);
+$writer->setOutputEncoding('SJIS-WIN'); // Japanese Shift-JIS
+$writer->save('output.csv');
+```
+
+### Variable Columns
+
+Allow different column counts per row:
+
+```php
+$writer = new Csv($spreadsheet);
+$writer->setVariableColumns(true);
+$writer->save('output.csv');
+```
+
+## Html Writer
+
+**Format:** HTML (.html, .htm)  
+**Class:** `PhpOffice\PhpSpreadsheet\Writer\Html`
+
+Generates HTML tables with CSS styling.
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$writer = new Html($spreadsheet);
+$writer->save('output.html');
+```
+
+<Note>
+  By default, only the first worksheet is exported.
+</Note>
+
+### Html Options
+
+```php
+$writer = new Html($spreadsheet);
+
+// Write all worksheets
+$writer->writeAllSheets();
+
+// Or write specific sheet
+$writer->setSheetIndex(2);
+
+// Set images root URL
+$writer->setImagesRoot('https://example.com/images/');
+
+// Disable formula pre-calculation
+$writer->setPreCalculateFormulas(false);
+
+// Include charts
+$writer->setIncludeCharts(true);
+
+$writer->save('output.html');
+```
+
+### Generate HTML Parts
+
+Generate specific sections for embedding:
+
+```php
+$writer = new Html($spreadsheet);
+
+// Get individual parts
+$header = $writer->generateHTMLHeader();
+$styles = $writer->generateStyles(false); // false = no <style> tags
+$sheetData = $writer->generateSheetData();
+$footer = $writer->generateHTMLFooter();
+
+// Build custom HTML
+echo $header;
+echo '<style type="text/css">' . $styles . '</style>';
+echo '<div class="spreadsheet-container">';
+echo $sheetData;
+echo '</div>';
+echo $footer;
+```
+
+### Edit HTML Callback
+
+Modify generated HTML before saving:
+
+```php
+function customizeHtml(string $html): string
+{
+    // Change border style
+    $html = str_replace(
+        '{border: 1px solid black;}',
+        '{border: 2px dashed red;}',
+        $html
+    );
+    
+    // Add custom class
+    $html = str_replace('<table', '<table class="data-table"', $html);
+    
+    return $html;
+}
+
+$writer = new Html($spreadsheet);
+$writer->setEditHtmlCallback('customizeHtml');
+$writer->save('output.html');
+```
+
+### Embedding in Web Pages
+
+Generate only the sheet data for embedding:
+
+```php
+$writer = new Html($spreadsheet);
+
+// In your web page
+echo '<div class="spreadsheet">';
+echo $writer->generateSheetData();
+echo '</div>';
+
+// Include styles in your CSS
+echo '<style>' . $writer->generateStyles(false) . '</style>';
+```
+
+## Common Writer Methods
+
+All writers implement these methods from `IWriter`:
+
+```php
+// Pre-calculate formulas
+$writer->setPreCalculateFormulas(true);
+$isPreCalc = $writer->getPreCalculateFormulas();
+
+// Include charts
+$writer->setIncludeCharts(true);
+$includeCharts = $writer->getIncludeCharts();
+
+// Disk caching
+$writer->setUseDiskCaching(true, '/tmp/cache');
+$useDiskCache = $writer->getUseDiskCaching();
+$cacheDir = $writer->getDiskCachingDirectory();
+
+// Save
+$writer->save('output.xlsx');
+$writer->save('output.xlsx', $flags);
+```
+
+## Using Flags
+
+Writers support flags for common options:
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\IWriter;
+
+// Single flag
+$writer->save('output.xlsx', IWriter::SAVE_WITH_CHARTS);
+
+// Multiple flags
+$writer->save(
+    'output.xlsx',
+    IWriter::SAVE_WITH_CHARTS | IWriter::DISABLE_PRECALCULATE_FORMULAE
+);
+```
+
+## Number Formatting
+
+For CSV, HTML, and PDF exports, control number formatting:
+
+```php
+use PhpOffice\PhpSpreadsheet\Shared\StringHelper;
+
+// English format: 1,234.56
+StringHelper::setDecimalSeparator('.');
+StringHelper::setThousandsSeparator(',');
+
+// German format: 1.234,56
+StringHelper::setDecimalSeparator(',');
+StringHelper::setThousandsSeparator('.');
+
+// French format: 1 234,56
+StringHelper::setDecimalSeparator(',');
+StringHelper::setThousandsSeparator(' ');
+
+$writer = new Csv($spreadsheet);
+$writer->save('output.csv');
+```
+
+<Warning>
+  These are global settings that affect all CSV, HTML, and PDF writers.
+</Warning>
+
+## Streaming Output
+
+### Direct to Browser
+
+```php
+// Excel (Xlsx)
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment;filename="report.xlsx"');
+header('Cache-Control: max-age=0');
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('php://output');
+exit;
+```
+
+```php
+// CSV
+header('Content-Type: text/csv');
+header('Content-Disposition: attachment;filename="data.csv"');
+
+$writer = new Csv($spreadsheet);
+$writer->save('php://output');
+exit;
+```
+
+```php
+// HTML
+header('Content-Type: text/html; charset=utf-8');
+
+$writer = new Html($spreadsheet);
+$writer->save('php://output');
+exit;
+```
+
+### Capture to Variable
+
+```php
+ob_start();
+$writer->save('php://output');
+$content = ob_get_contents();
+ob_end_clean();
+
+// $content now contains the file data
+file_put_contents('/path/to/file.xlsx', $content);
+```
+
+## Registering Custom Writers
+
+Register your own writer implementation:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Writer\IWriter;
+
+class MyCustomWriter implements IWriter
+{
+    // Implement IWriter interface
+}
+
+IOFactory::registerWriter('Custom', MyCustomWriter::class);
+
+$writer = IOFactory::createWriter($spreadsheet, 'Custom');
+$writer->save('output.custom');
+```
+
+## Performance Optimization
+
+### Large Files
+
+For large spreadsheets:
+
+```php
+$writer = new Xlsx($spreadsheet);
+
+// Disable pre-calculation
+$writer->setPreCalculateFormulas(false);
+
+// Use disk caching
+$writer->setUseDiskCaching(true, sys_get_temp_dir());
+
+// Don't include charts if not needed
+$writer->setIncludeCharts(false);
+
+$writer->save('large-file.xlsx');
+```
+
+### Memory Management
+
+```php
+// After saving
+$writer->save('output.xlsx');
+
+// Free memory
+$spreadsheet->disconnectWorksheets();
+unset($spreadsheet, $writer);
+gc_collect_cycles();
+```
+
+## Best Practices
+
+<Card title="Format Selection">
+  - **Xlsx** - Use for modern Excel with all features
+  - **Xls** - Only for legacy Excel 97-2003 compatibility
+  - **Csv** - Simple data exchange, no formatting
+  - **Html** - Web display and email
+  - **Pdf** - Read-only distribution (see PDF Export page)
+  - **Ods** - OpenOffice/LibreOffice compatibility
+</Card>
+
+<Card title="Performance">
+  - Disable formula pre-calculation for large files
+  - Use disk caching for files > 50MB
+  - Only include charts when necessary
+  - Write CSV for fastest output
+</Card>
+
+<Card title="Compatibility">
+  - Test output files in target applications
+  - Use BOM for CSV with special characters
+  - Consider Office 2003 compatibility if needed
+  - Verify number formats for international users
+</Card>

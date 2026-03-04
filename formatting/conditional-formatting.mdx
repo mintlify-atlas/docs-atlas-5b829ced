@@ -1,0 +1,440 @@
+---
+title: Conditional Formatting
+description: Apply dynamic formatting based on cell values and conditions
+---
+
+## Overview
+
+Conditional formatting allows you to automatically change cell styling based on the cell's value or other conditions. PhpSpreadsheet supports both manual creation of conditional rules and wizard-based creation for easier development.
+
+## Basic Conditional Formatting
+
+Conditional formatting in PhpSpreadsheet follows this pattern:
+
+1. Create a `Conditional` object
+2. Set the condition type and operator
+3. Add condition values
+4. Define the style to apply
+5. Add to the cell or range
+
+### Simple Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Conditional;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+// Create conditional rule: highlight values > 80
+$conditional = new Conditional();
+$conditional->setConditionType(Conditional::CONDITION_CELLIS);
+$conditional->setOperatorType(Conditional::OPERATOR_GREATERTHAN);
+$conditional->addCondition(80);
+
+// Define style for matching cells
+$conditional->getStyle()->getFont()->getColor()->setARGB(Color::COLOR_DARKGREEN);
+$conditional->getStyle()->getFill()->setFillType(Fill::FILL_SOLID);
+$conditional->getStyle()->getFill()->getStartColor()->setARGB(Color::COLOR_GREEN);
+
+// Apply to range
+$conditionalStyles = $spreadsheet->getActiveSheet()->getStyle('A1:A10')->getConditionalStyles();
+$conditionalStyles[] = $conditional;
+$spreadsheet->getActiveSheet()->getStyle('A1:A10')->setConditionalStyles($conditionalStyles);
+```
+
+## Using Wizards (Recommended)
+
+Since PhpSpreadsheet 1.22.0, wizards provide an easier way to create conditional formatting rules:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\ConditionalFormatting\Wizard;
+
+// Create wizard factory
+$wizardFactory = new Wizard('A1:A10');
+$wizard = $wizardFactory->newRule(Wizard::CELL_VALUE);
+
+// Set condition
+$wizard->greaterThan(80);
+
+// Set style
+$wizard->getStyle()->getFont()->getColor()->setARGB(Color::COLOR_DARKGREEN);
+$wizard->getStyle()->getFill()->setFillType(Fill::FILL_SOLID);
+$wizard->getStyle()->getFill()->getStartColor()->setARGB(Color::COLOR_GREEN);
+
+// Get conditional and apply
+$conditional = $wizard->getConditional();
+```
+
+## Condition Types
+
+### Cell Value Conditions
+
+Compare cell values using various operators:
+
+<CodeGroup>
+```php Manual
+use PhpOffice\PhpSpreadsheet\Style\Conditional;
+
+$conditional = new Conditional();
+$conditional->setConditionType(Conditional::CONDITION_CELLIS);
+$conditional->setOperatorType(Conditional::OPERATOR_GREATERTHAN);
+$conditional->addCondition(100);
+```
+
+```php Wizard
+use PhpOffice\PhpSpreadsheet\Style\ConditionalFormatting\Wizard;
+
+$wizard = $wizardFactory->newRule(Wizard::CELL_VALUE);
+$wizard->greaterThan(100);
+```
+</CodeGroup>
+
+#### Available Operators
+
+```php
+// Using Wizard methods
+$wizard->equals($value);
+$wizard->notEquals($value);
+$wizard->greaterThan($value);
+$wizard->greaterThanOrEqual($value);
+$wizard->lessThan($value);
+$wizard->lessThanOrEqual($value);
+$wizard->between($min)->and($max);
+$wizard->notBetween($min)->and($max);
+```
+
+#### Value Types
+
+Values can be literals, cell references, or formulas:
+
+```php
+// Literal value
+$wizard->equals(100);
+
+// Cell reference
+$wizard->equals('$H$9', Wizard::VALUE_TYPE_CELL);
+
+// Relative cell reference
+$wizard->between('$B1', Wizard::VALUE_TYPE_CELL)
+    ->and('$C1', Wizard::VALUE_TYPE_CELL);
+
+// Formula
+$wizard->equals('CONCATENATE($A1," ",$B1)', Wizard::VALUE_TYPE_FORMULA);
+```
+
+### Text Conditions
+
+Check if cells contain, begin with, or end with specific text:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\ConditionalFormatting\Wizard;
+
+$wizard = $wizardFactory->newRule(Wizard::TEXT_VALUE);
+
+// Contains text
+$wizard->contains('LL')->setStyle($greenStyle);
+
+// Does not contain
+$wizard->doesNotContain('error')->setStyle($redStyle);
+
+// Begins with
+$wizard->beginsWith('A')->setStyle($blueStyle);
+// Alias: startsWith()
+
+// Ends with
+$wizard->endsWith('.pdf')->setStyle($yellowStyle);
+
+// With cell reference
+$wizard->contains('$D$1', Wizard::VALUE_TYPE_CELL)->setStyle($style);
+```
+
+### Date Conditions
+
+Highlight dates occurring in specific time periods:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\ConditionalFormatting\Wizard;
+
+$wizard = $wizardFactory->newRule(Wizard::DATES_OCCURRING);
+
+// Available date periods
+$wizard->today()->setStyle($style);
+$wizard->yesterday()->setStyle($style);
+$wizard->tomorrow()->setStyle($style);
+$wizard->last7Days()->setStyle($style);  // or lastSevenDays()
+$wizard->lastWeek()->setStyle($style);
+$wizard->thisWeek()->setStyle($style);
+$wizard->nextWeek()->setStyle($style);
+$wizard->lastMonth()->setStyle($style);
+$wizard->thisMonth()->setStyle($style);
+$wizard->nextMonth()->setStyle($style);
+```
+
+### Blank/Empty Cells
+
+Highlight blank or non-blank cells:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\ConditionalFormatting\Wizard;
+
+$wizard = $wizardFactory->newRule(Wizard::BLANKS);
+
+// Highlight blank cells
+$wizard->isBlank()->setStyle($redStyle);
+// Alias: isEmpty()
+
+// Highlight non-blank cells
+$wizard->notBlank()->setStyle($greenStyle);
+// Alias: notEmpty()
+
+// Switch between conditions
+$conditional1 = $wizard->isBlank()->getConditional();
+$conditional2 = $wizard->notBlank()->getConditional();
+```
+
+### Error Conditions
+
+Highlight cells with formula errors:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\ConditionalFormatting\Wizard;
+
+$wizard = $wizardFactory->newRule(Wizard::ERRORS);
+
+// Highlight errors
+$wizard->isError()->setStyle($redStyle);
+
+// Highlight non-errors
+$wizard->notError()->setStyle($greenStyle);
+```
+
+### Duplicate and Unique Values
+
+Highlight duplicate or unique values in a range:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\ConditionalFormatting\Wizard;
+
+$wizard = $wizardFactory->newRule(Wizard::DUPLICATES);
+
+// Highlight duplicates
+$wizard->duplicates()->setStyle($redStyle);
+
+// Highlight unique values
+$wizard->unique()->setStyle($greenStyle);
+```
+
+### Expression/Formula Conditions
+
+Use Excel formulas for complex conditions:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\ConditionalFormatting\Wizard;
+
+$wizard = $wizardFactory->newRule(Wizard::EXPRESSION);
+
+// Odd numbers
+$wizard->expression('ISODD(A1)')->setStyle($greenStyle);
+
+// Even numbers
+$wizard->expression('ISEVEN(A1)')->setStyle($yellowStyle);
+
+// Complex condition
+$wizard->expression('AND($C1="USA",$D1="Q4")')->setStyle($blueStyle);
+```
+
+<Note>
+When using formulas, reference the top-left cell of the range as `A1` (with appropriate pinning). PhpSpreadsheet adjusts relative references automatically.
+</Note>
+
+## Multiple Conditions
+
+Apply multiple conditional formatting rules to the same range:
+
+```php
+$cellRange = 'A2:E5';
+$conditionalStyles = [];
+$wizardFactory = new Wizard($cellRange);
+
+/** @var Wizard\CellValue $cellWizard */
+$cellWizard = $wizardFactory->newRule(Wizard::CELL_VALUE);
+
+// Condition 1: Highlight zeros
+$cellWizard->equals(0)->setStyle($yellowStyle);
+$conditionalStyles[] = $cellWizard->getConditional();
+
+// Condition 2: Highlight positive values
+$cellWizard->greaterThan(0)->setStyle($greenStyle);
+$conditionalStyles[] = $cellWizard->getConditional();
+
+// Condition 3: Highlight negative values
+$cellWizard->lessThan(0)->setStyle($redStyle);
+$conditionalStyles[] = $cellWizard->getConditional();
+
+// Apply all conditions
+$spreadsheet->getActiveSheet()
+    ->getStyle($cellWizard->getCellRange())
+    ->setConditionalStyles($conditionalStyles);
+```
+
+<Warning>
+**Rule Order Matters**: Conditions are evaluated in order. If a cell matches multiple conditions, Excel applies non-conflicting styles from each match. Most other spreadsheet programs apply only the first match.
+</Warning>
+
+## Stop If True
+
+Prevent further condition checks after a match:
+
+```php
+$conditional->setStopIfTrue(true);
+```
+
+## No Format Set
+
+Match a condition but don't apply any formatting (useful with Stop If True):
+
+```php
+$conditional->setNoFormatSet(true);
+```
+
+## Changing Cell Range
+
+Reuse the same wizard for multiple ranges:
+
+```php
+$wizard = $wizardFactory->newRule(Wizard::CELL_VALUE);
+$wizard->between('$B1', Wizard::VALUE_TYPE_CELL)
+    ->and('$C1', Wizard::VALUE_TYPE_CELL)
+    ->setStyle($greenStyle);
+
+// Apply to first range
+$wizard->setCellRange('A2:A10');
+$conditional1 = $wizard->getConditional();
+
+// Apply to second range
+$wizard->setCellRange('E2:E10');
+$conditional2 = $wizard->getConditional();
+```
+
+## Converting Conditional to Wizard
+
+Convert existing conditional objects back to wizards:
+
+```php
+// If you know the type
+$wizard = Wizard\CellValue::fromConditional($conditional, '$A$3:$E$8');
+$wizard->greaterThan(12.5);
+$newConditional = $wizard->getConditional();
+
+// If type is unknown, use factory
+$wizard = Wizard::fromConditional($conditional, '$A$3:$E$8');
+if ($wizard instanceof Wizard\CellValue) {
+    $wizard->greaterThan(12.5);
+    $newConditional = $wizard->getConditional();
+}
+```
+
+## Duplicating Conditional Styles
+
+Apply the same conditional formatting to multiple ranges:
+
+```php
+$conditionalStyles = $spreadsheet->getActiveSheet()
+    ->getStyle('B2')
+    ->getConditionalStyles();
+
+// Duplicate to another range
+$spreadsheet->getActiveSheet()->duplicateConditionalStyle(
+    $conditionalStyles,
+    'B3:B7'
+);
+```
+
+## Reader/Writer Support
+
+| Excel Feature | PhpSpreadsheet Constant | Xlsx Reader | Xlsx Writer | Html Writer |
+|---------------|-------------------------|:-----------:|:-----------:|:-----------:|
+| Cell Value | `CONDITION_CELLIS` | ✓ | ✓ | ✓ |
+| Specific Text | `CONDITION_CONTAINSTEXT` | ✓ | ✓ | ✓ |
+| | `CONDITION_NOTCONTAINSTEXT` | ✓ | ✓ | ✓ |
+| | `CONDITION_BEGINSWITH` | ✓ | ✓ | ✓ |
+| | `CONDITION_ENDSWITH` | ✓ | ✓ | ✓ |
+| Dates Occurring | `CONDITION_TIMEPERIOD` | ✓ | ✓ | ✓ |
+| Blanks | `CONDITION_CONTAINSBLANKS` | ✓ | ✓ | ✓ |
+| No Blanks | `CONDITION_NOTCONTAINSBLANKS` | ✓ | ✓ | ✓ |
+| Errors | `CONDITION_CONTAINSERRORS` | ✓ | ✓ | ✓ |
+| No Errors | `CONDITION_NOTCONTAINSERRORS` | ✓ | ✓ | ✓ |
+| Duplicates/Unique | `CONDITION_DUPLICATES` | ✓ | ✓ | ✓ |
+| | `CONDITION_UNIQUE` | ✓ | ✓ | ✓ |
+| Formula | `CONDITION_EXPRESSION` | ✓ | ✓ | ✓ |
+| Data Bars | `CONDITION_DATABAR` | ✓ | ✓ | ✓ |
+| Color Scales | `COLORSCALE` | ✓ | - | ✓ |
+
+### Enable Conditional Formatting for HTML
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html as HtmlWriter;
+
+$writer = new HtmlWriter($spreadsheet);
+$writer->setConditionalFormatting(true);
+```
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\ConditionalFormatting\Wizard;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Style;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Create data
+$sheet->fromArray(
+    [100, -50, 0, 250, -10],
+    null,
+    'A1'
+);
+
+// Create reusable styles
+$greenStyle = new Style();
+$greenStyle->getFont()->getColor()->setARGB(Color::COLOR_DARKGREEN);
+$greenStyle->getFill()->setFillType(Fill::FILL_SOLID);
+$greenStyle->getFill()->getStartColor()->setARGB(Color::COLOR_GREEN);
+
+$redStyle = new Style();
+$redStyle->getFont()->getColor()->setARGB(Color::COLOR_DARKRED);
+$redStyle->getFill()->setFillType(Fill::FILL_SOLID);
+$redStyle->getFill()->getStartColor()->setARGB(Color::COLOR_RED);
+
+// Create conditional formatting
+$cellRange = 'A1:A5';
+$conditionalStyles = [];
+$wizardFactory = new Wizard($cellRange);
+$cellWizard = $wizardFactory->newRule(Wizard::CELL_VALUE);
+
+// Positive values in green
+$cellWizard->greaterThan(0)->setStyle($greenStyle);
+$conditionalStyles[] = $cellWizard->getConditional();
+
+// Negative values in red
+$cellWizard->lessThan(0)->setStyle($redStyle);
+$conditionalStyles[] = $cellWizard->getConditional();
+
+// Apply
+$sheet->getStyle($cellRange)->setConditionalStyles($conditionalStyles);
+```
+
+## Best Practices
+
+<Tip>
+- **Use Wizards**: They handle complex formula construction and reduce errors
+- **Order matters**: Place more specific rules before general ones
+- **Test in Excel**: Verify conditional formatting displays correctly in target applications
+- **Use Stop If True**: For better performance when rules don't overlap
+- **Reuse styles**: Create Style objects once and reuse them across conditions
+</Tip>
+
+<Warning>
+Conditional formatting behavior can differ between Excel and other spreadsheet applications, particularly with multiple overlapping conditions.
+</Warning>

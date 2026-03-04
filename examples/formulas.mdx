@@ -1,0 +1,221 @@
+---
+title: 'Formula Examples'
+description: 'Learn how to use formulas and the calculation engine in PhpSpreadsheet'
+icon: 'calculator'
+---
+
+## Overview
+
+PhpSpreadsheet includes a powerful calculation engine that can evaluate Excel formulas. You can set formulas in cells and either let Excel recalculate them when the file is opened, or use PhpSpreadsheet's calculation engine to compute values immediately.
+
+## Basic Formulas
+
+Here's a simple example demonstrating common formulas like SUM, MIN, MAX, and AVERAGE:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add some data
+$sheet->setCellValue('A5', 'Sum:');
+
+$sheet->setCellValue('B1', 'Range #1')
+    ->setCellValue('B2', 3)
+    ->setCellValue('B3', 7)
+    ->setCellValue('B4', 13)
+    ->setCellValue('B5', '=SUM(B2:B4)');
+
+$sheet->setCellValue('C1', 'Range #2')
+    ->setCellValue('C2', 5)
+    ->setCellValue('C3', 11)
+    ->setCellValue('C4', 17)
+    ->setCellValue('C5', '=SUM(C2:C4)');
+
+// Combine both ranges
+$sheet->setCellValue('A7', 'Total of both ranges:')
+    ->setCellValue('B7', '=SUM(B5:C5)');
+
+$sheet->setCellValue('A8', 'Minimum of both ranges:')
+    ->setCellValue('B8', '=MIN(B2:C4)');
+
+$sheet->setCellValue('A9', 'Maximum of both ranges:')
+    ->setCellValue('B9', '=MAX(B2:C4)');
+
+$sheet->setCellValue('A10', 'Average of both ranges:')
+    ->setCellValue('B10', '=AVERAGE(B2:C4)');
+```
+
+### Getting Calculated Values
+
+You can retrieve the calculated result of a formula using the calculation engine:
+
+```php
+// Get the calculated value as a string
+$sum = $sheet->getCell('B5')->getCalculatedValueString();
+echo "Sum of Range #1 is {$sum}\n"; // Output: Sum of Range #1 is 23
+
+$average = $sheet->getCell('B10')->getCalculatedValueString();
+echo "Average value is {$average}\n"; // Output: Average value is 11.5
+```
+
+## Statistical Functions
+
+PhpSpreadsheet supports a wide range of statistical functions:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add data with mixed types (numbers, booleans, strings)
+$sheet->setCellValue('B1', 'Range 1')
+    ->setCellValue('B2', 2)
+    ->setCellValue('B3', 8)
+    ->setCellValue('B4', 10)
+    ->setCellValue('B5', true)
+    ->setCellValue('B6', false)
+    ->setCellValue('B7', 'Text String')
+    ->setCellValue('B9', '22')
+    ->setCellValue('B10', 4)
+    ->setCellValue('B11', 6)
+    ->setCellValue('B12', 12);
+
+// COUNT functions
+$sheet->setCellValue('A14', 'Count:')
+    ->setCellValue('B14', '=COUNT(B2:B12)'); // Counts only numbers
+
+$sheet->setCellValue('A22', 'CountA:')
+    ->setCellValue('B22', '=COUNTA(B2:B12)'); // Counts non-empty cells
+
+// Statistical measures
+$sheet->setCellValue('A15', 'Sum:')
+    ->setCellValue('B15', '=SUM(B2:B12)');
+
+$sheet->setCellValue('A16', 'Max:')
+    ->setCellValue('B16', '=MAX(B2:B12)');
+
+$sheet->setCellValue('A17', 'Min:')
+    ->setCellValue('B17', '=MIN(B2:B12)');
+
+$sheet->setCellValue('A18', 'Average:')
+    ->setCellValue('B18', '=AVERAGE(B2:B12)');
+
+$sheet->setCellValue('A19', 'Median:')
+    ->setCellValue('B19', '=MEDIAN(B2:B12)');
+
+$sheet->setCellValue('A20', 'Mode:')
+    ->setCellValue('B20', '=MODE(B2:B12)');
+
+// Standard deviation
+$sheet->setCellValue('A26', 'StDev:')
+    ->setCellValue('B26', '=STDEV(B2:B12)');
+
+$sheet->setCellValue('A27', 'StDevA:')
+    ->setCellValue('B27', '=STDEVA(B2:B12)');
+
+$sheet->setCellValue('A28', 'StDevP:')
+    ->setCellValue('B28', '=STDEVP(B2:B12)');
+
+// Variance
+$sheet->setCellValue('A31', 'DevSq:')
+    ->setCellValue('B31', '=DEVSQ(B2:B12)');
+
+$sheet->setCellValue('A32', 'Var:')
+    ->setCellValue('B32', '=VAR(B2:B12)');
+
+$sheet->setCellValue('A34', 'VarP:')
+    ->setCellValue('B34', '=VARP(B2:B12)');
+```
+
+## Date Functions
+
+PhpSpreadsheet supports Excel's date and time functions:
+
+```php
+// Date functions
+$sheet->setCellValue('A37', 'Date:')
+    ->setCellValue('B37', '=DATE(2007, 12, 21)');
+
+$sheet->setCellValue('B38', '=DATEDIF(DATE(2007, 12, 21), DATE(2007, 12, 22), "D")');
+
+$sheet->setCellValue('B39', '=DATEVALUE("01-Feb-2006 10:06 AM")');
+
+$sheet->setCellValue('B40', '=DAY(DATE(2006, 1, 2))');
+
+$sheet->setCellValue('B41', '=DAYS360(DATE(2002, 2, 3), DATE(2005, 5, 31))');
+```
+
+## Math and String Operations
+
+You can combine mathematical operations with string concatenation:
+
+```php
+$sheet->setCellValue('D2', 2)
+    ->setCellValue('D3', 3)
+    ->setCellValue('D4', 4);
+
+// Formula: ((D2 * D3) + D4) & " should be 10"
+$sheet->setCellValue('D14', '=((D2 * D3) + D4) & " should be 10"');
+// Result: "10 should be 10"
+```
+
+## Random Number Functions
+
+```php
+$sheet->setCellValue('E14', '=PI()'); // 3.14159265358979
+
+$sheet->setCellValue('E15', '=RAND()'); // Random between 0 and 1
+
+$sheet->setCellValue('E16', '=RANDBETWEEN(5, 10)'); // Random integer between 5 and 10
+```
+
+## Checking Available Functions
+
+You can get a list of all implemented functions:
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+$calc = Calculation::getInstance();
+$functions = $calc->getImplementedFunctionNames();
+print_r($functions);
+```
+
+## Pre-Calculating Formulas
+
+By default, PhpSpreadsheet does not pre-calculate formulas when saving files. Excel will recalculate them when opening the file. If you need pre-calculated values:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+
+// Enable pre-calculation (adds time and memory overhead)
+$writer->setPreCalculateFormulas(true);
+
+$writer->save('formulas.xlsx');
+```
+
+<Warning>
+  Pre-calculating formulas can cause issues with array formulas and functions not yet supported by PhpSpreadsheet's calculation engine. Only enable this if you specifically need pre-calculated values in the saved file.
+</Warning>
+
+## Expected Output
+
+When you run the basic formulas example:
+
+- Cell B5: `23` (sum of 3+7+13)
+- Cell C5: `33` (sum of 5+11+17)
+- Cell B7: `56` (sum of both ranges)
+- Cell B8: `3` (minimum value)
+- Cell B9: `17` (maximum value)
+- Cell B10: `11.5` (average value)
+
+## Related Topics
+
+- [Calculation Engine](/topics/calculation-engine)
+- [Cell Values](/topics/accessing-cells)
+- [Date and Time Values](/topics/dates-and-times)

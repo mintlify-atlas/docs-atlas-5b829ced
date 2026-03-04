@@ -1,0 +1,251 @@
+---
+title: 'Calculation Engine'
+description: 'Learn how PhpSpreadsheet evaluates formulas, handles calculation caching, and works with date/time values'
+---
+
+## Overview
+
+PhpSpreadsheet includes a powerful calculation engine that can evaluate Excel formulas. As PhpSpreadsheet represents an in-memory spreadsheet, it offers formula calculation capabilities that mirror Excel's behavior.
+
+## Basic Formula Evaluation
+
+### Getting Calculated Values
+
+When you have a formula in a cell, you can retrieve its calculated value:
+
+```php
+$spreadsheet->getActiveSheet()->getCell('E11')->getCalculatedValue();
+```
+
+Calling `getValue()` on a cell containing a formula returns the formula itself, while `getCalculatedValue()` evaluates the formula and returns the result.
+
+### Checking if a Cell Contains a Formula
+
+You can determine whether a cell contains a formula:
+
+```php
+$spreadsheet->getActiveSheet()->getCell('E11')->isFormula();
+```
+
+This returns a boolean value indicating whether the cell contains a formula.
+
+## Writing Formulas
+
+### Formula Syntax Rules
+
+When writing formulas to cells, they must follow these rules:
+
+- Decimal separator is `.` (period)
+- Function argument separator is `,` (comma)
+- Matrix row separator is `;` (semicolon)
+- English function names must be used
+- Formulas must start with `=`
+
+```php
+$spreadsheet->getActiveSheet()->setCellValue('B8', '=IF(C4>500,"profit","loss")');
+```
+
+### Dynamic Formula Adjustment
+
+PhpSpreadsheet automatically adjusts formulas when inserting or removing rows/columns:
+
+```php
+// Original formula in E11: =SUM(E4:E9)
+$spreadsheet->getActiveSheet()->insertNewRowBefore(7, 2);
+// Formula in E13 is now: =SUM(E4:E11)
+```
+
+### Cell Anchoring
+
+Use `$` to anchor cell references:
+
+```php
+// =SUM(E$4:E9) - Row 4 is anchored
+// After inserting rows after row 1, becomes: =SUM(E$4:E11)
+```
+
+## Calculation Cache
+
+### How Caching Works
+
+Once the calculation engine evaluates a formula, the result is cached. Subsequent calls to `getCalculatedValue()` for the same cell return the cached result without re-evaluation.
+
+### Managing the Cache
+
+Disable calculation caching:
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+Calculation::getInstance($spreadsheet)->disableCalculationCache();
+```
+
+Clear the cache without disabling it:
+
+```php
+Calculation::getInstance($spreadsheet)->clearCalculationCache();
+```
+
+## Date and Time Functions
+
+### Return Date Types
+
+Date functions can return values in different formats:
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Functions;
+
+// Set return type to PHP timestamp
+Functions::setReturnDateType(Functions::RETURNDATE_PHP_NUMERIC);
+
+// Set return type to PHP DateTime object
+Functions::setReturnDateType(Functions::RETURNDATE_PHP_OBJECT);
+
+// Set return type to Excel timestamp
+Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
+```
+
+The default is `RETURNDATE_PHP_NUMERIC`.
+
+### Excel Timestamps
+
+Excel timestamps are stored as floating-point numbers:
+- Integer portion = number of days since base date
+- Fraction = time of day (0 = midnight, 0.5 = noon)
+
+<Tip>
+Excel uses the Windows 1900 calendar (base date: January 1, 1900) or Mac 1904 calendar (base date: January 1, 1904).
+</Tip>
+
+### Setting the Excel Calendar
+
+```php
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+
+// Set to Windows 1900 calendar (default)
+$spreadsheet->setExcelCalendar(Date::CALENDAR_WINDOWS_1900);
+
+// Set to Mac 1904 calendar
+$spreadsheet->setExcelCalendar(Date::CALENDAR_MAC_1904);
+```
+
+### Helper Methods
+
+Convert between Excel and PHP date formats:
+
+```php
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+
+// Excel to PHP timestamp
+$timestamp = Date::excelToTimestamp($excelDate);
+
+// Excel to DateTime object
+$dateTime = Date::excelToDateTimeObject($excelDate);
+
+// PHP to Excel timestamp
+$excelDate = Date::PHPToExcel($phpDate);
+
+// Formatted values to Excel
+$excelDate = Date::formattedPHPToExcel($year, $month, $day, $hours, $minutes, $seconds);
+```
+
+## Database Functions
+
+PhpSpreadsheet supports Excel's database functions like DAVERAGE, DCOUNT, DSUM, etc.
+
+### DAVERAGE Example
+
+```php
+$database = [
+    ['Tree',  'Height', 'Age', 'Yield', 'Profit'],
+    ['Apple',  18,       20,    14,      105.00],
+    ['Pear',   12,       12,    10,       96.00],
+    ['Cherry', 13,       14,     9,      105.00],
+    ['Apple',  14,       15,    10,       75.00],
+    ['Pear',    9,        8,     8,       76.80],
+    ['Apple',   8,        9,     6,       45.00],
+];
+
+$criteria = [
+    ['Tree',      'Height'],
+    ['="=Apple"', '>10'],
+    ['="=Pear"',  null],
+];
+
+$worksheet->fromArray($criteria, null, 'A1');
+$worksheet->fromArray($database, null, 'A4');
+$worksheet->setCellValue('A12', '=DAVERAGE(A4:E10,"Yield",A1:B2)');
+
+$result = $worksheet->getCell('A12')->getCalculatedValue();
+// Result: 12
+```
+
+## Supported Functions
+
+### Function Categories
+
+PhpSpreadsheet supports functions in these categories:
+
+- Database Functions (DAVERAGE, DCOUNT, DGET, DMAX, DMIN, etc.)
+- Date and Time Functions (DATE, DATEVALUE, DAY, HOUR, MINUTE, etc.)
+- Engineering Functions
+- Financial Functions
+- Logical Functions (IF, AND, OR, NOT, etc.)
+- Lookup and Reference Functions (VLOOKUP, HLOOKUP, INDEX, MATCH, etc.)
+- Math and Trigonometry Functions (SUM, AVERAGE, ROUND, etc.)
+- Statistical Functions
+- Text Functions (CONCATENATE, LEFT, RIGHT, MID, etc.)
+
+<Note>
+For a complete list of supported functions, see the [function list by name](https://github.com/PHPOffice/PhpSpreadsheet/blob/master/docs/references/function-list-by-name.md) in the source documentation.
+</Note>
+
+## Known Limitations
+
+### Operator Precedence
+
+In Excel, `+` wins over `&`, just like `*` wins over `+`. PhpSpreadsheet's calculation engine may not follow this precedence exactly.
+
+### Formulas with Mixed Types
+
+Formulas involving numbers and text may produce unexpected results due to PHP's type coercion:
+
+```php
+// In Excel: #VALUE! error
+// In PhpSpreadsheet: 3 (because PHP converts "Hello " to 0)
+$result = $worksheet->getCell('A1')->setValue('=3+"Hello "')->getCalculatedValue();
+```
+
+### Array Arguments
+
+While most Excel function implementations support array arguments, some functions may not handle arrays correctly and may return a single value or a `#VALUE!` error.
+
+### Precision As Displayed (PAD)
+
+Precision As Displayed is not supported and there are no plans to support it.
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Calculation Cache Wisely">
+    Leave caching enabled for better performance. Only disable or clear the cache when you've changed underlying data and need to re-evaluate formulas.
+  </Accordion>
+  
+  <Accordion title="Follow Excel Formula Syntax">
+    Always use English function names and Excel's standard format. PhpSpreadsheet handles all formulas internally in this format.
+  </Accordion>
+  
+  <Accordion title="Be Careful with Date Functions">
+    Remember that date functions work with UST (Universal Standard Time) and don't perform internal timezone conversions.
+  </Accordion>
+  
+  <Accordion title="Test Formula Results">
+    Due to differences between Excel and PHP, always test your formulas to ensure they produce expected results.
+  </Accordion>
+</AccordionGroup>
+
+## Related Topics
+
+- [Array Formulas](/essentials/formulas#array-formulas)
+- [Locale Settings for Formulas](/essentials/formulas#locale-settings)
+- [Writing Formulas](/essentials/formulas#writing-formulas)

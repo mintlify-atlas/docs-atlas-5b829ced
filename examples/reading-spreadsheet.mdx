@@ -1,0 +1,202 @@
+---
+title: 'Reading Spreadsheets'
+description: 'Learn how to read and load existing spreadsheet files'
+---
+
+## Reading a Spreadsheet with IOFactory
+
+The simplest way to read a spreadsheet is using `IOFactory::load()`, which automatically detects the file format:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+require 'vendor/autoload.php';
+
+$inputFileName = 'example.xlsx';
+
+// Load the file - IOFactory automatically detects the format
+$spreadsheet = IOFactory::load($inputFileName);
+
+// Get data from the active sheet as an array
+$sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+// Display the data
+print_r($sheetData);
+```
+
+## What This Code Does
+
+1. **Auto-detects format**: `IOFactory::load()` identifies whether the file is XLSX, XLS, ODS, CSV, etc.
+2. **Loads the spreadsheet**: Reads the entire file into memory
+3. **Converts to array**: `toArray()` extracts all cell data as a PHP array
+4. **Array format**: Returns data indexed by column letters and row numbers (e.g., `['A' => [1 => 'value']]`)
+
+## Reading Specific File Formats
+
+<CodeGroup>
+
+```php XLSX Format
+<?php
+
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+
+require 'vendor/autoload.php';
+
+$reader = new Xlsx();
+$spreadsheet = $reader->load('example.xlsx');
+```
+
+```php XLS Format
+<?php
+
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+
+require 'vendor/autoload.php';
+
+$reader = new Xls();
+$spreadsheet = $reader->load('example.xls');
+```
+
+```php ODS Format
+<?php
+
+use PhpOffice\PhpSpreadsheet\Reader\Ods;
+
+require 'vendor/autoload.php';
+
+$reader = new Ods();
+$spreadsheet = $reader->load('example.ods');
+```
+
+```php CSV Format
+<?php
+
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+
+require 'vendor/autoload.php';
+
+$reader = new Csv();
+$spreadsheet = $reader->load('example.csv');
+```
+
+</CodeGroup>
+
+## Reading Only Data (No Formatting)
+
+For better performance, you can read only the cell values without loading formatting, styles, or other metadata:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+require 'vendor/autoload.php';
+
+$inputFileName = 'example.xlsx';
+
+// Create reader and set to read data only
+$reader = IOFactory::createReader('Xlsx');
+$reader->setReadDataOnly(true);
+
+// Load the spreadsheet
+$spreadsheet = $reader->load($inputFileName);
+```
+
+## Accessing Cell Data
+
+Once you've loaded a spreadsheet, you can access cell data in multiple ways:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = IOFactory::load('example.xlsx');
+$sheet = $spreadsheet->getActiveSheet();
+
+// Get a single cell value
+$value = $sheet->getCell('A1')->getValue();
+echo "Cell A1: " . $value . "\n";
+
+// Get calculated value (if cell contains a formula)
+$calculatedValue = $sheet->getCell('B5')->getCalculatedValue();
+echo "Cell B5 calculated: " . $calculatedValue . "\n";
+
+// Get all data as array
+$allData = $sheet->toArray();
+
+// Iterate through rows
+foreach ($sheet->getRowIterator() as $row) {
+    $cellIterator = $row->getCellIterator();
+    $cellIterator->setIterateOnlyExistingCells(false);
+    
+    foreach ($cellIterator as $cell) {
+        echo $cell->getCoordinate() . ": " . $cell->getValue() . "\n";
+    }
+}
+```
+
+## Reading Multiple Worksheets
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = IOFactory::load('example.xlsx');
+
+// Get all worksheet names
+$worksheetNames = $spreadsheet->getSheetNames();
+
+echo "Worksheets in this file:\n";
+foreach ($worksheetNames as $name) {
+    echo "- " . $name . "\n";
+}
+
+// Access specific worksheet by name
+$sheet = $spreadsheet->getSheetByName('Sheet2');
+
+// Or by index (0-based)
+$firstSheet = $spreadsheet->getSheet(0);
+
+// Get data from specific sheet
+$sheetData = $sheet->toArray();
+```
+
+## Error Handling
+
+Always wrap file operations in try-catch blocks:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
+
+require 'vendor/autoload.php';
+
+$inputFileName = 'example.xlsx';
+
+try {
+    $spreadsheet = IOFactory::load($inputFileName);
+    echo "File loaded successfully!\n";
+} catch (ReaderException $e) {
+    echo "Error loading file: " . $e->getMessage();
+} catch (\Exception $e) {
+    echo "Unexpected error: " . $e->getMessage();
+}
+```
+
+## Key Takeaways
+
+- Use `IOFactory::load()` for automatic format detection
+- Use specific reader classes for better control over file loading
+- Enable `setReadDataOnly(true)` for faster loading when you don't need formatting
+- Use `toArray()` to get all data at once or iterators for row-by-row processing
+- Always wrap file operations in try-catch blocks

@@ -1,0 +1,523 @@
+---
+title: 'Data Validation'
+description: 'Setting up data validation rules, dropdown lists, and input restrictions in PhpSpreadsheet'
+---
+
+## Overview
+
+Data validation controls what users can enter into cells, helping prevent errors and standardize data entry. PhpSpreadsheet supports all Excel data validation types including dropdown lists, number ranges, date restrictions, and custom formulas.
+
+## Creating Data Validation
+
+### Basic Setup
+
+Get the data validation object for a cell and configure its properties:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+
+$worksheet->setCellValue('B3', 10);
+
+$validation = $worksheet->getCell('B3')->getDataValidation();
+$validation->setType(DataValidation::TYPE_WHOLE);
+$validation->setErrorStyle(DataValidation::STYLE_STOP);
+$validation->setAllowBlank(true);
+$validation->setShowInputMessage(true);
+$validation->setShowErrorMessage(true);
+$validation->setErrorTitle('Input error');
+$validation->setError('Only numbers between 10 and 20 are allowed!');
+$validation->setPromptTitle('Allowed input');
+$validation->setPrompt('Only numbers between 10 and 20 are allowed.');
+$validation->setFormula1('10');  // Minimum
+$validation->setFormula2('20');  // Maximum
+```
+
+## Validation Types
+
+### TYPE_NONE
+
+Removes validation from a cell:
+
+```php
+$validation->setType(DataValidation::TYPE_NONE);
+```
+
+### TYPE_WHOLE
+
+Accepts only whole numbers (integers):
+
+<CodeGroup>
+
+```php Between Two Values
+$validation->setType(DataValidation::TYPE_WHOLE);
+$validation->setOperator(DataValidation::OPERATOR_BETWEEN);
+$validation->setFormula1('1');    // Minimum
+$validation->setFormula2('100');  // Maximum
+```
+
+```php Greater Than
+$validation->setType(DataValidation::TYPE_WHOLE);
+$validation->setOperator(DataValidation::OPERATOR_GREATERTHAN);
+$validation->setFormula1('0');  // Must be greater than 0
+```
+
+```php Less Than or Equal
+$validation->setType(DataValidation::TYPE_WHOLE);
+$validation->setOperator(DataValidation::OPERATOR_LESSTHANOREQUAL);
+$validation->setFormula1('1000');
+```
+
+```php Equal To
+$validation->setType(DataValidation::TYPE_WHOLE);
+$validation->setOperator(DataValidation::OPERATOR_EQUAL);
+$validation->setFormula1('42');
+```
+
+</CodeGroup>
+
+### TYPE_DECIMAL
+
+Accepts decimal numbers:
+
+```php
+$validation->setType(DataValidation::TYPE_DECIMAL);
+$validation->setOperator(DataValidation::OPERATOR_BETWEEN);
+$validation->setFormula1('0');
+$validation->setFormula2('1');
+$validation->setPrompt('Enter a number between 0 and 1');
+```
+
+### TYPE_LIST
+
+Creates a dropdown list:
+
+<Tabs>
+  <Tab title="Comma-Separated List">
+    ```php
+    $validation->setType(DataValidation::TYPE_LIST);
+    $validation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+    $validation->setAllowBlank(false);
+    $validation->setShowDropDown(true);
+    $validation->setShowInputMessage(true);
+    $validation->setShowErrorMessage(true);
+    $validation->setErrorTitle('Input error');
+    $validation->setError('Value is not in list.');
+    $validation->setPromptTitle('Pick from list');
+    $validation->setPrompt('Please pick a value from the drop-down list.');
+    
+    // IMPORTANT: Wrap the list in quotes
+    $validation->setFormula1('"Item A,Item B,Item C"');
+    ```
+  </Tab>
+  <Tab title="Cell Range">
+    ```php
+    // First, set up the list values in cells
+    $worksheet->setCellValue('D2', 'Item #1');
+    $worksheet->setCellValue('D3', 'Item #2');
+    $worksheet->setCellValue('D4', 'Item #3');
+    $worksheet->setCellValue('D5', 'Item #4');
+    $worksheet->setCellValue('D6', 'Item #5');
+    
+    // Reference the range (no quotes!)
+    $validation->setType(DataValidation::TYPE_LIST);
+    $validation->setShowDropDown(true);
+    $validation->setFormula1('$D$2:$D$6');
+    ```
+  </Tab>
+  <Tab title="Named Range">
+    ```php
+    use PhpOffice\PhpSpreadsheet\NamedRange;
+    
+    // Create named range
+    $spreadsheet->addNamedRange(
+        new NamedRange('StatusList', $worksheet, '=$D$2:$D$6')
+    );
+    
+    // Use in validation
+    $validation->setType(DataValidation::TYPE_LIST);
+    $validation->setShowDropDown(true);
+    $validation->setFormula1('StatusList');
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+When using a comma-separated list, you **must** wrap it in quotes: `'"Item A,Item B,Item C"'`
+
+When using a cell range or named range, do **not** use quotes: `'$D$2:$D$6'`
+</Warning>
+
+### TYPE_DATE
+
+Restricts input to dates:
+
+```php
+$validation->setType(DataValidation::TYPE_DATE);
+$validation->setOperator(DataValidation::OPERATOR_BETWEEN);
+$validation->setFormula1('2024-01-01');
+$validation->setFormula2('2024-12-31');
+$validation->setErrorTitle('Invalid Date');
+$validation->setError('Please enter a date in 2024.');
+```
+
+### TYPE_TIME
+
+Restricts input to times:
+
+```php
+$validation->setType(DataValidation::TYPE_TIME);
+$validation->setOperator(DataValidation::OPERATOR_BETWEEN);
+$validation->setFormula1('09:00');
+$validation->setFormula2('17:00');
+$validation->setPrompt('Enter a time between 9 AM and 5 PM.');
+```
+
+### TYPE_TEXTLENGTH
+
+Validates the length of text:
+
+```php
+$validation->setType(DataValidation::TYPE_TEXTLENGTH);
+$validation->setOperator(DataValidation::OPERATOR_LESSTHANOREQUAL);
+$validation->setFormula1('10');
+$validation->setError('Text must be 10 characters or less.');
+```
+
+### TYPE_CUSTOM
+
+Uses a formula for validation:
+
+```php
+// Validate that cell is unique in column
+$validation->setType(DataValidation::TYPE_CUSTOM);
+$validation->setFormula1('=COUNTIF($A:$A,A1)=1');
+$validation->setError('Value must be unique in this column.');
+
+// Validate that cell starts with specific text
+$validation->setType(DataValidation::TYPE_CUSTOM);
+$validation->setFormula1('=LEFT(A1,3)="SKU"');
+$validation->setError('Value must start with "SKU".');
+```
+
+## Validation Operators
+
+Operators determine how formula values are compared:
+
+| Constant | Description | Formulas Used |
+|----------|-------------|---------------|
+| `OPERATOR_BETWEEN` | Between two values | Formula1 (min), Formula2 (max) |
+| `OPERATOR_NOTBETWEEN` | Not between two values | Formula1 (min), Formula2 (max) |
+| `OPERATOR_EQUAL` | Equal to | Formula1 |
+| `OPERATOR_NOTEQUAL` | Not equal to | Formula1 |
+| `OPERATOR_GREATERTHAN` | Greater than | Formula1 |
+| `OPERATOR_GREATERTHANOREQUAL` | Greater than or equal to | Formula1 |
+| `OPERATOR_LESSTHAN` | Less than | Formula1 |
+| `OPERATOR_LESSTHANOREQUAL` | Less than or equal to | Formula1 |
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+
+$validation->setOperator(DataValidation::OPERATOR_GREATERTHANOREQUAL);
+```
+
+## Error Styles
+
+Control how Excel responds to invalid input:
+
+<CardGroup cols={3}>
+  <Card title="STYLE_STOP" icon="octagon">
+    Prevents invalid input (user must correct it)
+    ```php
+    $validation->setErrorStyle(
+        DataValidation::STYLE_STOP
+    );
+    ```
+  </Card>
+  <Card title="STYLE_WARNING" icon="triangle-exclamation">
+    Warns but allows invalid input
+    ```php
+    $validation->setErrorStyle(
+        DataValidation::STYLE_WARNING
+    );
+    ```
+  </Card>
+  <Card title="STYLE_INFORMATION" icon="circle-info">
+    Shows info message, allows invalid input
+    ```php
+    $validation->setErrorStyle(
+        DataValidation::STYLE_INFORMATION
+    );
+    ```
+  </Card>
+</CardGroup>
+
+## Messages
+
+### Input Message
+
+Shown when the cell is selected:
+
+```php
+$validation->setShowInputMessage(true);
+$validation->setPromptTitle('Enter Your Age');
+$validation->setPrompt('Please enter your age as a whole number.');
+```
+
+### Error Message
+
+Shown when invalid data is entered:
+
+```php
+$validation->setShowErrorMessage(true);
+$validation->setErrorTitle('Invalid Input');
+$validation->setError('The value you entered is not valid. Please try again.');
+```
+
+## Additional Options
+
+### Allow Blank Cells
+
+```php
+// Allow empty cells
+$validation->setAllowBlank(true);
+
+// Require a value
+$validation->setAllowBlank(false);
+```
+
+### Show Dropdown Arrow
+
+For list validations, control whether the dropdown arrow is visible:
+
+```php
+// Show the dropdown arrow (default for TYPE_LIST)
+$validation->setShowDropDown(true);
+
+// Hide the dropdown arrow
+$validation->setShowDropDown(false);
+```
+
+## Applying Validation to Ranges
+
+Apply the same validation to multiple cells:
+
+```php
+// Set validation on first cell
+$validation = $worksheet->getCell('A1')->getDataValidation();
+$validation->setType(DataValidation::TYPE_WHOLE);
+$validation->setFormula1('1');
+$validation->setFormula2('100');
+
+// Copy to other cells
+for ($row = 2; $row <= 10; $row++) {
+    $worksheet->getCell("A{$row}")
+        ->setDataValidation(clone $validation);
+}
+```
+
+Or use the worksheet method:
+
+```php
+$validation = new DataValidation();
+$validation->setType(DataValidation::TYPE_LIST);
+$validation->setFormula1('"Yes,No,Maybe"');
+
+// Apply to range
+$worksheet->setDataValidation('B2:B100', $validation);
+```
+
+## Checking Validation
+
+### Check if Cell Has Validation
+
+```php
+if ($cell->hasDataValidation()) {
+    $validation = $cell->getDataValidation();
+    echo "Type: " . $validation->getType();
+}
+```
+
+### Validate Cell Value
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataValidator;
+
+$cell = $worksheet->getCell('B3');
+
+if ($cell->hasValidValue()) {
+    echo "Cell value is valid";
+} else {
+    echo "Cell value is invalid";
+}
+
+// Or use DataValidator directly
+$validator = new DataValidator();
+if ($validator->isValid($cell)) {
+    echo "Valid";
+}
+```
+
+## Practical Examples
+
+### Email Validation
+
+```php
+$validation = $worksheet->getCell('A1')->getDataValidation();
+$validation->setType(DataValidation::TYPE_CUSTOM);
+$validation->setFormula1('=AND(FIND("@",A1)>0, FIND(".",A1)>FIND("@",A1))');
+$validation->setErrorStyle(DataValidation::STYLE_STOP);
+$validation->setError('Please enter a valid email address.');
+```
+
+### Dependent Dropdowns
+
+```php
+// First dropdown: Category
+$worksheet->setCellValue('E2', 'Fruit');
+$worksheet->setCellValue('E3', 'Vegetable');
+
+$validation1 = $worksheet->getCell('A1')->getDataValidation();
+$validation1->setType(DataValidation::TYPE_LIST);
+$validation1->setFormula1('$E$2:$E$3');
+
+// Second dropdown: depends on first
+$worksheet->setCellValue('F2', 'Apple');
+$worksheet->setCellValue('F3', 'Banana');
+$worksheet->setCellValue('G2', 'Carrot');
+$worksheet->setCellValue('G3', 'Lettuce');
+
+$validation2 = $worksheet->getCell('B1')->getDataValidation();
+$validation2->setType(DataValidation::TYPE_LIST);
+$validation2->setFormula1('=IF(A1="Fruit",$F$2:$F$3,$G$2:$G$3)');
+```
+
+### Dynamic Range from Formula
+
+```php
+// List expands as you add items
+$validation = $worksheet->getCell('A1')->getDataValidation();
+$validation->setType(DataValidation::TYPE_LIST);
+$validation->setFormula1('=OFFSET($D$1,0,0,COUNTA($D:$D),1)');
+```
+
+### Percentage Validation
+
+```php
+$validation = $worksheet->getCell('A1')->getDataValidation();
+$validation->setType(DataValidation::TYPE_DECIMAL);
+$validation->setOperator(DataValidation::OPERATOR_BETWEEN);
+$validation->setFormula1('0');
+$validation->setFormula2('1');
+$validation->setPrompt('Enter a value between 0% and 100%');
+
+// Format cell as percentage
+$worksheet->getStyle('A1')
+    ->getNumberFormat()
+    ->setFormatCode('0%');
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Provide Clear Messages">
+    Always set both prompt and error messages to guide users:
+    ```php
+    $validation->setShowInputMessage(true);
+    $validation->setPromptTitle('Date Required');
+    $validation->setPrompt('Please enter a date in the format YYYY-MM-DD');
+    
+    $validation->setShowErrorMessage(true);
+    $validation->setErrorTitle('Invalid Date');
+    $validation->setError('The date must be in YYYY-MM-DD format.');
+    ```
+  </Step>
+  
+  <Step title="Choose Appropriate Error Styles">
+    - Use `STYLE_STOP` for critical validations (IDs, required fields)
+    - Use `STYLE_WARNING` for important but not critical validations
+    - Use `STYLE_INFORMATION` for suggestions and optional guidelines
+  </Step>
+  
+  <Step title="Use Cell Ranges for Long Lists">
+    Instead of hardcoding long lists in Formula1, maintain them in cells:
+    ```php
+    // Better: maintainable list
+    $validation->setFormula1('$Z$1:$Z$100');
+    
+    // Avoid: hardcoded long list
+    $validation->setFormula1('"Item1,Item2,Item3,Item4,...,Item100"');
+    ```
+  </Step>
+  
+  <Step title="Test Validation Rules">
+    After creating validation rules, test them:
+    ```php
+    $cell = $worksheet->getCell('A1');
+    $cell->setValue('test value');
+    
+    if (!$cell->hasValidValue()) {
+        echo "Validation rule is working correctly!";
+    }
+    ```
+  </Step>
+</Steps>
+
+## Common Pitfalls
+
+<Warning>
+Avoid these common mistakes:
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="Forgetting Quotes for Comma-Separated Lists">
+    ```php
+    // Wrong - will not work
+    $validation->setFormula1('Item A,Item B,Item C');
+    
+    // Correct
+    $validation->setFormula1('"Item A,Item B,Item C"');
+    ```
+  </Accordion>
+  
+  <Accordion title="Using Quotes for Cell Ranges">
+    ```php
+    // Wrong - treats as string literal
+    $validation->setFormula1('"$D$2:$D$6"');
+    
+    // Correct
+    $validation->setFormula1('$D$2:$D$6');
+    ```
+  </Accordion>
+  
+  <Accordion title="Not Cloning Validation Objects">
+    ```php
+    // Wrong - all cells share same object
+    $validation = $worksheet->getCell('A1')->getDataValidation();
+    for ($i = 2; $i <= 10; $i++) {
+        $worksheet->getCell("A{$i}")->setDataValidation($validation);
+    }
+    
+    // Correct - each cell gets its own copy
+    for ($i = 2; $i <= 10; $i++) {
+        $worksheet->getCell("A{$i}")->setDataValidation(clone $validation);
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Related Topics
+
+<CardGroup cols={2}>
+  <Card title="Cell Values" icon="database" href="/data/cell-values">
+    Data types and value binders
+  </Card>
+  <Card title="Formulas" icon="function" href="/data/formulas">
+    Using formulas in validation
+  </Card>
+  <Card title="Defined Names" icon="tag" href="/data/defined-names">
+    Named ranges for validation lists
+  </Card>
+  <Card title="Accessing Cells" icon="table-cells" href="/data/accessing-cells">
+    Reading and writing cell values
+  </Card>
+</CardGroup>

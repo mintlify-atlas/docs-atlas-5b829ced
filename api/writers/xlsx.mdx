@@ -1,0 +1,204 @@
+---
+title: Xlsx Writer
+description: Excel 2007+ (Office Open XML) writer class reference
+---
+
+The `Xlsx` writer exports spreadsheets to Excel 2007+ format (.xlsx), also known as Office Open XML SpreadsheetML format.
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Writer\Xlsx`
+
+**Extends:** `BaseWriter`
+
+## Class Overview
+
+The Xlsx writer creates ZIP archives containing XML files that conform to the Office Open XML standard. It supports the full range of PhpSpreadsheet features including styles, formulas, charts, images, and more.
+
+## Constructor
+
+```php
+public function __construct(Spreadsheet $spreadsheet)
+```
+
+Creates a new Xlsx writer instance.
+
+<ParamField path="spreadsheet" type="Spreadsheet" required>
+  The spreadsheet object to write
+</ParamField>
+
+## Key Methods
+
+### save()
+
+```php
+public function save($filename, int $flags = 0): void
+```
+
+Saves the spreadsheet as an .xlsx file.
+
+<ParamField path="filename" type="string|resource" required>
+  File path or resource to write to
+</ParamField>
+
+<ParamField path="flags" type="int" default="0">
+  Optional flags (see [IWriter constants](/api/writers/overview#save))
+</ParamField>
+
+### setOffice2003Compatibility()
+
+```php
+public function setOffice2003Compatibility(bool $office2003compatibility): self
+```
+
+Enables Office 2003 compatibility mode for better compatibility with older Excel versions.
+
+<ParamField path="office2003compatibility" type="bool" required>
+  True to enable Office 2003 compatibility
+</ParamField>
+
+### setExplicitStyle0()
+
+```php
+public function setExplicitStyle0(bool $explicitStyle0): self
+```
+
+Controls whether the default style (style 0) should be explicitly written. This may be useful if non-default alignment is part of the default style and you want to open the spreadsheet with LibreOffice or Gnumeric.
+
+<ParamField path="explicitStyle0" type="bool" required>
+  True to write explicit style 0
+</ParamField>
+
+### setForceFullCalc()
+
+```php
+public function setForceFullCalc(?bool $forceFullCalc): self
+```
+
+Controls whether Excel should be forced to recalculate all formulas when the file is opened. When set, values may not be automatically re-calculated, and a button will be available to force re-calculation.
+
+<ParamField path="forceFullCalc" type="bool|null" required>
+  True to force full calculation, false to allow cached values, null for default behavior
+</ParamField>
+
+### setRestrictMaxColumnWidth()
+
+```php
+public function setRestrictMaxColumnWidth(bool $restrictMaxColumnWidth): self
+```
+
+Excel has a nominal width limit of 255 for columns. While Xlsx can technically read and write larger values, the UI doesn't allow setting widths beyond 255. This method controls whether PhpSpreadsheet should restrict column widths to Excel's limit.
+
+<ParamField path="restrictMaxColumnWidth" type="bool" required>
+  True to restrict column widths to 255
+</ParamField>
+
+### setUseCSEArrays()
+
+```php
+public function setUseCSEArrays(?bool $useCSEArrays): void
+```
+
+Controls whether to use CSE (Ctrl+Shift+Enter) array formulas instead of dynamic arrays.
+
+<ParamField path="useCSEArrays" type="bool|null" required>
+  True to use CSE arrays, false for dynamic arrays, null for auto
+</ParamField>
+
+## Usage Examples
+
+### Basic Export
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setCellValue('A1', 'Hello World!');
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('hello.xlsx');
+```
+
+### With Charts
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$writer = new Xlsx($spreadsheet);
+$writer->setIncludeCharts(true);
+$writer->save('chart.xlsx');
+```
+
+### Fast Export (No Formula Calculation)
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$writer = new Xlsx($spreadsheet);
+$writer->setPreCalculateFormulas(false);
+$writer->save('fast.xlsx');
+```
+
+### Download to Browser
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+// Set headers for download
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment;filename="report.xlsx"');
+header('Cache-Control: max-age=0');
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('php://output');
+exit;
+```
+
+### LibreOffice Compatibility
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$writer = new Xlsx($spreadsheet);
+$writer->setExplicitStyle0(true);
+$writer->save('libreoffice.xlsx');
+```
+
+### Memory Optimization
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$writer = new Xlsx($spreadsheet);
+$writer->setUseDiskCaching(true, '/tmp/phpspreadsheet');
+$writer->save('large.xlsx');
+```
+
+## Format Features
+
+The Xlsx writer supports:
+
+- ✅ Multiple worksheets
+- ✅ Cell formatting (fonts, colors, borders, fills)
+- ✅ Number formats
+- ✅ Formulas and formula calculation
+- ✅ Charts
+- ✅ Images and drawings
+- ✅ Rich text
+- ✅ Merged cells
+- ✅ Data validation
+- ✅ Conditional formatting
+- ✅ Page setup and print settings
+- ✅ Headers and footers
+- ✅ Document properties
+- ✅ Named ranges
+- ✅ Autofilters
+- ✅ Tables
+- ✅ Comments
+- ✅ Hyperlinks
+
+## Related
+
+- [Xls Writer](/api/writers/xls) - Legacy Excel format
+- [Ods Writer](/api/writers/ods) - OpenDocument format
+- [Writers Overview](/api/writers/overview) - Common writer patterns

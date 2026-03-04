@@ -1,0 +1,496 @@
+---
+title: Html Reader
+description: API reference for the PhpSpreadsheet Html reader class for reading HTML table files
+---
+
+## Overview
+
+The `Html` reader class loads HTML files containing tables and converts them into spreadsheet format. This is useful for importing data from HTML reports, web pages, or HTML-formatted data exports.
+
+## Class Information
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Reader\Html`
+
+**Extends:** `BaseReader`
+
+**Implements:** `IReader`
+
+**Source:** `src/PhpSpreadsheet/Reader/Html.php:32`
+
+## Basic Usage
+
+### Simple File Loading
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Html;
+
+$reader = new Html();
+$spreadsheet = $reader->load('data.html');
+
+// Access worksheet data
+$sheet = $spreadsheet->getActiveSheet();
+$data = $sheet->toArray();
+```
+
+### Using IOFactory
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Auto-detect and load
+$spreadsheet = IOFactory::load('data.html');
+
+// Or create specific reader
+$reader = IOFactory::createReader('Html');
+$spreadsheet = $reader->load('data.html');
+```
+
+## Key Methods
+
+### __construct()
+
+Creates a new Html reader instance.
+
+```php
+public function __construct();
+```
+
+**Example:**
+
+```php
+$reader = new Html();
+```
+
+### canRead()
+
+Checks if the file can be read by this reader.
+
+```php
+public function canRead(string $filename): bool;
+```
+
+<ParamField path="filename" type="string" required>
+  Path to the file to check
+</ParamField>
+
+**Returns:** `bool` - True if the file appears to be HTML
+
+**Example:**
+
+```php
+$reader = new Html();
+if ($reader->canRead('data.html')) {
+    $spreadsheet = $reader->load('data.html');
+}
+```
+
+### load()
+
+Loads a spreadsheet from an HTML file.
+
+```php
+public function load(string $filename, int $flags = 0): Spreadsheet;
+```
+
+<ParamField path="filename" type="string" required>
+  Path to the HTML file to load
+</ParamField>
+
+<ParamField path="flags" type="int" default="0">
+  Optional flags (limited support for HTML format)
+</ParamField>
+
+**Returns:** `Spreadsheet` object
+
+**Example:**
+
+```php
+$reader = new Html();
+$spreadsheet = $reader->load('data.html');
+```
+
+## HTML-Specific Configuration
+
+### setInputEncoding()
+
+Sets the input character encoding for the HTML file.
+
+```php
+public function setInputEncoding(string $encoding): self;
+```
+
+<ParamField path="encoding" type="string" required>
+  Character encoding (e.g., 'UTF-8', 'ANSI', 'ISO-8859-1')
+</ParamField>
+
+**Example:**
+
+```php
+$reader = new Html();
+$reader->setInputEncoding('UTF-8');
+$spreadsheet = $reader->load('data.html');
+```
+
+### setSheetIndex()
+
+Sets which worksheet index to use when loading (for multiple tables).
+
+```php
+public function setSheetIndex(int $sheetIndex): self;
+```
+
+<ParamField path="sheetIndex" type="int" required>
+  The 0-based worksheet index
+</ParamField>
+
+**Example:**
+
+```php
+$reader = new Html();
+$reader->setSheetIndex(0);
+$spreadsheet = $reader->load('data.html');
+```
+
+### setSuppressLoadWarnings()
+
+Controls whether to suppress libxml load warnings.
+
+```php
+public function setSuppressLoadWarnings(?bool $suppressLoadWarnings): self;
+```
+
+<ParamField path="suppressLoadWarnings" type="bool|null" required>
+  True to suppress warnings, false to show them, null for default behavior
+</ParamField>
+
+**Example:**
+
+```php
+$reader = new Html();
+$reader->setSuppressLoadWarnings(true);
+$spreadsheet = $reader->load('data.html');
+
+// Check for any warnings
+$warnings = $reader->getLibxmlMessages();
+foreach ($warnings as $warning) {
+    echo $warning->message;
+}
+```
+
+## Supported HTML Features
+
+The Html reader recognizes and converts the following HTML elements:
+
+### Table Structure
+
+- `<table>` - Converted to worksheet
+- `<tr>` - Converted to row
+- `<td>` - Converted to cell
+- `<th>` - Converted to cell (typically bold)
+- `<thead>`, `<tbody>`, `<tfoot>` - Structural elements
+
+### Text Formatting
+
+- `<b>`, `<strong>` - Bold text
+- `<i>`, `<em>` - Italic text
+- `<u>` - Underlined text
+- `<s>`, `<strike>` - Strikethrough text
+- `<sup>` - Superscript
+- `<sub>` - Subscript
+- `<h1>` to `<h6>` - Headers with different font sizes
+- `<a>` - Hyperlinks (blue, underlined)
+- `<hr>` - Horizontal rule (bottom border)
+
+### Table Attributes
+
+- `colspan` - Cell spanning multiple columns
+- `rowspan` - Cell spanning multiple rows
+- `width` - Column width
+- `height` - Row height
+
+### Style Attributes
+
+The reader parses inline CSS styles:
+
+- `font-family` - Font name
+- `font-size` - Font size
+- `font-weight` - Bold text
+- `font-style` - Italic text
+- `text-decoration` - Underline, strikethrough
+- `color` - Text color
+- `background-color` - Cell background color
+- `border` - Cell borders
+- `text-align` - Horizontal alignment
+- `vertical-align` - Vertical alignment
+- `width` - Column width
+- `height` - Row height
+
+## HTML Format Examples
+
+### Simple HTML Table
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sales Report</title>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Widget</td>
+                <td>100</td>
+                <td>$10.00</td>
+            </tr>
+            <tr>
+                <td>Gadget</td>
+                <td>50</td>
+                <td>$20.00</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+```
+
+```php
+$reader = new Html();
+$spreadsheet = $reader->load('report.html');
+```
+
+### HTML with Inline Styles
+
+```html
+<table style="border: 1px solid black;">
+    <tr>
+        <td style="font-weight: bold; background-color: #cccccc;">Header</td>
+        <td style="color: red;">Value</td>
+    </tr>
+    <tr>
+        <td style="text-align: center;">Center</td>
+        <td style="font-style: italic;">Italic</td>
+    </tr>
+</table>
+```
+
+```php
+$reader = new Html();
+$spreadsheet = $reader->load('styled.html');
+```
+
+### HTML with Colspan and Rowspan
+
+```html
+<table>
+    <tr>
+        <td colspan="2">Merged across 2 columns</td>
+    </tr>
+    <tr>
+        <td rowspan="2">Merged across 2 rows</td>
+        <td>Cell 1</td>
+    </tr>
+    <tr>
+        <td>Cell 2</td>
+    </tr>
+</table>
+```
+
+```php
+$reader = new Html();
+$spreadsheet = $reader->load('merged.html');
+// Colspan and rowspan are converted to merged cells
+```
+
+## Multiple Tables
+
+If an HTML file contains multiple `<table>` elements, each table is loaded as a separate worksheet:
+
+```php
+$reader = new Html();
+$spreadsheet = $reader->load('multi-table.html');
+
+// Access different tables
+$sheet1 = $spreadsheet->getSheet(0); // First table
+$sheet2 = $spreadsheet->getSheet(1); // Second table
+$sheet3 = $spreadsheet->getSheet(2); // Third table
+
+echo "Loaded {$spreadsheet->getSheetCount()} tables\n";
+```
+
+## Handling Encoding
+
+### UTF-8 HTML
+
+```php
+$reader = new Html();
+$reader->setInputEncoding('UTF-8');
+$spreadsheet = $reader->load('utf8.html');
+```
+
+### Other Encodings
+
+```php
+// ISO-8859-1 (Latin-1)
+$reader = new Html();
+$reader->setInputEncoding('ISO-8859-1');
+$spreadsheet = $reader->load('latin1.html');
+
+// Windows-1252
+$reader->setInputEncoding('CP1252');
+$spreadsheet = $reader->load('windows.html');
+```
+
+## Working with Images
+
+The Html reader can load images from HTML:
+
+```php
+$reader = new Html();
+
+// Allow external images (use with caution)
+$reader->setAllowExternalImages(true);
+
+$spreadsheet = $reader->load('report.html');
+```
+
+<Warning>
+Be cautious when enabling external images as this can expose your application to security risks.
+</Warning>
+
+## Error Handling
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
+use PhpOffice\PhpSpreadsheet\Reader\Html;
+
+$reader = new Html();
+$reader->setSuppressLoadWarnings(true);
+
+try {
+    if (!$reader->canRead('data.html')) {
+        throw new Exception('File is not valid HTML');
+    }
+    
+    $spreadsheet = $reader->load('data.html');
+    
+    // Check for warnings
+    $warnings = $reader->getLibxmlMessages();
+    if (!empty($warnings)) {
+        echo "Warnings during load:\n";
+        foreach ($warnings as $warning) {
+            echo "- {$warning->message}\n";
+        }
+    }
+    
+} catch (ReaderException $e) {
+    echo 'Error loading HTML file: ' . $e->getMessage();
+} catch (\Exception $e) {
+    echo 'General error: ' . $e->getMessage();
+}
+```
+
+## Security Considerations
+
+### XML External Entity (XXE) Protection
+
+The Html reader uses the `XmlScanner` security scanner to protect against XXE attacks.
+
+### External Resources
+
+Be careful with external images and stylesheets:
+
+```php
+$reader = new Html();
+
+// Better: use a whitelist
+$reader->setIsWhitelisted(function(string $path): bool {
+    return str_starts_with($path, 'https://trusted-domain.com/');
+});
+
+$reader->setAllowExternalImages(true);
+$spreadsheet = $reader->load('report.html');
+```
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Html;
+use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
+
+// Create and configure reader
+$reader = new Html();
+$reader->setInputEncoding('UTF-8');
+$reader->setSuppressLoadWarnings(true);
+
+try {
+    // Verify file
+    if (!$reader->canRead('report.html')) {
+        throw new Exception('Invalid HTML file');
+    }
+    
+    // Load file
+    $spreadsheet = $reader->load('report.html');
+    
+    echo "Loaded {$spreadsheet->getSheetCount()} table(s)\n";
+    
+    // Process each table
+    foreach ($spreadsheet->getAllSheets() as $index => $sheet) {
+        echo "\nTable " . ($index + 1) . ":\n";
+        
+        $highestRow = $sheet->getHighestRow();
+        $highestColumn = $sheet->getHighestColumn();
+        
+        echo "Rows: {$highestRow}, Columns: {$highestColumn}\n";
+        
+        // Process data
+        $data = $sheet->toArray();
+        foreach ($data as $row) {
+            // Process row
+            print_r($row);
+        }
+    }
+    
+    // Check for warnings
+    $warnings = $reader->getLibxmlMessages();
+    if (!empty($warnings)) {
+        echo "\n" . count($warnings) . " warning(s) encountered\n";
+    }
+    
+} catch (ReaderException $e) {
+    echo 'Reader error: ' . $e->getMessage();
+}
+```
+
+## Limitations
+
+- Only processes `<table>` elements; other HTML content is ignored
+- CSS stylesheets are not fully supported (only inline styles)
+- Complex HTML structures may not parse correctly
+- JavaScript-generated content is not processed
+- Some advanced CSS properties are not supported
+- No support for formulas (everything is read as values)
+- No support for charts
+
+## Tips for Best Results
+
+1. **Use well-formed HTML** - Valid HTML5 markup produces best results
+2. **Use inline styles** - External CSS stylesheets are not processed
+3. **Specify encoding** - Always set the correct character encoding
+4. **Use simple table structures** - Complex nested tables may not parse correctly
+5. **Include charset meta tag** - Add `<meta charset="UTF-8">` to HTML
+6. **Test with sample data** - Test the reader with a small sample first
+
+## Related Documentation
+
+- [Readers Overview](/api/readers/overview)
+- [Csv Reader](/api/readers/csv)
+- [IOFactory](/api/io-factory)

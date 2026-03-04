@@ -1,0 +1,555 @@
+---
+title: 'Drawing'
+description: 'API reference for adding images and drawings to worksheets'
+---
+
+## Overview
+
+The `Drawing` class allows you to embed images into worksheets. It supports various image formats including PNG, JPEG, GIF, BMP, and can handle both local files and URLs.
+
+**Namespace**: `PhpOffice\PhpSpreadsheet\Worksheet`
+
+**Extends**: `BaseDrawing`
+
+## Supported Image Formats
+
+- PNG (`.png`)
+- JPEG (`.jpg`, `.jpeg`)
+- GIF (`.gif`) - converted to PNG on save
+- BMP (`.bmp`) - converted to PNG on save
+- EMF (`.emf`)
+
+## Creating a Drawing
+
+### Basic Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+
+$drawing = new Drawing();
+$drawing->setName('Company Logo');
+$drawing->setDescription('Company Logo');
+$drawing->setPath('/path/to/logo.png');
+$drawing->setCoordinates('B2');
+$drawing->setHeight(50);
+$drawing->setWorksheet($worksheet);
+```
+
+### Using URL Image
+
+```php
+$drawing = new Drawing();
+$drawing->setName('Remote Image');
+$drawing->setPath('https://example.com/image.png');
+$drawing->setCoordinates('D5');
+$drawing->setWorksheet($worksheet);
+```
+
+### Using Base64 Encoded Image
+
+```php
+$base64Image = 'data:image/png;base64,iVBORw0KGgoAAAANS...';
+$drawing = new Drawing();
+$drawing->setPath($base64Image);
+$drawing->setCoordinates('A1');
+$drawing->setWorksheet($worksheet);
+```
+
+## Constructor
+
+```php
+public function __construct()
+```
+
+Creates a new Drawing instance with default values.
+
+## Key Methods
+
+### setPath()
+
+Set the path to the image file.
+
+```php
+public function setPath(
+    string $path,
+    bool $verifyFile = true,
+    ?ZipArchive $zip = null,
+    bool $allowExternal = true,
+    ?callable $isWhitelisted = null
+): static
+```
+
+<ParamField path="path" type="string" required>
+  File path, URL, or base64-encoded image data
+</ParamField>
+
+<ParamField path="verifyFile" type="bool" default="true">
+  Whether to verify the file exists and is valid
+</ParamField>
+
+<ParamField path="zip" type="ZipArchive|null">
+  ZipArchive instance for reading from archives
+</ParamField>
+
+<ParamField path="allowExternal" type="bool" default="true">
+  Whether to allow external URLs
+</ParamField>
+
+<ParamField path="isWhitelisted" type="callable|null">
+  Callback function to validate URLs
+</ParamField>
+
+**Supported protocols**: `http://`, `https://`, `file://`, `ftp://`, `s3://`
+
+**Example**:
+```php
+// Local file
+$drawing->setPath('/path/to/image.png');
+
+// URL
+$drawing->setPath('https://example.com/logo.png');
+
+// Base64
+$drawing->setPath('data:image/png;base64,iVBORw0KG...');
+```
+
+### getPath()
+
+Get the image path.
+
+```php
+public function getPath(): string
+```
+
+### getIsURL()
+
+Check if the drawing is loaded from a URL.
+
+```php
+public function getIsURL(): bool
+```
+
+### setCoordinates()
+
+Set the top-left cell position for the drawing.
+
+```php
+public function setCoordinates(string $coordinates): self
+```
+
+<ParamField path="coordinates" type="string" required>
+  Cell address (e.g., 'B2', 'D5')
+</ParamField>
+
+**Example**:
+```php
+$drawing->setCoordinates('B2');
+```
+
+### getCoordinates()
+
+Get the cell coordinates.
+
+```php
+public function getCoordinates(): string
+```
+
+### setWorksheet()
+
+Attach the drawing to a worksheet.
+
+```php
+public function setWorksheet(
+    ?Worksheet $worksheet = null,
+    bool $overrideOld = false
+): self
+```
+
+<ParamField path="worksheet" type="Worksheet|null" required>
+  The worksheet to attach to
+</ParamField>
+
+<ParamField path="overrideOld" type="bool" default="false">
+  Whether to override if already attached to another worksheet
+</ParamField>
+
+**Example**:
+```php
+$drawing->setWorksheet($worksheet);
+```
+
+### getWorksheet()
+
+Get the attached worksheet.
+
+```php
+public function getWorksheet(): ?Worksheet
+```
+
+## Sizing Methods
+
+### setWidth()
+
+Set the width in pixels.
+
+```php
+public function setWidth(int $width): self
+```
+
+<ParamField path="width" type="int" required>
+  Width in pixels
+</ParamField>
+
+**Note**: If `resizeProportional` is enabled, height will be adjusted automatically.
+
+### getWidth()
+
+Get the width in pixels.
+
+```php
+public function getWidth(): int
+```
+
+### setHeight()
+
+Set the height in pixels.
+
+```php
+public function setHeight(int $height): self
+```
+
+<ParamField path="height" type="int" required>
+  Height in pixels
+</ParamField>
+
+### getHeight()
+
+Get the height in pixels.
+
+```php
+public function getHeight(): int
+```
+
+### setWidthAndHeight()
+
+Set both width and height with proportional resize.
+
+```php
+public function setWidthAndHeight(int $width, int $height): self
+```
+
+<ParamField path="width" type="int" required>
+  Maximum width in pixels
+</ParamField>
+
+<ParamField path="height" type="int" required>
+  Maximum height in pixels
+</ParamField>
+
+**Example**:
+```php
+$drawing->setResizeProportional(true);
+$drawing->setWidthAndHeight(160, 120);
+```
+
+### setResizeProportional()
+
+Enable or disable proportional resizing.
+
+```php
+public function setResizeProportional(bool $resizeProportional): self
+```
+
+<ParamField path="resizeProportional" type="bool" required>
+  Whether to maintain aspect ratio when resizing
+</ParamField>
+
+**Example**:
+```php
+$drawing->setResizeProportional(true);
+$drawing->setWidth(320); // Height adjusted automatically
+```
+
+### getResizeProportional()
+
+Check if proportional resizing is enabled.
+
+```php
+public function getResizeProportional(): bool
+```
+
+## Position and Offset Methods
+
+### setOffsetX() / setOffsetY()
+
+Set the pixel offset from the top-left corner of the cell.
+
+```php
+public function setOffsetX(int $offsetX): self
+public function setOffsetY(int $offsetY): self
+```
+
+**Example**:
+```php
+$drawing->setCoordinates('B2');
+$drawing->setOffsetX(5);
+$drawing->setOffsetY(5);
+```
+
+### getOffsetX() / getOffsetY()
+
+Get the pixel offsets.
+
+```php
+public function getOffsetX(): int
+public function getOffsetY(): int
+```
+
+### setCoordinates2()
+
+Set the bottom-right cell for two-cell anchor.
+
+```php
+public function setCoordinates2(string $coordinates2): self
+```
+
+<ParamField path="coordinates2" type="string" required>
+  Bottom-right cell address (e.g., 'G6')
+</ParamField>
+
+**Example**:
+```php
+$drawing->setCoordinates('B2');
+$drawing->setCoordinates2('G6');
+$drawing->setResizeProportional(false);
+$drawing->setWidth(320);
+```
+
+### getCoordinates2()
+
+Get the bottom-right cell coordinates.
+
+```php
+public function getCoordinates2(): string
+```
+
+### setEditAs()
+
+Set how the drawing behaves when cells are resized.
+
+```php
+public function setEditAs(string $editAs): self
+```
+
+<ParamField path="editAs" type="string" required>
+  One of: `absolute`, `oneCell`, or `twoCell`
+</ParamField>
+
+**Options**:
+- `BaseDrawing::EDIT_AS_ABSOLUTE` - Drawing doesn't move or resize with cells
+- `BaseDrawing::EDIT_AS_ONECELL` - Drawing moves but doesn't resize with cells
+- `BaseDrawing::EDIT_AS_TWOCELL` - Drawing moves and resizes with cells
+
+**Example**:
+```php
+$drawing->setEditAs(BaseDrawing::EDIT_AS_TWOCELL);
+```
+
+## Metadata Methods
+
+### setName()
+
+Set the drawing name.
+
+```php
+public function setName(string $name): self
+```
+
+### getName()
+
+Get the drawing name.
+
+```php
+public function getName(): string
+```
+
+### setDescription()
+
+Set the drawing description.
+
+```php
+public function setDescription(string $description): self
+```
+
+### getDescription()
+
+Get the drawing description.
+
+```php
+public function getDescription(): string
+```
+
+## Transform Methods
+
+### setRotation()
+
+Set the rotation angle in degrees.
+
+```php
+public function setRotation(int $rotation): self
+```
+
+<ParamField path="rotation" type="int" required>
+  Rotation angle (0-360 degrees)
+</ParamField>
+
+### getRotation()
+
+Get the rotation angle.
+
+```php
+public function getRotation(): int
+```
+
+### setFlipHorizontal()
+
+Flip the image horizontally.
+
+```php
+public function setFlipHorizontal(bool $flipHorizontal): self
+```
+
+### setFlipVertical()
+
+Flip the image vertically.
+
+```php
+public function setFlipVertical(bool $flipVertical): self
+```
+
+### setOpacity()
+
+Set the image opacity.
+
+```php
+public function setOpacity(?int $opacity): self
+```
+
+<ParamField path="opacity" type="int|null" required>
+  Opacity percentage multiplied by 1000 (e.g., 40000 = 40%)
+</ParamField>
+
+## Image Information Methods
+
+### getFilename()
+
+Get the filename from the path.
+
+```php
+public function getFilename(): string
+```
+
+### getExtension()
+
+Get the file extension.
+
+```php
+public function getExtension(): string
+```
+
+### getType()
+
+Get the image type constant (IMAGETYPE_PNG, IMAGETYPE_JPEG, etc.).
+
+```php
+public function getType(): int
+```
+
+### getImageWidth() / getImageHeight()
+
+Get the original image dimensions in pixels.
+
+```php
+public function getImageWidth(): int
+public function getImageHeight(): int
+```
+
+### getImageMimeType()
+
+Get the MIME type of the image.
+
+```php
+public function getImageMimeType(): string
+```
+
+## Advanced Features
+
+### Hyperlinks
+
+Add a hyperlink to the drawing.
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\Hyperlink;
+
+$hyperlink = new Hyperlink('https://example.com');
+$drawing->setHyperlink($hyperlink);
+```
+
+### Shadow Effects
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing\Shadow;
+
+$shadow = new Shadow();
+$shadow->setVisible(true);
+$shadow->setBlurRadius(6);
+$drawing->setShadow($shadow);
+```
+
+### In-Cell Drawing
+
+Place the drawing inside a cell rather than floating over it.
+
+```php
+$drawing->setInCell(true);
+$drawing->setWorksheet($worksheet);
+```
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\BaseDrawing;
+
+// Create a drawing
+$drawing = new Drawing();
+$drawing->setName('Blue Square');
+$drawing->setDescription('A blue square image');
+$drawing->setPath(__DIR__ . '/images/blue_square.png');
+
+// Position and size
+$drawing->setCoordinates('B2');
+$drawing->setCoordinates2('G6');
+$drawing->setResizeProportional(false);
+$drawing->setWidth(320);
+
+// Configure behavior
+$drawing->setEditAs(BaseDrawing::EDIT_AS_TWOCELL);
+$drawing->setOffsetX(5);
+$drawing->setOffsetY(5);
+
+// Add to worksheet
+$drawing->setWorksheet($worksheet, true);
+```
+
+## Related Classes
+
+- `MemoryDrawing` - For GD image resources in memory
+- `BaseDrawing` - Parent class with common functionality
+- `Drawing\Shadow` - Shadow effects for drawings
+- `Cell\Hyperlink` - Hyperlink functionality
+
+## See Also
+
+- [Drawing Examples](https://github.com/PHPOffice/PhpSpreadsheet/tree/master/samples)
+- [Working with Images](/guides/images)

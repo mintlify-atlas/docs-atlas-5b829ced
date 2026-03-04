@@ -1,0 +1,414 @@
+---
+title: Spreadsheets and Worksheets
+description: Working with the Spreadsheet and Worksheet classes - creating workbooks, managing multiple sheets, and performing sheet operations
+---
+
+## Understanding the Hierarchy
+
+In PhpSpreadsheet, the object hierarchy mirrors the structure of desktop spreadsheet applications:
+
+- **Spreadsheet** (Workbook) - The top-level container
+- **Worksheet** (Sheet/Tab) - Individual sheets within the workbook
+- **Cell** - Individual data cells within a worksheet
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();           // The workbook
+$worksheet = $spreadsheet->getActiveSheet(); // A sheet
+$cell = $worksheet->getCell('A1');          // A cell
+```
+
+## The Spreadsheet Class
+
+### Creating a New Spreadsheet
+
+When you instantiate a new `Spreadsheet` object, it automatically creates a single worksheet named "Worksheet":
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+// Comes with one worksheet by default
+```
+
+### Loading from a File
+
+You can also load an existing spreadsheet from a file:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Automatic format detection
+$spreadsheet = IOFactory::load('data.xlsx');
+
+// Explicit format
+$reader = IOFactory::createReader('Xlsx');
+$spreadsheet = $reader->load('data.xlsx');
+```
+
+### Spreadsheet Properties
+
+The `Spreadsheet` class manages document-level properties:
+
+```php
+// Set document properties
+$spreadsheet->getProperties()
+    ->setCreator('Jane Smith')
+    ->setLastModifiedBy('Jane Smith')
+    ->setTitle('Sales Report')
+    ->setSubject('Q4 2024 Sales Data')
+    ->setDescription('Quarterly sales analysis')
+    ->setKeywords('sales report 2024')
+    ->setCategory('Reports');
+
+// Get document properties
+$creator = $spreadsheet->getProperties()->getCreator();
+$title = $spreadsheet->getProperties()->getTitle();
+```
+
+### Spreadsheet Security
+
+You can set workbook-level security:
+
+```php
+// Set workbook password
+$spreadsheet->getSecurity()->setWorkbookPassword('secret');
+```
+
+## The Worksheet Class
+
+The `\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet` class represents individual sheets within a workbook.
+
+### Accessing Worksheets
+
+#### Get the Active Sheet
+
+The active sheet is the one that will be displayed when the workbook is opened:
+
+```php
+// Get the currently active worksheet
+$activeSheet = $spreadsheet->getActiveSheet();
+```
+
+#### Get Sheet by Index
+
+Worksheets are indexed starting from 0:
+
+```php
+// Get the first sheet (index 0)
+$firstSheet = $spreadsheet->getSheet(0);
+
+// Get the second sheet (index 1)
+$secondSheet = $spreadsheet->getSheet(1);
+```
+
+#### Get Sheet by Name
+
+```php
+// Retrieve a worksheet by its name
+$sheet = $spreadsheet->getSheetByName('Sales Data');
+```
+
+### Sheet Information
+
+```php
+// Count worksheets
+$sheetCount = $spreadsheet->getSheetCount();
+
+// Get all sheet names
+$sheetNames = $spreadsheet->getSheetNames();
+// Returns: ['Sheet1', 'Sheet2', 'Sheet3']
+
+// Get sheet index
+$index = $spreadsheet->getIndex($sheet);
+```
+
+### Setting the Active Sheet
+
+```php
+// Set active sheet by index
+$spreadsheet->setActiveSheetIndex(1);
+
+// Set active sheet by name
+$spreadsheet->setActiveSheetIndexByName('Summary');
+
+// Verify active sheet
+$activeIndex = $spreadsheet->getActiveSheetIndex();
+```
+
+## Creating Worksheets
+
+### Method 1: Using createSheet()
+
+The simplest way to add a new worksheet:
+
+```php
+// Add a new sheet as the last sheet
+$newSheet = $spreadsheet->createSheet();
+// Automatically named 'Worksheet1', 'Worksheet2', etc.
+
+// Add a new sheet at a specific position
+$newSheet = $spreadsheet->createSheet(1);
+// Inserts at index 1, shifts subsequent sheets
+```
+
+### Method 2: Using addSheet()
+
+For more control, instantiate a worksheet first:
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+// Create a new worksheet with a custom title
+$mySheet = new Worksheet($spreadsheet, 'Sales Data');
+
+// Add it to the workbook
+$spreadsheet->addSheet($mySheet, 0); // Add as first sheet
+
+// Or add as last sheet
+$spreadsheet->addSheet($mySheet);
+```
+
+<Warning>
+**Unique Names Required**: Worksheet names must be unique within a workbook. PhpSpreadsheet will throw an exception if you try to create a worksheet with a duplicate name.
+</Warning>
+
+## Worksheet Properties
+
+### Sheet Title
+
+```php
+// Set worksheet title
+$sheet->setTitle('Q4 Sales');
+
+// Get worksheet title
+$title = $sheet->getTitle();
+```
+
+<Note>
+**Title Constraints**:
+- Maximum 31 characters
+- Cannot contain: `* : / \ ? [ ]`
+- Must be unique within the workbook
+</Note>
+
+### Sheet State (Visibility)
+
+Worksheets can have different visibility states:
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+// Visible (default)
+$sheet->setSheetState(Worksheet::SHEETSTATE_VISIBLE);
+
+// Hidden (user can unhide via Excel UI)
+$sheet->setSheetState(Worksheet::SHEETSTATE_HIDDEN);
+
+// Very Hidden (cannot unhide via UI, only programmatically)
+$sheet->setSheetState(Worksheet::SHEETSTATE_VERYHIDDEN);
+
+// Check sheet state
+$state = $sheet->getSheetState();
+```
+
+### Tab Color
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+// Set tab color
+$sheet->getTabColor()->setRGB('FF0000'); // Red
+
+// Or use named colors
+$sheet->getTabColor()->setRGB(Color::COLOR_BLUE);
+```
+
+## Copying Worksheets
+
+### Within the Same Workbook
+
+#### Method 1: Clone and Add (Traditional)
+
+```php
+// Clone an existing worksheet
+$clonedSheet = clone $spreadsheet->getSheetByName('Template');
+
+// Set a unique title
+$clonedSheet->setTitle('Copy of Template');
+
+// Add to workbook
+$spreadsheet->addSheet($clonedSheet);
+```
+
+#### Method 2: Using duplicateWorksheetByTitle() (PhpSpreadsheet 3.9.0+)
+
+```php
+// Duplicate a worksheet (title automatically made unique)
+$copiedSheet = $spreadsheet->duplicateWorksheetByTitle('Template');
+```
+
+### Between Different Workbooks
+
+Copying worksheets between workbooks is more complex as styles must also be replicated:
+
+```php
+// Clone the worksheet
+$clonedSheet = clone $spreadsheet1->getSheetByName('Data');
+
+// Add to the target workbook with external sheet support
+$spreadsheet2->addExternalSheet($clonedSheet);
+```
+
+#### Simplified (PhpSpreadsheet 3.9.0+)
+
+```php
+// Duplicate from source workbook
+$clonedSheet = $spreadsheet1->duplicateWorksheetByTitle('Data');
+
+// Add to target workbook
+$spreadsheet2->addExternalSheet($clonedSheet);
+```
+
+## Removing Worksheets
+
+```php
+// Get the sheet index
+$sheetIndex = $spreadsheet->getIndex(
+    $spreadsheet->getSheetByName('Temporary Data')
+);
+
+// Remove the worksheet
+$spreadsheet->removeSheetByIndex($sheetIndex);
+```
+
+<Info>
+**Active Sheet Management**: If you delete the currently active worksheet, the sheet at the previous index position will automatically become the active sheet.
+</Info>
+
+## Reordering Worksheets
+
+You can change the order of worksheets in the workbook:
+
+```php
+// Get a worksheet
+$sheet = $spreadsheet->getSheetByName('Summary');
+
+// Get its current index
+$currentIndex = $spreadsheet->getIndex($sheet);
+
+// Remove from current position
+$spreadsheet->removeSheetByIndex($currentIndex);
+
+// Add at new position
+$spreadsheet->addSheet($sheet, 0); // Move to first position
+```
+
+## Iterating Through Worksheets
+
+### Using getSheetNames()
+
+```php
+foreach ($spreadsheet->getSheetNames() as $sheetName) {
+    $sheet = $spreadsheet->getSheetByName($sheetName);
+    echo "Processing sheet: {$sheetName}\n";
+    // Work with the sheet
+}
+```
+
+### Using getSheetCount()
+
+```php
+for ($i = 0; $i < $spreadsheet->getSheetCount(); $i++) {
+    $sheet = $spreadsheet->getSheet($i);
+    echo "Processing sheet at index {$i}: " . $sheet->getTitle() . "\n";
+    // Work with the sheet
+}
+```
+
+### Using Iterator
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Iterator;
+
+$iterator = new Iterator($spreadsheet);
+
+foreach ($iterator as $worksheet) {
+    echo "Sheet: " . $worksheet->getTitle() . "\n";
+    // Work with each worksheet
+}
+```
+
+## Practical Examples
+
+### Creating a Multi-Sheet Report
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+$spreadsheet = new Spreadsheet();
+
+// Configure the default sheet
+$summarySheet = $spreadsheet->getActiveSheet();
+$summarySheet->setTitle('Summary');
+$summarySheet->setCellValue('A1', 'Annual Report Summary');
+
+// Create additional sheets
+$q1Sheet = new Worksheet($spreadsheet, 'Q1 Data');
+$spreadsheet->addSheet($q1Sheet);
+
+$q2Sheet = new Worksheet($spreadsheet, 'Q2 Data');
+$spreadsheet->addSheet($q2Sheet);
+
+$q3Sheet = new Worksheet($spreadsheet, 'Q3 Data');
+$spreadsheet->addSheet($q3Sheet);
+
+$q4Sheet = new Worksheet($spreadsheet, 'Q4 Data');
+$spreadsheet->addSheet($q4Sheet);
+
+// Set summary sheet as active
+$spreadsheet->setActiveSheetIndexByName('Summary');
+```
+
+### Working with Template Sheets
+
+```php
+// Load a template workbook
+$spreadsheet = IOFactory::load('template.xlsx');
+
+// Get the template sheet
+$template = $spreadsheet->getSheetByName('Template');
+
+// Hide the template
+$template->setSheetState(Worksheet::SHEETSTATE_VERYHIDDEN);
+
+// Create copies for each month
+$months = ['January', 'February', 'March'];
+
+foreach ($months as $month) {
+    $monthSheet = clone $template;
+    $monthSheet->setTitle($month);
+    $monthSheet->setSheetState(Worksheet::SHEETSTATE_VISIBLE);
+    $monthSheet->setCellValue('A1', "Report for {$month}");
+    $spreadsheet->addSheet($monthSheet);
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Cells & Ranges" icon="grid" href="/concepts/cells-and-ranges">
+    Learn how to work with cells and cell ranges
+  </Card>
+  <Card title="Reading Files" icon="book-open" href="/essentials/reading-files">
+    Load spreadsheets from various formats
+  </Card>
+  <Card title="Writing Files" icon="floppy-disk" href="/essentials/writing-files">
+    Save spreadsheets to different formats
+  </Card>
+  <Card title="Styling" icon="paintbrush" href="/essentials/styling">
+    Apply formatting and styles to worksheets
+  </Card>
+</CardGroup>

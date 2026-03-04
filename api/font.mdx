@@ -1,0 +1,478 @@
+---
+title: 'Font Class'
+description: 'Complete API reference for the PhpSpreadsheet Font styling class'
+---
+
+## Overview
+
+The `Font` class controls all font-related styling including font family, size, bold, italic, underline, strikethrough, color, and text effects.
+
+## Namespace
+
+```php
+PhpOffice\PhpSpreadsheet\Style\Font
+```
+
+## Getting a Font Object
+
+```php
+// Via Style object
+$font = $spreadsheet->getActiveSheet()->getStyle('A1')->getFont();
+
+// Via chaining
+$spreadsheet->getActiveSheet()->getStyle('A1')
+    ->getFont()
+    ->setBold(true)
+    ->setSize(14);
+```
+
+## Constants
+
+### Underline Types
+
+<ParamField path="UNDERLINE_NONE" type="string" default="'none'">
+  No underline
+</ParamField>
+
+<ParamField path="UNDERLINE_SINGLE" type="string" default="'single'">
+  Single underline
+</ParamField>
+
+<ParamField path="UNDERLINE_DOUBLE" type="string" default="'double'">
+  Double underline
+</ParamField>
+
+<ParamField path="UNDERLINE_SINGLEACCOUNTING" type="string" default="'singleAccounting'">
+  Single accounting underline
+</ParamField>
+
+<ParamField path="UNDERLINE_DOUBLEACCOUNTING" type="string" default="'doubleAccounting'">
+  Double accounting underline
+</ParamField>
+
+### Capitalization
+
+<ParamField path="CAP_ALL" type="string" default="'all'">
+  All caps
+</ParamField>
+
+<ParamField path="CAP_SMALL" type="string" default="'small'">
+  Small caps
+</ParamField>
+
+<ParamField path="CAP_NONE" type="string" default="'none'">
+  No capitalization
+</ParamField>
+
+### Default Values
+
+<ParamField path="DEFAULT_FONT_NAME" type="string" default="'Calibri'">
+  Default font name
+</ParamField>
+
+## Properties
+
+### Basic Properties
+
+<ParamField path="name" type="string" default="'Calibri'">
+  Font name/family
+</ParamField>
+
+<ParamField path="size" type="float" default="11">
+  Font size in points
+</ParamField>
+
+<ParamField path="bold" type="bool" default="false">
+  Bold text
+</ParamField>
+
+<ParamField path="italic" type="bool" default="false">
+  Italic text
+</ParamField>
+
+<ParamField path="superscript" type="bool" default="false">
+  Superscript text (mutually exclusive with subscript)
+</ParamField>
+
+<ParamField path="subscript" type="bool" default="false">
+  Subscript text (mutually exclusive with superscript)
+</ParamField>
+
+<ParamField path="underline" type="string" default="'none'">
+  Underline style (use UNDERLINE_* constants)
+</ParamField>
+
+<ParamField path="strikethrough" type="bool" default="false">
+  Strikethrough text
+</ParamField>
+
+<ParamField path="color" type="Color">
+  Font color object
+</ParamField>
+
+## Methods
+
+### getName()
+
+Get the font name.
+
+```php
+public function getName(): ?string
+```
+
+### setName()
+
+Set the font name.
+
+```php
+public function setName(string $fontname): self
+```
+
+<ParamField path="fontname" type="string" required>
+  Font name (e.g., 'Arial', 'Times New Roman', 'Courier New')
+</ParamField>
+
+**Example:**
+```php
+$font->setName('Arial');
+```
+
+### getSize()
+
+Get the font size.
+
+```php
+public function getSize(): ?float
+```
+
+### setSize()
+
+Set the font size in points.
+
+```php
+public function setSize(mixed $sizeInPoints, bool $nullOk = false): static
+```
+
+<ParamField path="sizeInPoints" type="float" required>
+  Font size in points (1/72 of an inch). Must be positive.
+</ParamField>
+
+<ParamField path="nullOk" type="bool" default="false">
+  Whether to allow null values
+</ParamField>
+
+**Example:**
+```php
+$font->setSize(14);
+$font->setSize(10.5);
+```
+
+### getBold()
+
+Get bold setting.
+
+```php
+public function getBold(): ?bool
+```
+
+### setBold()
+
+Set bold.
+
+```php
+public function setBold(bool $bold): static
+```
+
+<ParamField path="bold" type="bool" required>
+  Whether text should be bold
+</ParamField>
+
+**Example:**
+```php
+$font->setBold(true);
+```
+
+### getItalic()
+
+Get italic setting.
+
+```php
+public function getItalic(): ?bool
+```
+
+### setItalic()
+
+Set italic.
+
+```php
+public function setItalic(bool $italic): static
+```
+
+<ParamField path="italic" type="bool" required>
+  Whether text should be italic
+</ParamField>
+
+**Example:**
+```php
+$font->setItalic(true);
+```
+
+### getSuperscript()
+
+Get superscript setting.
+
+```php
+public function getSuperscript(): ?bool
+```
+
+### setSuperscript()
+
+Set superscript. Automatically disables subscript.
+
+```php
+public function setSuperscript(bool $superscript): static
+```
+
+<ParamField path="superscript" type="bool" required>
+  Whether text should be superscript
+</ParamField>
+
+**Example:**
+```php
+$font->setSuperscript(true);
+```
+
+### getSubscript()
+
+Get subscript setting.
+
+```php
+public function getSubscript(): ?bool
+```
+
+### setSubscript()
+
+Set subscript. Automatically disables superscript.
+
+```php
+public function setSubscript(bool $subscript): static
+```
+
+<ParamField path="subscript" type="bool" required>
+  Whether text should be subscript
+</ParamField>
+
+**Example:**
+```php
+$font->setSubscript(true);
+```
+
+### getUnderline()
+
+Get underline style.
+
+```php
+public function getUnderline(): ?string
+```
+
+### setUnderline()
+
+Set underline style.
+
+```php
+public function setUnderline(bool|string $underlineStyle): static
+```
+
+<ParamField path="underlineStyle" type="bool|string" required>
+  Underline style. Use UNDERLINE_* constants, or `true` for UNDERLINE_SINGLE, `false` for UNDERLINE_NONE
+</ParamField>
+
+**Example:**
+```php
+$font->setUnderline(Font::UNDERLINE_SINGLE);
+$font->setUnderline(Font::UNDERLINE_DOUBLE);
+$font->setUnderline(true);  // Same as UNDERLINE_SINGLE
+$font->setUnderline(false); // Same as UNDERLINE_NONE
+```
+
+### getStrikethrough()
+
+Get strikethrough setting.
+
+```php
+public function getStrikethrough(): ?bool
+```
+
+### setStrikethrough()
+
+Set strikethrough.
+
+```php
+public function setStrikethrough(bool $strikethru): static
+```
+
+<ParamField path="strikethru" type="bool" required>
+  Whether text should have strikethrough
+</ParamField>
+
+**Example:**
+```php
+$font->setStrikethrough(true);
+```
+
+### getColor()
+
+Get the Color object.
+
+```php
+public function getColor(): Color
+```
+
+### setColor()
+
+Set font color.
+
+```php
+public function setColor(Color $color): static
+```
+
+<ParamField path="color" type="Color" required>
+  Color object
+</ParamField>
+
+**Example:**
+```php
+// Using the Color object
+$font->getColor()->setRGB('FF0000');
+$font->getColor()->setARGB('FFFF0000');
+
+// Or create a new Color
+use PhpOffice\PhpSpreadsheet\Style\Color;
+$color = new Color('FF0000');
+$font->setColor($color);
+```
+
+### applyFromArray()
+
+Apply multiple font settings at once.
+
+```php
+public function applyFromArray(array $styleArray): static
+```
+
+<ParamField path="styleArray" type="array" required>
+  Array containing font style information
+</ParamField>
+
+**Example:**
+```php
+$font->applyFromArray([
+    'name' => 'Arial',
+    'bold' => true,
+    'italic' => false,
+    'underline' => Font::UNDERLINE_DOUBLE,
+    'strikethrough' => false,
+    'color' => [
+        'rgb' => '808080'
+    ],
+    'size' => 14
+]);
+```
+
+## Complete Examples
+
+### Basic Font Styling
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Font;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Method 1: Using individual setters
+$font = $sheet->getStyle('A1')->getFont();
+$font->setName('Arial')
+     ->setSize(14)
+     ->setBold(true)
+     ->setItalic(true)
+     ->setUnderline(Font::UNDERLINE_SINGLE)
+     ->getColor()->setRGB('FF0000');
+
+// Method 2: Using applyFromArray
+$sheet->getStyle('B1')->getFont()->applyFromArray([
+    'name' => 'Times New Roman',
+    'size' => 12,
+    'bold' => false,
+    'italic' => true,
+    'color' => ['rgb' => '0000FF']
+]);
+```
+
+### Text Effects
+
+```php
+// Superscript (for exponents)
+$sheet->setCellValue('A1', 'E=mc²');
+$sheet->getStyle('A1')->getFont()->setSuperscript(true);
+
+// Subscript (for chemical formulas)
+$sheet->setCellValue('A2', 'H₂O');
+$sheet->getStyle('A2')->getFont()->setSubscript(true);
+
+// Strikethrough (for deleted text)
+$sheet->setCellValue('A3', 'Removed text');
+$sheet->getStyle('A3')->getFont()->setStrikethrough(true);
+```
+
+### Header Styling
+
+```php
+// Create a bold header row
+$headerStyle = [
+    'font' => [
+        'bold' => true,
+        'size' => 12,
+        'name' => 'Arial',
+        'color' => ['rgb' => 'FFFFFF']
+    ],
+    'fill' => [
+        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '4472C4']
+    ]
+];
+
+$sheet->getStyle('A1:E1')->applyFromArray($headerStyle);
+```
+
+### Different Font Colors
+
+```php
+// Red text
+$sheet->getStyle('A1')->getFont()->getColor()->setRGB('FF0000');
+
+// Green text with alpha channel
+$sheet->getStyle('A2')->getFont()->getColor()->setARGB('FF00FF00');
+
+// Blue text
+$sheet->getStyle('A3')->getFont()->getColor()->setRGB('0000FF');
+```
+
+### Combining Multiple Effects
+
+```php
+$sheet->getStyle('A1')->getFont()->applyFromArray([
+    'name' => 'Courier New',
+    'size' => 11,
+    'bold' => true,
+    'italic' => true,
+    'underline' => Font::UNDERLINE_DOUBLE,
+    'color' => ['rgb' => '800080']
+]);
+```
+
+## See Also
+
+- [Style Class](/api/style) - Main style container
+- [Color Class](/api-reference/color) - Color handling
+- [Alignment Class](/api/alignment) - Text alignment options

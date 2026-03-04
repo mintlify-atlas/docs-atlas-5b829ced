@@ -1,0 +1,417 @@
+---
+title: Spreadsheet Class
+description: Main class for creating and managing spreadsheet workbooks
+---
+
+The `Spreadsheet` class is the core container for workbook data in PhpSpreadsheet. It manages worksheets, document properties, styles, and named ranges.
+
+## Class Overview
+
+**Namespace:** `PhpOffice\PhpSpreadsheet`
+
+**Source:** `src/PhpSpreadsheet/Spreadsheet.php`
+
+The Spreadsheet class represents an entire workbook and provides methods for managing worksheets, document metadata, styles, and calculations.
+
+## Constructor
+
+### `__construct()`
+
+Creates a new PhpSpreadsheet with one worksheet.
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+```
+
+The constructor automatically:
+- Creates one default worksheet
+- Initializes document properties
+- Sets up document security
+- Creates the calculation engine
+- Initializes default styles
+
+## Worksheet Management
+
+### `getActiveSheet()`
+
+Get the currently active worksheet.
+
+<ParamField path="Return" type="Worksheet">
+  The active worksheet object
+</ParamField>
+
+```php
+$activeSheet = $spreadsheet->getActiveSheet();
+```
+
+### `createSheet(?int $sheetIndex = null)`
+
+Create a new worksheet and add it to the workbook.
+
+<ParamField path="sheetIndex" type="int|null">
+  Index position where sheet should be inserted (0-based). Use null to add at the end.
+</ParamField>
+
+<ParamField path="Return" type="Worksheet">
+  The newly created worksheet
+</ParamField>
+
+```php
+// Add sheet at the end
+$newSheet = $spreadsheet->createSheet();
+
+// Insert sheet at specific position
+$secondSheet = $spreadsheet->createSheet(1);
+```
+
+### `addSheet(Worksheet $worksheet, ?int $sheetIndex = null, bool $retitleIfNeeded = false)`
+
+Add an existing worksheet to the workbook.
+
+<ParamField path="worksheet" type="Worksheet">
+  The worksheet object to add
+</ParamField>
+
+<ParamField path="sheetIndex" type="int|null">
+  Index position (0-based), or null to add at the end
+</ParamField>
+
+<ParamField path="retitleIfNeeded" type="bool" default="false">
+  Automatically rename if a sheet with the same name exists
+</ParamField>
+
+<ParamField path="Return" type="Worksheet">
+  The added worksheet
+</ParamField>
+
+```php
+$worksheet = new Worksheet($spreadsheet, 'My Sheet');
+$spreadsheet->addSheet($worksheet, null, true);
+```
+
+### `getSheet(int $sheetIndex)`
+
+Get a worksheet by its index position.
+
+<ParamField path="sheetIndex" type="int">
+  Zero-based index of the worksheet
+</ParamField>
+
+<ParamField path="Return" type="Worksheet">
+  The requested worksheet
+</ParamField>
+
+```php
+$firstSheet = $spreadsheet->getSheet(0);
+$secondSheet = $spreadsheet->getSheet(1);
+```
+
+### `getSheetByName(string $worksheetName)`
+
+Get a worksheet by its name.
+
+<ParamField path="worksheetName" type="string">
+  Name of the worksheet to retrieve
+</ParamField>
+
+<ParamField path="Return" type="Worksheet|null">
+  The worksheet, or null if not found
+</ParamField>
+
+```php
+$sheet = $spreadsheet->getSheetByName('Sales Data');
+if ($sheet !== null) {
+    // Work with the sheet
+}
+```
+
+### `getSheetByNameOrThrow(string $worksheetName)`
+
+Get a worksheet by name, throwing an exception if not found.
+
+<ParamField path="worksheetName" type="string">
+  Name of the worksheet
+</ParamField>
+
+<ParamField path="Return" type="Worksheet">
+  The worksheet
+</ParamField>
+
+```php
+try {
+    $sheet = $spreadsheet->getSheetByNameOrThrow('Sales Data');
+} catch (\PhpOffice\PhpSpreadsheet\Exception $e) {
+    echo "Sheet not found: " . $e->getMessage();
+}
+```
+
+### `getAllSheets()`
+
+Get all worksheets in the workbook.
+
+<ParamField path="Return" type="Worksheet[]">
+  Array of all worksheets
+</ParamField>
+
+```php
+$sheets = $spreadsheet->getAllSheets();
+foreach ($sheets as $sheet) {
+    echo $sheet->getTitle() . "\n";
+}
+```
+
+### `getSheetCount()`
+
+Get the total number of worksheets.
+
+<ParamField path="Return" type="int">
+  Number of worksheets in the workbook
+</ParamField>
+
+```php
+$count = $spreadsheet->getSheetCount();
+echo "This workbook has {$count} sheets";
+```
+
+### `removeSheetByIndex(int $sheetIndex)`
+
+Remove a worksheet by its index position.
+
+<ParamField path="sheetIndex" type="int">
+  Zero-based index of the worksheet to remove
+</ParamField>
+
+```php
+// Remove the second sheet
+$spreadsheet->removeSheetByIndex(1);
+```
+
+### `setActiveSheetIndex(int $worksheetIndex)`
+
+Set the active sheet by index.
+
+<ParamField path="worksheetIndex" type="int">
+  Zero-based index of the worksheet to activate
+</ParamField>
+
+<ParamField path="Return" type="Worksheet">
+  The newly activated worksheet
+</ParamField>
+
+```php
+$activeSheet = $spreadsheet->setActiveSheetIndex(0);
+```
+
+## Document Properties
+
+### `getProperties()`
+
+Get document properties (metadata).
+
+<ParamField path="Return" type="Properties">
+  Document properties object
+</ParamField>
+
+```php
+$properties = $spreadsheet->getProperties();
+$properties->setCreator('John Doe')
+    ->setTitle('Sales Report')
+    ->setSubject('Q4 2024 Sales')
+    ->setDescription('Quarterly sales analysis')
+    ->setKeywords('sales report quarterly')
+    ->setCategory('Reports');
+```
+
+### `setProperties(Properties $documentProperties)`
+
+Set document properties.
+
+<ParamField path="documentProperties" type="Properties">
+  The properties object to set
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Document\Properties;
+
+$properties = new Properties();
+$properties->setCreator('Jane Smith');
+$spreadsheet->setProperties($properties);
+```
+
+## Named Ranges
+
+### `addNamedRange(NamedRange $namedRange)`
+
+Add a named range to the workbook.
+
+<ParamField path="namedRange" type="NamedRange">
+  The named range object to add
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\NamedRange;
+
+$namedRange = new NamedRange(
+    'TaxRate',
+    $spreadsheet->getActiveSheet(),
+    'A1'
+);
+$spreadsheet->addNamedRange($namedRange);
+```
+
+### `getNamedRange(string $namedRange, ?Worksheet $worksheet = null)`
+
+Get a named range.
+
+<ParamField path="namedRange" type="string">
+  Name of the range
+</ParamField>
+
+<ParamField path="worksheet" type="Worksheet|null">
+  Scope worksheet (null for global scope)
+</ParamField>
+
+<ParamField path="Return" type="NamedRange|null">
+  The named range, or null if not found
+</ParamField>
+
+```php
+$range = $spreadsheet->getNamedRange('TaxRate');
+if ($range !== null) {
+    $value = $range->getRange();
+}
+```
+
+### `getNamedRanges()`
+
+Get all named ranges.
+
+<ParamField path="Return" type="DefinedName[]">
+  Array of all named ranges
+</ParamField>
+
+```php
+$ranges = $spreadsheet->getNamedRanges();
+foreach ($ranges as $range) {
+    echo $range->getName() . ": " . $range->getValue() . "\n";
+}
+```
+
+### `removeNamedRange(string $namedRange, ?Worksheet $worksheet = null)`
+
+Remove a named range.
+
+<ParamField path="namedRange" type="string">
+  Name of the range to remove
+</ParamField>
+
+<ParamField path="worksheet" type="Worksheet|null">
+  Scope worksheet (null for global scope)
+</ParamField>
+
+```php
+$spreadsheet->removeNamedRange('TaxRate');
+```
+
+## Styling
+
+### `getDefaultStyle()`
+
+Get the default style for the workbook.
+
+<ParamField path="Return" type="Style">
+  The default style object
+</ParamField>
+
+```php
+$defaultStyle = $spreadsheet->getDefaultStyle();
+$defaultStyle->getFont()->setName('Arial')
+    ->setSize(10);
+```
+
+### `addCellXf(Style $style)`
+
+Add a cell style format (XF) to the workbook.
+
+<ParamField path="style" type="Style">
+  The style to add
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Style;
+
+$style = new Style();
+$style->getFont()->setBold(true);
+$spreadsheet->addCellXf($style);
+```
+
+## Calculation
+
+### `getCalculationEngine()`
+
+Get the calculation engine.
+
+<ParamField path="Return" type="Calculation">
+  The calculation engine instance
+</ParamField>
+
+```php
+$calculation = $spreadsheet->getCalculationEngine();
+$calculation->setCalculationCacheEnabled(true);
+```
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\NamedRange;
+
+// Create a new spreadsheet
+$spreadsheet = new Spreadsheet();
+
+// Set document properties
+$spreadsheet->getProperties()
+    ->setCreator('John Doe')
+    ->setTitle('Sales Report')
+    ->setSubject('Q4 2024')
+    ->setDescription('Quarterly sales analysis');
+
+// Get the active sheet and set its title
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setTitle('Sales');
+
+// Add data
+$sheet->setCellValue('A1', 'Product');
+$sheet->setCellValue('B1', 'Revenue');
+$sheet->setCellValue('A2', 'Product A');
+$sheet->setCellValue('B2', 1000);
+
+// Create a second sheet
+$summarySheet = $spreadsheet->createSheet();
+$summarySheet->setTitle('Summary');
+
+// Add a named range
+$namedRange = new NamedRange(
+    'TotalRevenue',
+    $sheet,
+    'B2:B10'
+);
+$spreadsheet->addNamedRange($namedRange);
+
+// Set active sheet back to first sheet
+$spreadsheet->setActiveSheetIndex(0);
+
+// Get sheet count
+echo "Total sheets: " . $spreadsheet->getSheetCount();
+```
+
+## Related Classes
+
+- [Worksheet](/api/worksheet) - Individual worksheet within a spreadsheet
+- [Cell](/api/cell) - Individual cell within a worksheet  
+- [IOFactory](/api/iofactory) - Loading and saving spreadsheets
+- `Properties` - Document metadata and properties
+- `Style` - Cell formatting and styles
+- `NamedRange` - Named cell ranges

@@ -1,0 +1,331 @@
+---
+title: 'Cell Comments and Notes'
+description: 'Add comments and notes to cells in Excel worksheets with PhpSpreadsheet'
+---
+
+## Introduction
+
+Comments (also called notes in newer Excel versions) allow you to attach additional information to cells. They appear as small indicators in the corner of cells and display their content when hovering over or clicking the cell.
+
+## Adding Basic Comments
+
+### Simple Text Comment
+
+Add a plain text comment to a cell:
+
+```php
+$spreadsheet->getActiveSheet()
+    ->getComment('E11')
+    ->setAuthor('John Doe')
+    ->setText('This is a simple comment');
+```
+
+### Multi-line Comments
+
+Add comments with multiple lines:
+
+```php
+$spreadsheet->getActiveSheet()
+    ->getComment('B5')
+    ->setAuthor('Jane Smith')
+    ->setText("Line 1\nLine 2\nLine 3");
+```
+
+## Rich Text Comments
+
+### Formatting Comment Text
+
+Create comments with formatted text:
+
+```php
+$spreadsheet->getActiveSheet()
+    ->getComment('E11')
+    ->setAuthor('Mark Baker');
+
+// Create bold text run
+$commentRichText = $spreadsheet->getActiveSheet()
+    ->getComment('E11')
+    ->getText()
+    ->createTextRun('PhpSpreadsheet:');
+$commentRichText->getFont()->setBold(true);
+
+// Add line break
+$spreadsheet->getActiveSheet()
+    ->getComment('E11')
+    ->getText()
+    ->createTextRun("\r\n");
+
+// Add normal text
+$spreadsheet->getActiveSheet()
+    ->getComment('E11')
+    ->getText()
+    ->createTextRun('Total amount on the current invoice, excluding VAT.');
+```
+
+### Advanced Text Formatting
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+$comment = $spreadsheet->getActiveSheet()->getComment('A1');
+$comment->setAuthor('System');
+
+// Title in bold and red
+$titleRun = $comment->getText()->createTextRun('Important Notice:');
+$titleRun->getFont()
+    ->setBold(true)
+    ->setColor(new Color(Color::COLOR_RED))
+    ->setSize(12);
+
+$comment->getText()->createTextRun("\r\n");
+
+// Body text
+$bodyRun = $comment->getText()->createTextRun('This value requires approval.');
+$bodyRun->getFont()
+    ->setItalic(true)
+    ->setSize(10);
+```
+
+## Comment Appearance
+
+### Size and Position
+
+Customize comment dimensions:
+
+```php
+$comment = $spreadsheet->getActiveSheet()->getComment('C5');
+$comment->setWidth('200px');
+$comment->setHeight('100px');
+
+// Set margins
+$comment->setMarginLeft('50px');
+$comment->setMarginTop('50px');
+```
+
+### Visibility
+
+Control comment visibility:
+
+```php
+// Make comment always visible
+$comment->setVisible(true);
+
+// Hide comment (default - shows on hover)
+$comment->setVisible(false);
+```
+
+### Fill Color
+
+Set the background color:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+$comment = $spreadsheet->getActiveSheet()->getComment('A1');
+$comment->getFillColor()->setRGB('FFFF00');  // Yellow
+```
+
+## Comments with Background Images
+
+### Adding Background Images
+
+Add an image as a comment background:
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+
+$worksheet = $spreadsheet->getActiveSheet();
+$worksheet->setCellValue('B5', 'Product Name');
+
+// Create drawing for background
+$drawing = new Drawing();
+$drawing->setName('Product Image');
+$drawing->setPath('/path/to/product.png');
+
+// Add to comment
+$comment = $worksheet->getComment('B5');
+$comment->setBackgroundImage($drawing);
+
+// Resize comment to match image
+$comment->setSizeAsBackgroundImage();
+```
+
+### Setting Comment Size to Image Size
+
+Automatically size the comment to match the background image:
+
+```php
+$comment->setSizeAsBackgroundImage();
+```
+
+## Reading Comments
+
+### Checking for Comments
+
+Determine if a cell has a comment:
+
+```php
+if ($worksheet->getComment('A1')->hasComment()) {
+    $commentText = $worksheet->getComment('A1')->getText()->getPlainText();
+    echo "Comment: " . $commentText;
+}
+```
+
+### Iterating Through Comments
+
+Get all comments in a worksheet:
+
+```php
+$comments = $worksheet->getComments();
+
+foreach ($comments as $cellReference => $comment) {
+    echo "Cell: " . $cellReference . PHP_EOL;
+    echo "Author: " . $comment->getAuthor() . PHP_EOL;
+    echo "Text: " . $comment->getText()->getPlainText() . PHP_EOL;
+    echo "---" . PHP_EOL;
+}
+```
+
+## Comment Examples
+
+### Data Validation Comment
+
+```php
+$comment = $worksheet->getComment('B2');
+$comment->setAuthor('Data Validator');
+
+$titleRun = $comment->getText()->createTextRun('Valid Range:');
+$titleRun->getFont()->setBold(true);
+
+$comment->getText()->createTextRun("\r\n");
+$comment->getText()->createTextRun('Please enter a value between 0 and 100');
+
+$comment->setWidth('250px');
+$comment->setHeight('75px');
+```
+
+### Approval Workflow Comment
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+$comment = $worksheet->getComment('D5');
+$comment->setAuthor('Approval System');
+
+$statusRun = $comment->getText()->createTextRun('Status: PENDING');
+$statusRun->getFont()
+    ->setBold(true)
+    ->setColor(new Color(Color::COLOR_DARKYELLOW));
+
+$comment->getText()->createTextRun("\r\n\r\n");
+$comment->getText()->createTextRun('Submitted: 2024-01-15');
+$comment->getText()->createTextRun("\r\n");
+$comment->getText()->createTextRun('Awaiting manager approval');
+
+$comment->setVisible(true);
+```
+
+### Calculation Note
+
+```php
+$comment = $worksheet->getComment('F10');
+$comment->setAuthor('System');
+
+$headerRun = $comment->getText()->createTextRun('Calculation:');
+$headerRun->getFont()->setBold(true);
+
+$comment->getText()->createTextRun("\r\n");
+$comment->getText()->createTextRun('=SUM(F2:F9)');
+$comment->getText()->createTextRun("\r\n\r\n");
+$comment->getText()->createTextRun('This value is automatically calculated.');
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Set Meaningful Authors">
+    Always set the author to identify who created or is responsible for the comment.
+  </Accordion>
+  
+  <Accordion title="Keep Comments Concise">
+    While comments can be lengthy, shorter comments are more likely to be read and understood.
+  </Accordion>
+  
+  <Accordion title="Use Rich Text for Important Information">
+    Format important parts of comments (bold, color) to draw attention to key information.
+  </Accordion>
+  
+  <Accordion title="Size Comments Appropriately">
+    Ensure comments are sized to display their content without excessive scrolling.
+  </Accordion>
+  
+  <Accordion title="Consider Visibility">
+    Make critical comments always visible, but keep routine notes hidden (hover-to-view).
+  </Accordion>
+</AccordionGroup>
+
+## Comments vs Data Validation
+
+### When to Use Comments
+
+- Additional context or explanations
+- Approval notes or workflow information
+- Calculation explanations
+- Historical notes or changes
+
+### When to Use Data Validation
+
+- Input restrictions
+- Dropdown lists
+- Error prevention
+- Mandatory validation rules
+
+<Tip>
+Use both together: Add data validation for input rules and comments to explain why those rules exist.
+</Tip>
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Add data
+$worksheet->setCellValue('A1', 'Item');
+$worksheet->setCellValue('B1', 'Quantity');
+$worksheet->setCellValue('C1', 'Price');
+$worksheet->setCellValue('D1', 'Total');
+
+$worksheet->setCellValue('A2', 'Widget');
+$worksheet->setCellValue('B2', 10);
+$worksheet->setCellValue('C2', 5.99);
+$worksheet->setCellValue('D2', '=B2*C2');
+
+// Add comment to header
+$comment = $worksheet->getComment('D1');
+$comment->setAuthor('System');
+$titleRun = $comment->getText()->createTextRun('Total Calculation:');
+$titleRun->getFont()->setBold(true);
+$comment->getText()->createTextRun("\r\n");
+$comment->getText()->createTextRun('Quantity × Price');
+$comment->setWidth('200px');
+
+// Add comment to data cell
+$valueComment = $worksheet->getComment('D2');
+$valueComment->setAuthor('Finance');
+$valueComment->getText()->createTextRun('Verified: 2024-01-15');
+$valueComment->getFillColor()->setRGB('CCFFCC');  // Light green
+
+// Save
+$writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->save('comments.xlsx');
+```
+
+## Related Topics
+
+- [Data Validation](/essentials/data-validation)
+- [Cell Formatting](/essentials/cell-formatting)
+- [Rich Text](/essentials/rich-text)

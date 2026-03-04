@@ -1,0 +1,317 @@
+---
+title: 'Cell Values and Data Types'
+description: 'Understanding data types, value binders, and type conversion in PhpSpreadsheet'
+---
+
+## Data Types in PhpSpreadsheet
+
+PhpSpreadsheet supports all 7 Excel data types:
+
+| Type | Constant | Description |
+|------|----------|-------------|
+| String | `DataType::TYPE_STRING` | Text values |
+| Number | `DataType::TYPE_NUMERIC` | Integer or floating-point numbers |
+| Boolean | `DataType::TYPE_BOOL` | `TRUE` or `FALSE` |
+| Null | `DataType::TYPE_NULL` | Empty cell |
+| Formula | `DataType::TYPE_FORMULA` | Excel formula (begins with `=`) |
+| Error | `DataType::TYPE_ERROR` | Error codes like `#DIV/0!`, `#VALUE!` |
+| Inline String | `DataType::TYPE_INLINE` | Rich text with formatting |
+
+### Error Codes
+
+Supported Excel error codes:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+
+$errorCodes = DataType::getErrorCodes();
+// Returns:
+// [
+//     '#NULL!'  => 0,
+//     '#DIV/0!' => 1,
+//     '#VALUE!' => 2,
+//     '#REF!'   => 3,
+//     '#NAME?'  => 4,
+//     '#NUM!'   => 5,
+//     '#N/A'    => 6,
+//     '#CALC!'  => 7,
+// ]
+```
+
+## Value Binders
+
+Value binders automatically determine the appropriate data type when you set cell values. PhpSpreadsheet provides three built-in value binders:
+
+### DefaultValueBinder
+
+The default binder performs basic type detection:
+
+- PHP `null` → `TYPE_NULL`
+- Boolean values → `TYPE_BOOL`
+- Integer/Float → `TYPE_NUMERIC` (except integers > 999,999,999,999,999)
+- Strings starting with `=` → `TYPE_FORMULA`
+- Numeric strings → `TYPE_NUMERIC` (unless they have leading zeros)
+- Error codes → `TYPE_ERROR`
+- Everything else → `TYPE_STRING`
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+
+// This is the default, no need to set explicitly
+Cell::setValueBinder(new DefaultValueBinder());
+
+$sheet->setCellValue('A1', 42);        // TYPE_NUMERIC
+$sheet->setCellValue('A2', '42');      // TYPE_NUMERIC
+$sheet->setCellValue('A3', '042');     // TYPE_STRING (leading zero)
+$sheet->setCellValue('A4', '=SUM(A1:A2)'); // TYPE_FORMULA
+```
+
+### AdvancedValueBinder
+
+The advanced binder adds intelligent parsing for additional formats:
+
+<Accordion title="Advanced Value Binder Features">
+  - **Booleans**: Converts locale-specific TRUE/FALSE strings
+  - **Percentages**: Converts "10%" to 0.1 with percentage format
+  - **Fractions**: Converts "3/4" to 0.75 with fraction format
+  - **Dates**: Converts date strings to Excel timestamps with date format
+  - **Times**: Converts "9:45" to time values with time format
+  - **Currency**: Detects currency symbols and applies currency format
+  - **Scientific notation**: Handles exponential format
+  - **Newlines**: Applies wrap text style when `\n` is detected
+</Accordion>
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+$spreadsheet->setValueBinder(new AdvancedValueBinder());
+
+// These are automatically converted:
+$sheet = $spreadsheet->getActiveSheet();
+
+$sheet->setCellValue('A1', '10%');           // → 0.1 with format "0%"
+$sheet->setCellValue('A2', '3/4');           // → 0.75 with format "?/?" 
+$sheet->setCellValue('A3', '21 December 1983'); // → 30676 with date format
+$sheet->setCellValue('A4', '9:45');          // → 0.40625 with time format
+$sheet->setCellValue('A5', '$1,234.56');     // → 1234.56 with currency format
+$sheet->setCellValue('A6', "Line1\nLine2");  // String with wrap text enabled
+```
+
+<Note>
+The AdvancedValueBinder mimics MS Excel's behavior for automatic data type detection.
+</Note>
+
+### StringValueBinder
+
+Forces all values to be stored as strings, useful for preserving data like phone numbers:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\StringValueBinder;
+
+$stringValueBinder = new StringValueBinder();
+$stringValueBinder
+    ->setNumericConversion(false)   // Don't convert numbers
+    ->setBooleanConversion(false)   // Don't convert booleans
+    ->setNullConversion(false)      // Don't convert nulls
+    ->setFormulaConversion(false)   // Don't convert formulas
+    ->setSetIgnoredErrors(true);    // Suppress "number stored as text" warnings
+
+$spreadsheet = new Spreadsheet();
+$spreadsheet->setValueBinder($stringValueBinder);
+
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setCellValue('A1', '+441615579382');  // Keeps as string
+$sheet->setCellValue('A2', '01234567890');    // Preserves leading zero
+```
+
+## Setting Value Binders
+
+### Global Value Binder (Legacy)
+
+<Warning>
+The static `Cell::setValueBinder()` method is deprecated. Use the instance method instead.
+</Warning>
+
+```php
+// Old method (still works but deprecated)
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder;
+
+Cell::setValueBinder(new AdvancedValueBinder());
+$spreadsheet = new Spreadsheet();
+```
+
+### Instance Value Binder (Preferred)
+
+Set the value binder per spreadsheet (available since 3.4.0):
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder;
+
+$spreadsheet = new Spreadsheet();
+$spreadsheet->setValueBinder(new AdvancedValueBinder());
+```
+
+### Per-Cell Value Binder Override
+
+Override the value binder for individual cell operations:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\StringValueBinder;
+
+$spreadsheet = new Spreadsheet();
+$spreadsheet->setValueBinder(new AdvancedValueBinder());
+
+$sheet = $spreadsheet->getActiveSheet();
+
+// This cell uses AdvancedValueBinder
+$sheet->getCell('A1')->setValue('12.5%');
+// Result: 0.125 with format mask '0.00%'
+
+// This cell overrides with StringValueBinder
+$sheet->getCell('A2')->setValue('12.5%', new StringValueBinder());
+// Result: '12.5%' as string with format mask 'General'
+```
+
+## Creating Custom Value Binders
+
+Implement the `IValueBinder` interface to create custom value binding logic:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\IValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+
+class MyCustomValueBinder extends DefaultValueBinder implements IValueBinder
+{
+    public function bindValue(Cell $cell, mixed $value): bool
+    {
+        // Custom logic here
+        if (is_string($value) && str_starts_with($value, 'SKU-')) {
+            // Treat SKUs as strings
+            $cell->setValueExplicit($value, DataType::TYPE_STRING);
+            return true;
+        }
+        
+        // Fall back to parent for other types
+        return parent::bindValue($cell, $value);
+    }
+}
+
+// Use the custom binder
+$spreadsheet = new Spreadsheet();
+$spreadsheet->setValueBinder(new MyCustomValueBinder());
+```
+
+## Type Checking and Conversion
+
+### Checking Data Types
+
+```php
+$cell = $sheet->getCell('A1');
+
+// Get the data type
+$dataType = $cell->getDataType();
+// Returns one of: 's', 'n', 'b', 'null', 'f', 'e', 'inlineStr'
+
+// Check if cell contains a formula
+if ($cell->isFormula()) {
+    echo "Cell contains a formula";
+}
+
+// Check if cell has data validation
+if ($cell->hasDataValidation()) {
+    $validation = $cell->getDataValidation();
+}
+
+// Check if cell has a hyperlink
+if ($cell->hasHyperlink()) {
+    $hyperlink = $cell->getHyperlink();
+}
+```
+
+### String Length Limits
+
+Excel limits strings to 32,767 characters:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+
+echo DataType::MAX_STRING_LENGTH; // 32767
+
+// PhpSpreadsheet automatically truncates longer strings
+$longString = str_repeat('A', 50000);
+$sheet->setCellValue('A1', $longString);
+// Cell will contain only first 32,767 characters
+```
+
+## Working with Rich Text
+
+```php
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
+
+$richText = new RichText();
+$richText->createText('This is ');
+
+$bold = $richText->createTextRun('bold');
+$bold->getFont()->setBold(true);
+
+$richText->createText(' and this is ');
+
+$italic = $richText->createTextRun('italic');
+$italic->getFont()->setItalic(true);
+
+$sheet->setCellValue('A1', $richText);
+
+// Get plain text from rich text cell
+$cell = $sheet->getCell('A1');
+if ($cell->getValue() instanceof RichText) {
+    $plainText = $cell->getValue()->getPlainText();
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Appropriate Value Binders">
+    - Use `DefaultValueBinder` for performance-critical operations
+    - Use `AdvancedValueBinder` when importing user data from CSV or forms
+    - Use `StringValueBinder` when you need to preserve exact input formatting
+  </Accordion>
+  
+  <Accordion title="Explicit Types for Edge Cases">
+    Use `setCellValueExplicit()` when:
+    - Setting numeric strings with leading zeros
+    - Setting strings that look like formulas but aren't
+    - Setting values that might be misinterpreted
+  </Accordion>
+  
+  <Accordion title="Memory Considerations">
+    - Rich text objects use more memory than plain strings
+    - Consider using plain strings with formatting instead when possible
+    - Be aware that formula cells cache their calculated values
+  </Accordion>
+</AccordionGroup>
+
+## Related Topics
+
+<CardGroup cols={2}>
+  <Card title="Accessing Cells" icon="table-cells" href="/data/accessing-cells">
+    Methods for reading and writing cells
+  </Card>
+  <Card title="Formulas" icon="function" href="/data/formulas">
+    Working with Excel formulas
+  </Card>
+  <Card title="Data Validation" icon="shield-check" href="/data/data-validation">
+    Validating cell input
+  </Card>
+  <Card title="Number Formatting" icon="hashtag" href="/formatting/number-formats">
+    Formatting numeric values
+  </Card>
+</CardGroup>

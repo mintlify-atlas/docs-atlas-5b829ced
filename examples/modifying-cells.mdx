@@ -1,0 +1,371 @@
+---
+title: 'Modifying Cells'
+description: 'Learn how to set cell values, formulas, and properties'
+---
+
+## Setting Cell Values
+
+There are multiple ways to set cell values in PhpSpreadsheet:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Method 1: Using setCellValue() with method chaining
+$sheet->setCellValue('A1', 'String')
+      ->setCellValue('B1', 'Simple')
+      ->setCellValue('C1', 'PhpSpreadsheet');
+
+// Method 2: Getting the cell object first
+$cell = $sheet->getCell('A2');
+$cell->setValue('Direct cell access');
+
+// Method 3: Using array notation (if available)
+$sheet->setCellValue('A3', 'Another value');
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('cell_values.xlsx');
+```
+
+## Working with Different Data Types
+
+PhpSpreadsheet automatically handles various data types:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Strings
+$sheet->setCellValue('A1', 'String')
+      ->setCellValue('B1', 'Simple Text');
+
+// Strings with special characters
+$sheet->setCellValue('A2', 'String')
+      ->setCellValue('B2', 'Symbols: !+&=()~§±æþ');
+
+// UTF-8 strings
+$sheet->setCellValue('A3', 'String')
+      ->setCellValue('B3', 'Создать MS Excel Книги из PHP скриптов');
+
+// Integers
+$sheet->setCellValue('A4', 'Number')
+      ->setCellValue('B4', 'Integer')
+      ->setCellValue('C4', 12);
+
+// Floats
+$sheet->setCellValue('A5', 'Number')
+      ->setCellValue('B5', 'Float')
+      ->setCellValue('C5', 34.56);
+
+// Negative numbers
+$sheet->setCellValue('A6', 'Number')
+      ->setCellValue('B6', 'Negative')
+      ->setCellValue('C6', -7.89);
+
+// Booleans
+$sheet->setCellValue('A7', 'Boolean')
+      ->setCellValue('B7', 'True')
+      ->setCellValue('C7', true);
+
+$sheet->setCellValue('A8', 'Boolean')
+      ->setCellValue('B8', 'False')
+      ->setCellValue('C8', false);
+
+// Dates
+$dateTimeNow = time();
+$sheet->setCellValue('A9', 'Date/Time')
+      ->setCellValue('B9', 'Date')
+      ->setCellValue('C9', Date::PHPToExcel($dateTimeNow));
+$sheet->getStyle('C9')
+      ->getNumberFormat()
+      ->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDD);
+
+// Time
+$sheet->setCellValue('A10', 'Date/Time')
+      ->setCellValue('B10', 'Time')
+      ->setCellValue('C10', Date::PHPToExcel($dateTimeNow));
+$sheet->getStyle('C10')
+      ->getNumberFormat()
+      ->setFormatCode(NumberFormat::FORMAT_DATE_TIME4);
+
+// DateTime
+$sheet->setCellValue('A11', 'Date/Time')
+      ->setCellValue('B11', 'Date and Time')
+      ->setCellValue('C11', Date::PHPToExcel($dateTimeNow));
+$sheet->getStyle('C11')
+      ->getNumberFormat()
+      ->setFormatCode(NumberFormat::FORMAT_DATE_DATETIME);
+
+// NULL values
+$sheet->setCellValue('A12', 'NULL')
+      ->setCellValue('C12', null);
+
+// Explicit data type (inline string, not added to shared strings)
+$sheet->setCellValue('A13', 'String')
+      ->setCellValue('B13', 'inline')
+      ->setCellValueExplicit('C13', 'Not in sharedStrings.xml', DataType::TYPE_INLINE);
+```
+
+## Working with Formulas
+
+Formulas are one of the most powerful features of spreadsheets:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Set up some data
+$sheet->setCellValue('A1', 'Range #1');
+$sheet->setCellValue('A2', 3);
+$sheet->setCellValue('A3', 7);
+$sheet->setCellValue('A4', 13);
+
+$sheet->setCellValue('B1', 'Range #2');
+$sheet->setCellValue('B2', 5);
+$sheet->setCellValue('B3', 11);
+$sheet->setCellValue('B4', 17);
+
+// SUM formula
+$sheet->setCellValue('A5', 'Sum:');
+$sheet->setCellValue('B5', '=SUM(A2:A4)');
+$sheet->setCellValue('C5', '=SUM(B2:B4)');
+
+// Get calculated value
+$sumValue = $sheet->getCell('B5')->getCalculatedValue();
+echo "Sum: " . $sumValue . "\n";
+
+// Total of both ranges
+$sheet->setCellValue('A7', 'Total:');
+$sheet->setCellValue('B7', '=SUM(B5:C5)');
+
+// MIN formula
+$sheet->setCellValue('A8', 'Minimum:');
+$sheet->setCellValue('B8', '=MIN(A2:B4)');
+
+// MAX formula
+$sheet->setCellValue('A9', 'Maximum:');
+$sheet->setCellValue('B9', '=MAX(A2:B4)');
+
+// AVERAGE formula
+$sheet->setCellValue('A10', 'Average:');
+$sheet->setCellValue('B10', '=AVERAGE(A2:B4)');
+
+// IF formula
+$sheet->setCellValue('A11', 'Status:');
+$sheet->setCellValue('B11', '=IF(B7>50,"High","Low")');
+
+// CONCATENATE formula
+$sheet->setCellValue('A12', 'Text:');
+$sheet->setCellValue('B12', '=CONCATENATE("Total is ",B7)');
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('formulas.xlsx');
+```
+
+## Cell References in Formulas
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Relative reference (adjusts when copied)
+$sheet->setCellValue('A1', '=B1+C1');
+
+// Absolute reference (doesn't adjust when copied)
+$sheet->setCellValue('A2', '=$B$1+$C$1');
+
+// Mixed references
+$sheet->setCellValue('A3', '=$B1+C$1');
+
+// Cross-sheet reference
+$sheet->setCellValue('A4', '=Sheet2!A1+Sheet2!B1');
+
+// Reference with spaces in sheet name
+$sheet->setCellValue('A5', "=\'Sales Data\'!A1");
+
+// Named range reference (if you've defined named ranges)
+$sheet->setCellValue('A6', '=SUM(SalesData)');
+```
+
+## Rich Text in Cells
+
+Add formatted text with different styles within a single cell:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Create rich text
+$richText = new RichText();
+$richText->createText('Normal text, ');
+
+$boldText = $richText->createTextRun('bold text, ');
+$boldText->getFontOrThrow()->setBold(true);
+
+$coloredText = $richText->createTextRun('colored text');
+$coloredText->getFontOrThrow()->setBold(true);
+$coloredText->getFontOrThrow()->setItalic(true);
+$coloredText->getFontOrThrow()->setColor(new Color(Color::COLOR_DARKGREEN));
+
+$sheet->setCellValue('A1', $richText);
+
+// Multi-line rich text
+$richText2 = new RichText();
+$richText2->createText("First line\n");
+
+$redText = $richText2->createTextRun('Second line in red');
+$redText->getFontOrThrow()->setColor(new Color(Color::COLOR_RED));
+
+$sheet->getCell('A2')->setValue($richText2);
+$sheet->getStyle('A2')->getAlignment()->setWrapText(true);
+```
+
+## Adding Hyperlinks
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// URL hyperlink
+$sheet->setCellValue('A1', 'PhpSpreadsheet Website');
+$sheet->getCell('A1')
+      ->getHyperlink()
+      ->setUrl('https://github.com/PHPOffice/PhpSpreadsheet')
+      ->setTooltip('Visit the PhpSpreadsheet repository');
+$sheet->getStyle('A1')->getFont()->setHyperlinkTheme();
+
+// Email hyperlink using formula
+$sheet->setCellValue('A2', '=HYPERLINK("mailto:test@example.com","Email Us")');
+$sheet->getStyle('A2')->getFont()->setHyperlinkTheme();
+
+// Internal link to another sheet
+$sheet->setCellValue('A3', 'Go to Sheet2');
+$sheet->getCell('A3')
+      ->getHyperlink()
+      ->setUrl('sheet://\'Sheet2\'!A1')
+      ->setTooltip('Navigate to Sheet2, cell A1');
+$sheet->getStyle('A3')->getFont()->setHyperlinkTheme();
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('hyperlinks.xlsx');
+```
+
+## Text Wrapping and Alignment
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Multi-line text with wrapping
+$value = "Line 1\nLine 2\nLine 3";
+$sheet->setCellValue('A1', $value);
+$sheet->getRowDimension(1)->setRowHeight(-1); // Auto-height
+$sheet->getStyle('A1')->getAlignment()->setWrapText(true);
+
+// Horizontal alignment
+$sheet->setCellValue('A3', 'Left aligned');
+$sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+$sheet->setCellValue('A4', 'Center aligned');
+$sheet->getStyle('A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+$sheet->setCellValue('A5', 'Right aligned');
+$sheet->getStyle('A5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+// Vertical alignment
+$sheet->setCellValue('B3', 'Top');
+$sheet->getRowDimension(3)->setRowHeight(50);
+$sheet->getStyle('B3')->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
+
+$sheet->setCellValue('B4', 'Middle');
+$sheet->getRowDimension(4)->setRowHeight(50);
+$sheet->getStyle('B4')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+$sheet->setCellValue('B5', 'Bottom');
+$sheet->getRowDimension(5)->setRowHeight(50);
+$sheet->getStyle('B5')->getAlignment()->setVertical(Alignment::VERTICAL_BOTTOM);
+```
+
+## Quote Prefix for Text Values
+
+Preserve leading characters that might be interpreted as formulas:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Without quote prefix, this might be interpreted as formula
+$value = "-Value A\n-Value B\n-Value C";
+$sheet->setCellValue('A1', $value);
+$sheet->getStyle('A1')->getAlignment()->setWrapText(true);
+$sheet->getStyle('A1')->setQuotePrefix(true);
+$sheet->getRowDimension(1)->setRowHeight(-1);
+```
+
+## Key Takeaways
+
+- Use `setCellValue()` for most data types (auto-detected)
+- Use `setCellValueExplicit()` to force a specific data type
+- Formulas must start with `=` sign
+- Use `getCalculatedValue()` to evaluate formula results
+- Rich text allows multiple formats within one cell
+- Hyperlinks can point to URLs, emails, or internal cell references
+- Enable `setWrapText(true)` for multi-line cell content
+- Use `setQuotePrefix(true)` to preserve text starting with special characters

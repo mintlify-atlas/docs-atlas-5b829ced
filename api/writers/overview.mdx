@@ -1,0 +1,168 @@
+---
+title: Writers Overview
+description: Overview of PhpSpreadsheet writer classes and the IWriter interface
+---
+
+PhpSpreadsheet provides various writer classes to export spreadsheet data to different file formats. All writer classes implement the `IWriter` interface, ensuring a consistent API across formats.
+
+## IWriter Interface
+
+The `IWriter` interface defines the standard contract that all writer implementations must follow.
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Writer`
+
+### Key Methods
+
+#### __construct()
+
+```php
+public function __construct(Spreadsheet $spreadsheet);
+```
+
+Creates a new writer instance for the given spreadsheet.
+
+<ParamField path="spreadsheet" type="Spreadsheet" required>
+  The spreadsheet object to write
+</ParamField>
+
+#### save()
+
+```php
+public function save($filename, int $flags = 0): void;
+```
+
+Saves the spreadsheet to a file.
+
+<ParamField path="filename" type="string|resource" required>
+  The filename to save to, or a file resource handle
+</ParamField>
+
+<ParamField path="flags" type="int" default="0">
+  Optional flags to control writer behavior:
+  - `IWriter::SAVE_WITH_CHARTS` (1) - Include charts in output
+  - `IWriter::DISABLE_PRECALCULATE_FORMULAE` (2) - Don't calculate formulas before saving
+</ParamField>
+
+#### setPreCalculateFormulas()
+
+```php
+public function setPreCalculateFormulas(bool $precalculateFormulas): self;
+```
+
+Controls whether formulas should be calculated before saving. When enabled (default), formulas are calculated and their values are immediately available when opening the file. When disabled, the target application must recalculate formulas.
+
+<ParamField path="precalculateFormulas" type="bool" required>
+  True to calculate formulas on save, false to skip calculation
+</ParamField>
+
+#### setIncludeCharts()
+
+```php
+public function setIncludeCharts(bool $includeCharts): self;
+```
+
+Controls whether charts should be included in the output.
+
+<ParamField path="includeCharts" type="bool" required>
+  True to include charts, false to exclude them
+</ParamField>
+
+#### setUseDiskCaching()
+
+```php
+public function setUseDiskCaching(bool $useDiskCache, ?string $cacheDirectory = null): self;
+```
+
+Enables disk caching to reduce memory usage for large files.
+
+<ParamField path="useDiskCache" type="bool" required>
+  True to enable disk caching
+</ParamField>
+
+<ParamField path="cacheDirectory" type="string|null">
+  Optional directory for cache files. Must exist.
+</ParamField>
+
+## Common Writer Patterns
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$spreadsheet = new Spreadsheet();
+// ... populate spreadsheet ...
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('output.xlsx');
+```
+
+### Using Flags
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\IWriter;
+
+$writer = new Xlsx($spreadsheet);
+$writer->save(
+    'output.xlsx',
+    IWriter::SAVE_WITH_CHARTS | IWriter::DISABLE_PRECALCULATE_FORMULAE
+);
+```
+
+### Writing to Stream
+
+```php
+$writer = new Xlsx($spreadsheet);
+
+// Write to output buffer
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment;filename="report.xlsx"');
+header('Cache-Control: max-age=0');
+
+$writer->save('php://output');
+```
+
+### Configuration Options
+
+```php
+$writer = new Xlsx($spreadsheet);
+
+// Disable formula calculation for faster writing
+$writer->setPreCalculateFormulas(false);
+
+// Include charts in output
+$writer->setIncludeCharts(true);
+
+// Use disk caching for large files
+$writer->setUseDiskCaching(true, '/tmp/phpspreadsheet');
+
+$writer->save('output.xlsx');
+```
+
+## Available Writers
+
+PhpSpreadsheet supports the following output formats:
+
+- **[Xlsx](/api/writers/xlsx)** - Excel 2007+ (Office Open XML)
+- **[Xls](/api/writers/xls)** - Excel 5.0/95, Excel 97-2003 (BIFF)
+- **[Ods](/api/writers/ods)** - OpenDocument Spreadsheet
+- **[Csv](/api/writers/csv)** - Comma-Separated Values
+- **[Html](/api/writers/html)** - HTML table format
+- **[Pdf](/api/writers/pdf)** - PDF format (via Dompdf, Mpdf, or Tcpdf)
+
+## BaseWriter Class
+
+The `BaseWriter` abstract class provides common functionality for all writers:
+
+```php
+abstract class BaseWriter implements IWriter
+{
+    protected bool $includeCharts = false;
+    protected bool $preCalculateFormulas = true;
+    private bool $useDiskCaching = false;
+    private string $diskCachingDirectory = './';
+}
+```
+
+Most writer classes extend `BaseWriter` to inherit these standard features.

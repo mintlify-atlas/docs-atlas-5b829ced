@@ -1,0 +1,486 @@
+---
+title: 'Fill Class'
+description: 'Complete API reference for the PhpSpreadsheet Fill styling class'
+---
+
+## Overview
+
+The `Fill` class controls cell background colors and fill patterns, including solid colors, gradients, and various pattern fills.
+
+## Namespace
+
+```php
+PhpOffice\PhpSpreadsheet\Style\Fill
+```
+
+## Getting a Fill Object
+
+```php
+// Via Style object
+$fill = $spreadsheet->getActiveSheet()->getStyle('A1')->getFill();
+
+// Via chaining
+$spreadsheet->getActiveSheet()->getStyle('A1')
+    ->getFill()
+    ->setFillType(Fill::FILL_SOLID)
+    ->getStartColor()->setARGB('FFFF0000');
+```
+
+## Constants
+
+### Fill Types
+
+<ParamField path="FILL_NONE" type="string" default="'none'">
+  No fill
+</ParamField>
+
+<ParamField path="FILL_SOLID" type="string" default="'solid'">
+  Solid color fill
+</ParamField>
+
+<ParamField path="FILL_GRADIENT_LINEAR" type="string" default="'linear'">
+  Linear gradient fill
+</ParamField>
+
+<ParamField path="FILL_GRADIENT_PATH" type="string" default="'path'">
+  Path gradient fill
+</ParamField>
+
+### Pattern Fill Types
+
+<ParamField path="FILL_PATTERN_DARKDOWN" type="string" default="'darkDown'">
+  Dark diagonal lines going down
+</ParamField>
+
+<ParamField path="FILL_PATTERN_DARKGRAY" type="string" default="'darkGray'">
+  Dark gray pattern
+</ParamField>
+
+<ParamField path="FILL_PATTERN_DARKGRID" type="string" default="'darkGrid'">
+  Dark grid pattern
+</ParamField>
+
+<ParamField path="FILL_PATTERN_DARKHORIZONTAL" type="string" default="'darkHorizontal'">
+  Dark horizontal lines
+</ParamField>
+
+<ParamField path="FILL_PATTERN_DARKTRELLIS" type="string" default="'darkTrellis'">
+  Dark trellis pattern
+</ParamField>
+
+<ParamField path="FILL_PATTERN_DARKUP" type="string" default="'darkUp'">
+  Dark diagonal lines going up
+</ParamField>
+
+<ParamField path="FILL_PATTERN_DARKVERTICAL" type="string" default="'darkVertical'">
+  Dark vertical lines
+</ParamField>
+
+<ParamField path="FILL_PATTERN_GRAY0625" type="string" default="'gray0625'">
+  6.25% gray pattern
+</ParamField>
+
+<ParamField path="FILL_PATTERN_GRAY125" type="string" default="'gray125'">
+  12.5% gray pattern
+</ParamField>
+
+<ParamField path="FILL_PATTERN_LIGHTDOWN" type="string" default="'lightDown'">
+  Light diagonal lines going down
+</ParamField>
+
+<ParamField path="FILL_PATTERN_LIGHTGRAY" type="string" default="'lightGray'">
+  Light gray pattern
+</ParamField>
+
+<ParamField path="FILL_PATTERN_LIGHTGRID" type="string" default="'lightGrid'">
+  Light grid pattern
+</ParamField>
+
+<ParamField path="FILL_PATTERN_LIGHTHORIZONTAL" type="string" default="'lightHorizontal'">
+  Light horizontal lines
+</ParamField>
+
+<ParamField path="FILL_PATTERN_LIGHTTRELLIS" type="string" default="'lightTrellis'">
+  Light trellis pattern
+</ParamField>
+
+<ParamField path="FILL_PATTERN_LIGHTUP" type="string" default="'lightUp'">
+  Light diagonal lines going up
+</ParamField>
+
+<ParamField path="FILL_PATTERN_LIGHTVERTICAL" type="string" default="'lightVertical'">
+  Light vertical lines
+</ParamField>
+
+<ParamField path="FILL_PATTERN_MEDIUMGRAY" type="string" default="'mediumGray'">
+  Medium gray pattern
+</ParamField>
+
+## Properties
+
+<ParamField path="fillType" type="string" default="'none'">
+  Fill type (use FILL_* constants)
+</ParamField>
+
+<ParamField path="rotation" type="float" default="0.0">
+  Rotation angle in degrees (for gradient fills)
+</ParamField>
+
+<ParamField path="startColor" type="Color">
+  Start color (for solid fills, this is the main color)
+</ParamField>
+
+<ParamField path="endColor" type="Color">
+  End color (for gradient fills)
+</ParamField>
+
+## Methods
+
+### getFillType()
+
+Get the fill type.
+
+```php
+public function getFillType(): ?string
+```
+
+### setFillType()
+
+Set the fill type.
+
+```php
+public function setFillType(string $fillType): static
+```
+
+<ParamField path="fillType" type="string" required>
+  Fill type (use FILL_* constants)
+</ParamField>
+
+**Example:**
+```php
+$fill->setFillType(Fill::FILL_SOLID);
+$fill->setFillType(Fill::FILL_GRADIENT_LINEAR);
+$fill->setFillType(Fill::FILL_PATTERN_DARKGRAY);
+```
+
+### getRotation()
+
+Get gradient rotation angle.
+
+```php
+public function getRotation(): float
+```
+
+### setRotation()
+
+Set gradient rotation angle in degrees.
+
+```php
+public function setRotation(float $angleInDegrees): static
+```
+
+<ParamField path="angleInDegrees" type="float" required>
+  Rotation angle in degrees
+</ParamField>
+
+**Example:**
+```php
+$fill->setRotation(45.0);  // 45 degree angle
+$fill->setRotation(90.0);  // 90 degree angle
+```
+
+### getStartColor()
+
+Get the start color (or main color for solid fills).
+
+```php
+public function getStartColor(): Color
+```
+
+### setStartColor()
+
+Set the start color.
+
+```php
+public function setStartColor(Color $color): static
+```
+
+<ParamField path="color" type="Color" required>
+  Color object
+</ParamField>
+
+**Example:**
+```php
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+$color = new Color('FFFF0000');
+$fill->setStartColor($color);
+
+// Or use the existing color object
+$fill->getStartColor()->setARGB('FFFF0000');
+```
+
+### getEndColor()
+
+Get the end color (for gradient fills).
+
+```php
+public function getEndColor(): Color
+```
+
+### setEndColor()
+
+Set the end color.
+
+```php
+public function setEndColor(Color $color): static
+```
+
+<ParamField path="color" type="Color" required>
+  Color object
+</ParamField>
+
+**Example:**
+```php
+$fill->getEndColor()->setARGB('FF0000FF');
+```
+
+### applyFromArray()
+
+Apply multiple fill settings at once.
+
+```php
+public function applyFromArray(array $styleArray): static
+```
+
+<ParamField path="styleArray" type="array" required>
+  Array containing fill style information
+</ParamField>
+
+**Example:**
+```php
+$fill->applyFromArray([
+    'fillType' => Fill::FILL_GRADIENT_LINEAR,
+    'rotation' => 90.0,
+    'startColor' => [
+        'rgb' => '000000'
+    ],
+    'endColor' => [
+        'argb' => 'FFFFFFFF'
+    ]
+]);
+
+// For solid fills, you can use 'color' as shorthand
+$fill->applyFromArray([
+    'fillType' => Fill::FILL_SOLID,
+    'color' => [
+        'rgb' => 'FFFF00'
+    ]
+]);
+```
+
+## Complete Examples
+
+### Solid Color Fills
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Method 1: Using setters
+$fill = $sheet->getStyle('A1')->getFill();
+$fill->setFillType(Fill::FILL_SOLID)
+     ->getStartColor()->setARGB('FFFF0000'); // Red background
+
+// Method 2: Using applyFromArray
+$sheet->getStyle('B1')->getFill()->applyFromArray([
+    'fillType' => Fill::FILL_SOLID,
+    'startColor' => [
+        'argb' => 'FF00FF00' // Green background
+    ]
+]);
+
+// Method 3: Using 'color' shorthand
+$sheet->getStyle('C1')->getFill()->applyFromArray([
+    'fillType' => Fill::FILL_SOLID,
+    'color' => [
+        'rgb' => '0000FF' // Blue background
+    ]
+]);
+```
+
+### Gradient Fills
+
+```php
+// Linear gradient from red to blue
+$sheet->getStyle('A2')->getFill()->applyFromArray([
+    'fillType' => Fill::FILL_GRADIENT_LINEAR,
+    'rotation' => 90.0,
+    'startColor' => [
+        'argb' => 'FFFF0000' // Red
+    ],
+    'endColor' => [
+        'argb' => 'FF0000FF' // Blue
+    ]
+]);
+
+// Path gradient
+$sheet->getStyle('A3')->getFill()->applyFromArray([
+    'fillType' => Fill::FILL_GRADIENT_PATH,
+    'startColor' => ['rgb' => 'FFFF00'],
+    'endColor' => ['rgb' => 'FF00FF']
+]);
+```
+
+### Pattern Fills
+
+```php
+// Dark gray pattern
+$sheet->getStyle('A4')->getFill()->applyFromArray([
+    'fillType' => Fill::FILL_PATTERN_DARKGRAY
+]);
+
+// Light grid pattern
+$sheet->getStyle('A5')->getFill()->applyFromArray([
+    'fillType' => Fill::FILL_PATTERN_LIGHTGRID,
+    'startColor' => ['rgb' => '000000'],
+    'endColor' => ['rgb' => 'FFFFFF']
+]);
+
+// Diagonal lines
+$sheet->getStyle('A6')->getFill()->applyFromArray([
+    'fillType' => Fill::FILL_PATTERN_DARKDOWN
+]);
+```
+
+### Header Row with Background
+
+```php
+// Create header with colored background
+$headerStyle = [
+    'font' => [
+        'bold' => true,
+        'color' => ['rgb' => 'FFFFFF']
+    ],
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '4472C4']
+    ]
+];
+
+$sheet->getStyle('A1:E1')->applyFromArray($headerStyle);
+```
+
+### Alternating Row Colors
+
+```php
+// Zebra striping for better readability
+for ($row = 2; $row <= 20; $row++) {
+    if ($row % 2 == 0) {
+        $sheet->getStyle("A{$row}:E{$row}")->getFill()->applyFromArray([
+            'fillType' => Fill::FILL_SOLID,
+            'startColor' => ['rgb' => 'F2F2F2'] // Light gray
+        ]);
+    }
+}
+```
+
+### Highlight Cells Based on Condition
+
+```php
+// Highlight negative values with red background
+for ($row = 2; $row <= 10; $row++) {
+    $value = $sheet->getCell("C{$row}")->getValue();
+    if ($value < 0) {
+        $sheet->getStyle("C{$row}")->getFill()->applyFromArray([
+            'fillType' => Fill::FILL_SOLID,
+            'startColor' => ['rgb' => 'FFC7CE'] // Light red
+        ]);
+    }
+}
+```
+
+### Traffic Light Colors
+
+```php
+// Red
+$sheet->getStyle('A1')->getFill()->applyFromArray([
+    'fillType' => Fill::FILL_SOLID,
+    'color' => ['rgb' => 'FF0000']
+]);
+
+// Yellow
+$sheet->getStyle('A2')->getFill()->applyFromArray([
+    'fillType' => Fill::FILL_SOLID,
+    'color' => ['rgb' => 'FFFF00']
+]);
+
+// Green
+$sheet->getStyle('A3')->getFill()->applyFromArray([
+    'fillType' => Fill::FILL_SOLID,
+    'color' => ['rgb' => '00FF00']
+]);
+```
+
+### Remove Fill
+
+```php
+// Set fill to none
+$sheet->getStyle('A1')->getFill()->setFillType(Fill::FILL_NONE);
+```
+
+## Common Use Cases
+
+### Table Header
+```php
+$sheet->getStyle('A1:D1')->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['rgb' => '366092']
+    ],
+    'font' => [
+        'bold' => true,
+        'color' => ['rgb' => 'FFFFFF']
+    ]
+]);
+```
+
+### Warning Cell
+```php
+$sheet->getStyle('A1')->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['rgb' => 'FFF2CC'] // Light yellow
+    ]
+]);
+```
+
+### Error Cell
+```php
+$sheet->getStyle('A1')->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['rgb' => 'FFC7CE'] // Light red
+    ]
+]);
+```
+
+### Success Cell
+```php
+$sheet->getStyle('A1')->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['rgb' => 'C6EFCE'] // Light green
+    ]
+]);
+```
+
+## See Also
+
+- [Style Class](/api/style) - Main style container
+- [Color Class](/api-reference/color) - Color handling
+- [Font Class](/api/font) - Font styling

@@ -1,0 +1,339 @@
+---
+title: 'Style Class'
+description: 'Complete API reference for the PhpSpreadsheet Style class'
+---
+
+## Overview
+
+The `Style` class is the main container for all cell styling in PhpSpreadsheet. It provides access to font, fill, borders, alignment, number format, and protection styling components.
+
+## Namespace
+
+```php
+PhpOffice\PhpSpreadsheet\Style\Style
+```
+
+## Getting a Style Object
+
+```php
+// Get style for a single cell
+$style = $spreadsheet->getActiveSheet()->getStyle('A1');
+
+// Get style for a range of cells
+$style = $spreadsheet->getActiveSheet()->getStyle('A1:D10');
+```
+
+## Properties
+
+The Style class contains the following style components:
+
+<ParamField path="font" type="Font">
+  Font styling component
+</ParamField>
+
+<ParamField path="fill" type="Fill">
+  Fill and background color component
+</ParamField>
+
+<ParamField path="borders" type="Borders">
+  Border styling component
+</ParamField>
+
+<ParamField path="alignment" type="Alignment">
+  Text alignment component
+</ParamField>
+
+<ParamField path="numberFormat" type="NumberFormat">
+  Number formatting component
+</ParamField>
+
+<ParamField path="protection" type="Protection">
+  Cell protection component
+</ParamField>
+
+## Methods
+
+### getFont()
+
+Get the Font component.
+
+```php
+public function getFont(): Font
+```
+
+**Example:**
+```php
+$font = $spreadsheet->getActiveSheet()->getStyle('A1')->getFont();
+$font->setBold(true);
+```
+
+### getFill()
+
+Get the Fill component.
+
+```php
+public function getFill(): Fill
+```
+
+**Example:**
+```php
+$fill = $spreadsheet->getActiveSheet()->getStyle('A1')->getFill();
+$fill->setFillType(Fill::FILL_SOLID)
+     ->getStartColor()->setARGB('FFFF0000');
+```
+
+### getBorders()
+
+Get the Borders component.
+
+```php
+public function getBorders(): Borders
+```
+
+**Example:**
+```php
+$borders = $spreadsheet->getActiveSheet()->getStyle('A1')->getBorders();
+$borders->getTop()->setBorderStyle(Border::BORDER_THIN);
+```
+
+### getAlignment()
+
+Get the Alignment component.
+
+```php
+public function getAlignment(): Alignment
+```
+
+**Example:**
+```php
+$alignment = $spreadsheet->getActiveSheet()->getStyle('A1')->getAlignment();
+$alignment->setHorizontal(Alignment::HORIZONTAL_CENTER);
+```
+
+### getNumberFormat()
+
+Get the NumberFormat component.
+
+```php
+public function getNumberFormat(): NumberFormat
+```
+
+**Example:**
+```php
+$numberFormat = $spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat();
+$numberFormat->setFormatCode(NumberFormat::FORMAT_CURRENCY_USD);
+```
+
+### getProtection()
+
+Get the Protection component.
+
+```php
+public function getProtection(): Protection
+```
+
+### applyFromArray()
+
+Apply multiple style settings at once using an array.
+
+```php
+public function applyFromArray(array $styleArray, bool $advancedBorders = true): static
+```
+
+<ParamField path="styleArray" type="array" required>
+  Array containing style information
+</ParamField>
+
+<ParamField path="advancedBorders" type="bool" default="true">
+  Enable advanced border mode for ranges (supports `allBorders`, `outline`, `inside`)
+</ParamField>
+
+**Example:**
+```php
+$spreadsheet->getActiveSheet()->getStyle('B2')->applyFromArray([
+    'font' => [
+        'name' => 'Arial',
+        'bold' => true,
+        'italic' => false,
+        'underline' => Font::UNDERLINE_DOUBLE,
+        'strikethrough' => false,
+        'color' => [
+            'rgb' => '808080'
+        ]
+    ],
+    'borders' => [
+        'bottom' => [
+            'borderStyle' => Border::BORDER_DASHDOT,
+            'color' => [
+                'rgb' => '808080'
+            ]
+        ],
+        'top' => [
+            'borderStyle' => Border::BORDER_DASHDOT,
+            'color' => [
+                'rgb' => '808080'
+            ]
+        ]
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER,
+        'wrapText' => true,
+    ],
+    'quotePrefix' => true
+]);
+```
+
+### Advanced Border Styling
+
+When applying styles to a range with `advancedBorders` enabled, you can use special border properties:
+
+```php
+$spreadsheet->getActiveSheet()->getStyle('A1:D10')->applyFromArray([
+    'borders' => [
+        // Apply to all borders (outline + inside)
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => '000000']
+        ],
+        
+        // Or apply to outline only
+        'outline' => [
+            'borderStyle' => Border::BORDER_THICK,
+            'color' => ['rgb' => 'FF0000']
+        ],
+        
+        // Or apply to inside borders
+        'inside' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => 'CCCCCC']
+        ],
+        
+        // Vertical inside borders
+        'vertical' => [
+            'borderStyle' => Border::BORDER_THIN
+        ],
+        
+        // Horizontal inside borders
+        'horizontal' => [
+            'borderStyle' => Border::BORDER_THIN
+        ]
+    ]
+]);
+```
+
+### getQuotePrefix()
+
+Get the quote prefix setting.
+
+```php
+public function getQuotePrefix(): bool
+```
+
+### setQuotePrefix()
+
+Set the quote prefix (forces text interpretation in cell editor).
+
+```php
+public function setQuotePrefix(bool $quotePrefix): static
+```
+
+<ParamField path="quotePrefix" type="bool" required>
+  Whether to use quote prefix
+</ParamField>
+
+### getConditionalStyles()
+
+Get conditional styles for the cell.
+
+```php
+public function getConditionalStyles(): array
+```
+
+**Returns:** Array of `Conditional` objects
+
+### setConditionalStyles()
+
+Set conditional styles for the cell or range.
+
+```php
+public function setConditionalStyles(array $conditionalStyleArray): static
+```
+
+<ParamField path="conditionalStyleArray" type="array" required>
+  Array of Conditional style objects
+</ParamField>
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Font;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Set value
+$sheet->setCellValue('A1', 'Styled Cell');
+
+// Apply comprehensive styling
+$sheet->getStyle('A1')->applyFromArray([
+    'font' => [
+        'name' => 'Arial',
+        'size' => 14,
+        'bold' => true,
+        'italic' => true,
+        'underline' => Font::UNDERLINE_SINGLE,
+        'color' => ['rgb' => 'FFFFFF']
+    ],
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '4472C4']
+    ],
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => '000000']
+        ]
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER,
+        'wrapText' => true
+    ],
+    'numberFormat' => [
+        'formatCode' => NumberFormat::FORMAT_CURRENCY_USD
+    ]
+]);
+
+// Alternative: Use individual methods
+$style = $sheet->getStyle('B2');
+$style->getFont()
+    ->setBold(true)
+    ->setSize(12)
+    ->getColor()->setRGB('FF0000');
+
+$style->getFill()
+    ->setFillType(Fill::FILL_SOLID)
+    ->getStartColor()->setARGB('FFFFFF00');
+
+$style->getBorders()->getAllBorders()
+    ->setBorderStyle(Border::BORDER_MEDIUM)
+    ->getColor()->setRGB('000000');
+
+$style->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_RIGHT)
+    ->setVertical(Alignment::VERTICAL_TOP);
+```
+
+## See Also
+
+- [Font Class](/api/font) - Font styling options
+- [Fill Class](/api/fill) - Background and fill patterns
+- [Borders Class](/api/borders) - Border styling
+- [Alignment Class](/api/alignment) - Text alignment
+- [NumberFormat Class](/api/number-format) - Number formatting

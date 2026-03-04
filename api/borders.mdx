@@ -1,0 +1,561 @@
+---
+title: 'Borders and Border Classes'
+description: 'Complete API reference for PhpSpreadsheet Borders and Border styling classes'
+---
+
+## Overview
+
+The `Borders` class manages all borders for a cell or range, while the `Border` class controls individual border sides (top, bottom, left, right, diagonal).
+
+## Namespace
+
+```php
+PhpOffice\PhpSpreadsheet\Style\Borders
+PhpOffice\PhpSpreadsheet\Style\Border
+```
+
+## Getting Borders Objects
+
+```php
+// Get Borders object
+$borders = $spreadsheet->getActiveSheet()->getStyle('A1')->getBorders();
+
+// Get individual border sides
+$topBorder = $borders->getTop();
+$bottomBorder = $borders->getBottom();
+$leftBorder = $borders->getLeft();
+$rightBorder = $borders->getRight();
+$diagonalBorder = $borders->getDiagonal();
+```
+
+## Border Constants
+
+### Border Styles
+
+<ParamField path="BORDER_NONE" type="string" default="'none'">
+  No border
+</ParamField>
+
+<ParamField path="BORDER_THIN" type="string" default="'thin'">
+  Thin border line
+</ParamField>
+
+<ParamField path="BORDER_MEDIUM" type="string" default="'medium'">
+  Medium border line
+</ParamField>
+
+<ParamField path="BORDER_THICK" type="string" default="'thick'">
+  Thick border line
+</ParamField>
+
+<ParamField path="BORDER_DASHED" type="string" default="'dashed'">
+  Dashed border line
+</ParamField>
+
+<ParamField path="BORDER_DOTTED" type="string" default="'dotted'">
+  Dotted border line
+</ParamField>
+
+<ParamField path="BORDER_DOUBLE" type="string" default="'double'">
+  Double border line
+</ParamField>
+
+<ParamField path="BORDER_HAIR" type="string" default="'hair'">
+  Hair-thin border line
+</ParamField>
+
+<ParamField path="BORDER_DASHDOT" type="string" default="'dashDot'">
+  Dash-dot border line
+</ParamField>
+
+<ParamField path="BORDER_DASHDOTDOT" type="string" default="'dashDotDot'">
+  Dash-dot-dot border line
+</ParamField>
+
+<ParamField path="BORDER_MEDIUMDASHED" type="string" default="'mediumDashed'">
+  Medium dashed border line
+</ParamField>
+
+<ParamField path="BORDER_MEDIUMDASHDOT" type="string" default="'mediumDashDot'">
+  Medium dash-dot border line
+</ParamField>
+
+<ParamField path="BORDER_MEDIUMDASHDOTDOT" type="string" default="'mediumDashDotDot'">
+  Medium dash-dot-dot border line
+</ParamField>
+
+<ParamField path="BORDER_SLANTDASHDOT" type="string" default="'slantDashDot'">
+  Slanted dash-dot border line
+</ParamField>
+
+### Diagonal Directions
+
+<ParamField path="DIAGONAL_NONE" type="int" default="0">
+  No diagonal
+</ParamField>
+
+<ParamField path="DIAGONAL_UP" type="int" default="1">
+  Diagonal line going up (bottom-left to top-right)
+</ParamField>
+
+<ParamField path="DIAGONAL_DOWN" type="int" default="2">
+  Diagonal line going down (top-left to bottom-right)
+</ParamField>
+
+<ParamField path="DIAGONAL_BOTH" type="int" default="3">
+  Both diagonal lines (X pattern)
+</ParamField>
+
+## Borders Class Methods
+
+### getTop()
+
+Get the top border.
+
+```php
+public function getTop(): Border
+```
+
+### getBottom()
+
+Get the bottom border.
+
+```php
+public function getBottom(): Border
+```
+
+### getLeft()
+
+Get the left border.
+
+```php
+public function getLeft(): Border
+```
+
+### getRight()
+
+Get the right border.
+
+```php
+public function getRight(): Border
+```
+
+### getDiagonal()
+
+Get the diagonal border.
+
+```php
+public function getDiagonal(): Border
+```
+
+### Pseudo-Border Methods
+
+These special methods only work when applied to ranges:
+
+### getAllBorders()
+
+Get a pseudo-border that applies to all borders (outline and inside).
+
+```php
+public function getAllBorders(): Border
+```
+
+### getOutline()
+
+Get a pseudo-border that applies to outline borders only (top, right, bottom, left).
+
+```php
+public function getOutline(): Border
+```
+
+### getInside()
+
+Get a pseudo-border that applies to inside borders only.
+
+```php
+public function getInside(): Border
+```
+
+### getVertical()
+
+Get a pseudo-border that applies to vertical inside borders.
+
+```php
+public function getVertical(): Border
+```
+
+### getHorizontal()
+
+Get a pseudo-border that applies to horizontal inside borders.
+
+```php
+public function getHorizontal(): Border
+```
+
+### getDiagonalDirection()
+
+Get the diagonal direction.
+
+```php
+public function getDiagonalDirection(): int
+```
+
+### setDiagonalDirection()
+
+Set the diagonal direction.
+
+```php
+public function setDiagonalDirection(int $direction): static
+```
+
+<ParamField path="direction" type="int" required>
+  Diagonal direction (use DIAGONAL_* constants)
+</ParamField>
+
+### applyFromArray()
+
+Apply multiple border settings at once.
+
+```php
+public function applyFromArray(array $styleArray): static
+```
+
+<ParamField path="styleArray" type="array" required>
+  Array containing border style information
+</ParamField>
+
+## Border Class Methods
+
+### getBorderStyle()
+
+Get the border style.
+
+```php
+public function getBorderStyle(): string
+```
+
+### setBorderStyle()
+
+Set the border style.
+
+```php
+public function setBorderStyle(bool|string $style): static
+```
+
+<ParamField path="style" type="bool|string" required>
+  Border style (use BORDER_* constants). `true` = BORDER_MEDIUM, `false` = BORDER_NONE
+</ParamField>
+
+### getColor()
+
+Get the border color.
+
+```php
+public function getColor(): Color
+```
+
+### setColor()
+
+Set the border color.
+
+```php
+public function setColor(Color $color): static
+```
+
+<ParamField path="color" type="Color" required>
+  Color object
+</ParamField>
+
+### applyFromArray()
+
+Apply border settings.
+
+```php
+public function applyFromArray(array $styleArray): static
+```
+
+<ParamField path="styleArray" type="array" required>
+  Array with 'borderStyle' and/or 'color' keys
+</ParamField>
+
+## Complete Examples
+
+### Basic Border Styling
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Method 1: Individual borders
+$borders = $sheet->getStyle('A1')->getBorders();
+$borders->getTop()->setBorderStyle(Border::BORDER_THIN);
+$borders->getBottom()->setBorderStyle(Border::BORDER_THICK);
+$borders->getLeft()->setBorderStyle(Border::BORDER_MEDIUM);
+$borders->getRight()->setBorderStyle(Border::BORDER_DOUBLE);
+
+// Method 2: Using applyFromArray
+$sheet->getStyle('B2')->getBorders()->applyFromArray([
+    'top' => [
+        'borderStyle' => Border::BORDER_THIN,
+        'color' => ['rgb' => '000000']
+    ],
+    'bottom' => [
+        'borderStyle' => Border::BORDER_THIN,
+        'color' => ['rgb' => '000000']
+    ]
+]);
+```
+
+### All Borders for a Range
+
+```php
+// Apply border to all sides of a range
+$sheet->getStyle('A1:E10')->getBorders()->getAllBorders()
+    ->setBorderStyle(Border::BORDER_THIN)
+    ->getColor()->setRGB('000000');
+
+// Or using applyFromArray
+$sheet->getStyle('A1:E10')->applyFromArray([
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => '000000']
+        ]
+    ]
+]);
+```
+
+### Outline Only
+
+```php
+// Apply border to outline only (not inside)
+$sheet->getStyle('A1:E10')->getBorders()->getOutline()
+    ->setBorderStyle(Border::BORDER_THICK)
+    ->getColor()->setRGB('000000');
+
+// Or using applyFromArray
+$sheet->getStyle('A1:E10')->applyFromArray([
+    'borders' => [
+        'outline' => [
+            'borderStyle' => Border::BORDER_THICK,
+            'color' => ['rgb' => '000000']
+        ]
+    ]
+]);
+```
+
+### Inside Borders Only
+
+```php
+// Apply border to inside cells only
+$sheet->getStyle('A1:E10')->applyFromArray([
+    'borders' => [
+        'inside' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => 'CCCCCC']
+        ]
+    ]
+]);
+```
+
+### Vertical and Horizontal Inside Borders
+
+```php
+$sheet->getStyle('A1:E10')->applyFromArray([
+    'borders' => [
+        'vertical' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => '0000FF']
+        ],
+        'horizontal' => [
+            'borderStyle' => Border::BORDER_DASHED,
+            'color' => ['rgb' => 'FF0000']
+        ]
+    ]
+]);
+```
+
+### Diagonal Borders
+
+```php
+// Diagonal down (top-left to bottom-right)
+$borders = $sheet->getStyle('A1')->getBorders();
+$borders->setDiagonalDirection(Borders::DIAGONAL_DOWN);
+$borders->getDiagonal()
+    ->setBorderStyle(Border::BORDER_THIN)
+    ->getColor()->setRGB('FF0000');
+
+// Diagonal up (bottom-left to top-right)
+$sheet->getStyle('B2')->getBorders()->applyFromArray([
+    'diagonal' => [
+        'borderStyle' => Border::BORDER_THIN,
+        'color' => ['rgb' => '0000FF']
+    ],
+    'diagonalDirection' => Borders::DIAGONAL_UP
+]);
+
+// Both diagonals (X pattern)
+$sheet->getStyle('C3')->getBorders()->applyFromArray([
+    'diagonal' => [
+        'borderStyle' => Border::BORDER_MEDIUM,
+        'color' => ['rgb' => '00FF00']
+    ],
+    'diagonalDirection' => Borders::DIAGONAL_BOTH
+]);
+```
+
+### Table with Borders
+
+```php
+// Table outline
+$sheet->getStyle('A1:E10')->applyFromArray([
+    'borders' => [
+        'outline' => [
+            'borderStyle' => Border::BORDER_THICK,
+            'color' => ['rgb' => '000000']
+        ],
+        'inside' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => 'CCCCCC']
+        ]
+    ]
+]);
+
+// Header row with bottom border
+$sheet->getStyle('A1:E1')->applyFromArray([
+    'borders' => [
+        'bottom' => [
+            'borderStyle' => Border::BORDER_THICK,
+            'color' => ['rgb' => '000000']
+        ]
+    ]
+]);
+```
+
+### Different Border Styles
+
+```php
+// Thin border
+$sheet->getStyle('A1')->getBorders()->getAllBorders()
+    ->setBorderStyle(Border::BORDER_THIN);
+
+// Dashed border
+$sheet->getStyle('A2')->getBorders()->getAllBorders()
+    ->setBorderStyle(Border::BORDER_DASHED);
+
+// Dotted border
+$sheet->getStyle('A3')->getBorders()->getAllBorders()
+    ->setBorderStyle(Border::BORDER_DOTTED);
+
+// Double border
+$sheet->getStyle('A4')->getBorders()->getAllBorders()
+    ->setBorderStyle(Border::BORDER_DOUBLE);
+
+// Thick border
+$sheet->getStyle('A5')->getBorders()->getAllBorders()
+    ->setBorderStyle(Border::BORDER_THICK);
+```
+
+### Colored Borders
+
+```php
+// Red border
+$sheet->getStyle('A1')->getBorders()->getAllBorders()
+    ->setBorderStyle(Border::BORDER_THIN)
+    ->getColor()->setRGB('FF0000');
+
+// Blue border
+$sheet->getStyle('A2')->getBorders()->applyFromArray([
+    'allBorders' => [
+        'borderStyle' => Border::BORDER_MEDIUM,
+        'color' => ['rgb' => '0000FF']
+    ]
+]);
+```
+
+### Complex Border Pattern
+
+```php
+// Thick outside, thin inside
+$sheet->getStyle('A1:D8')->applyFromArray([
+    'borders' => [
+        'outline' => [
+            'borderStyle' => Border::BORDER_THICK,
+            'color' => ['rgb' => '000000']
+        ],
+        'inside' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => 'CCCCCC']
+        ]
+    ]
+]);
+
+// Header with special bottom border
+$sheet->getStyle('A1:D1')->applyFromArray([
+    'borders' => [
+        'bottom' => [
+            'borderStyle' => Border::BORDER_DOUBLE,
+            'color' => ['rgb' => '000000']
+        ]
+    ]
+]);
+```
+
+### Remove Borders
+
+```php
+// Remove all borders
+$sheet->getStyle('A1:E10')->getBorders()->getAllBorders()
+    ->setBorderStyle(Border::BORDER_NONE);
+
+// Remove specific border
+$sheet->getStyle('A1')->getBorders()->getTop()
+    ->setBorderStyle(Border::BORDER_NONE);
+```
+
+## Common Use Cases
+
+### Grid Layout
+```php
+$sheet->getStyle('A1:J20')->applyFromArray([
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => '000000']
+        ]
+    ]
+]);
+```
+
+### Table Header
+```php
+$sheet->getStyle('A1:E1')->applyFromArray([
+    'borders' => [
+        'bottom' => [
+            'borderStyle' => Border::BORDER_THICK,
+            'color' => ['rgb' => '000000']
+        ]
+    ]
+]);
+```
+
+### Boxed Section
+```php
+$sheet->getStyle('B2:D5')->applyFromArray([
+    'borders' => [
+        'outline' => [
+            'borderStyle' => Border::BORDER_THICK,
+            'color' => ['rgb' => '000000']
+        ]
+    ]
+]);
+```
+
+## See Also
+
+- [Style Class](/api/style) - Main style container
+- [Color Class](/api-reference/color) - Color handling
+- [Fill Class](/api/fill) - Background fills

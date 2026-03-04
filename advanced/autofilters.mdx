@@ -1,0 +1,345 @@
+---
+title: 'AutoFilters'
+description: 'Apply and configure autofilters to filter data in Excel worksheets with PhpSpreadsheet'
+---
+
+## Introduction
+
+Each worksheet in an Excel workbook can contain a single autofilter range. AutoFilters allow users to filter data by displaying only rows that meet specified criteria, while hiding other rows.
+
+<Note>
+Filters are additive - each additional filter is based on the current filter and further reduces the subset of displayed data.
+</Note>
+
+## Setting an AutoFilter Range
+
+### Basic Setup
+
+To set an autofilter on a range of cells:
+
+```php
+$spreadsheet->getActiveSheet()->setAutoFilter('A1:E20');
+```
+
+<Warning>
+The first row in an autofilter range is the heading row, which displays the autofilter dropdown icons. It is not part of the actual filtered data.
+</Warning>
+
+### Filter the Entire Worksheet
+
+To set the whole worksheet as an autofilter region:
+
+```php
+$spreadsheet->getActiveSheet()->setAutoFilter(
+    $spreadsheet->getActiveSheet()->calculateWorksheetDimension()
+);
+```
+
+### Adjust Range to Maximum Row
+
+After setting the range, you can extend it to the last used row:
+
+```php
+$spreadsheet->getActiveSheet()->getAutoFilter()->setRangeToMaxRow();
+```
+
+## Filter Types
+
+PhpSpreadsheet supports several types of autofilter expressions:
+
+### 1. Simple Filters
+
+Simple filters show a dropdown list of values in the column. Users can select which values to display.
+
+```php
+$autoFilter = $spreadsheet->getActiveSheet()->getAutoFilter();
+$columnFilter = $autoFilter->getColumn('C');
+
+$columnFilter->setFilterType(
+    \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column::AUTOFILTER_FILTERTYPE_FILTER
+);
+
+// Filter to show only "France" and "Germany"
+$columnFilter->createRule()
+    ->setRule(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_EQUAL,
+        'France'
+    );
+
+$columnFilter->createRule()
+    ->setRule(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_EQUAL,
+        'Germany'
+    );
+```
+
+<Tip>
+Simple filters are always EQUAL comparisons, and multiple rules are joined by OR.
+</Tip>
+
+#### Matching Blank Cells
+
+To filter for blank cells:
+
+```php
+$columnFilter->createRule()
+    ->setRule(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_EQUAL,
+        ''
+    );
+```
+
+### 2. DateGroup Filters
+
+DateGroup filters allow filtering by years, months, or specific days.
+
+```php
+$columnFilter->setFilterType(
+    \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column::AUTOFILTER_FILTERTYPE_FILTER
+);
+
+// Filter for January 2012
+$columnFilter->createRule()
+    ->setRule(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_EQUAL,
+        [
+            'year' => 2012,
+            'month' => 1
+        ]
+    )
+    ->setRuleType(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_DATEGROUP
+    );
+```
+
+Valid keys for the date array:
+- `year`
+- `month`
+- `day`
+- `hour`
+- `minute`
+- `second`
+
+### 3. Custom Filters
+
+Custom filters allow complex conditions using operators and values, such as ranges or wildcards.
+
+```php
+$columnFilter->setFilterType(
+    \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column::AUTOFILTER_FILTERTYPE_CUSTOMFILTER
+);
+
+// Filter values between -20 and 20
+$columnFilter->createRule()
+    ->setRule(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_GREATERTHANOREQUAL,
+        -20
+    )
+    ->setRuleType(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER
+    );
+
+$columnFilter->createRule()
+    ->setRule(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_LESSTHANOREQUAL,
+        20
+    )
+    ->setRuleType(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER
+    );
+
+// Join with AND instead of OR
+$columnFilter->setJoin(
+    \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column::AUTOFILTER_COLUMN_JOIN_AND
+);
+```
+
+<Warning>
+Custom filters are limited to 2 rules maximum.
+</Warning>
+
+#### Wildcard Filters
+
+Use wildcards to match patterns:
+
+```php
+// Show entries beginning with "U"
+$columnFilter->createRule()
+    ->setRule(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_EQUAL,
+        'U*'
+    )
+    ->setRuleType(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER
+    );
+```
+
+Wildcard characters:
+- `*` - Matches any number of characters
+- `?` - Matches a single character
+- `~` - Escape character (e.g., `~*` matches literal `*`)
+
+#### Available Operators
+
+| Operator Constant | Value |
+|-------------------|-------|
+| AUTOFILTER_COLUMN_RULE_EQUAL | 'equal' |
+| AUTOFILTER_COLUMN_RULE_NOTEQUAL | 'notEqual' |
+| AUTOFILTER_COLUMN_RULE_GREATERTHAN | 'greaterThan' |
+| AUTOFILTER_COLUMN_RULE_GREATERTHANOREQUAL | 'greaterThanOrEqual' |
+| AUTOFILTER_COLUMN_RULE_LESSTHAN | 'lessThan' |
+| AUTOFILTER_COLUMN_RULE_LESSTHANOREQUAL | 'lessThanOrEqual' |
+
+### 4. Dynamic Filters
+
+Dynamic filters use variable conditions like "today" or "above average".
+
+```php
+$columnFilter->setFilterType(
+    \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column::AUTOFILTER_FILTERTYPE_DYNAMICFILTER
+);
+
+$columnFilter->createRule()
+    ->setRule(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_EQUAL,
+        '',
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_DYNAMIC_YEARTODATE
+    )
+    ->setRuleType(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_DYNAMICFILTER
+    );
+```
+
+#### Available Dynamic Filters
+
+- Date-based: `yesterday`, `today`, `tomorrow`, `thisWeek`, `lastWeek`, `nextWeek`, `thisMonth`, `lastMonth`, `nextMonth`, `thisQuarter`, `thisYear`, etc.
+- Aggregate: `aboveAverage`, `belowAverage`
+
+### 5. Top Ten Filters
+
+Top Ten filters select the highest or lowest values.
+
+```php
+$columnFilter->setFilterType(
+    \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column::AUTOFILTER_FILTERTYPE_TOPTENFILTER
+);
+
+// Filter top 5 percent
+$columnFilter->createRule()
+    ->setRule(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_TOPTEN_PERCENT,
+        5,
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_TOPTEN_TOP
+    )
+    ->setRuleType(
+        \PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_TOPTENFILTER
+    );
+```
+
+Options:
+- **Type**: `AUTOFILTER_COLUMN_RULE_TOPTEN_BY_VALUE` or `AUTOFILTER_COLUMN_RULE_TOPTEN_PERCENT`
+- **Direction**: `AUTOFILTER_COLUMN_RULE_TOPTEN_TOP` or `AUTOFILTER_COLUMN_RULE_TOPTEN_BOTTOM`
+
+## Executing AutoFilters
+
+### Applying the Filter
+
+PhpSpreadsheet doesn't automatically execute filters. To apply filters and hide/show rows:
+
+```php
+$autoFilter = $spreadsheet->getActiveSheet()->getAutoFilter();
+$autoFilter->showHideRows();
+```
+
+### Re-evaluating All Filters
+
+To re-apply all filters in the spreadsheet:
+
+```php
+$spreadsheet->reevaluateAutoFilters(false);
+```
+
+Pass `true` to also adjust filter ranges to the last used row:
+
+```php
+$spreadsheet->reevaluateAutoFilters(true);
+```
+
+### Displaying Filtered Rows
+
+To iterate only through visible (filtered) rows:
+
+```php
+foreach ($spreadsheet->getActiveSheet()->getRowIterator() as $row) {
+    if ($spreadsheet->getActiveSheet()
+        ->getRowDimension($row->getRowIndex())->getVisible()) {
+        
+        echo 'Row number - ' . $row->getRowIndex() . PHP_EOL;
+        echo $spreadsheet->getActiveSheet()
+            ->getCell('C' . $row->getRowIndex())
+            ->getValue() . PHP_EOL;
+    }
+}
+```
+
+## Important Notes
+
+<AccordionGroup>
+  <Accordion title="String Comparisons">
+    String comparisons in filters are case-insensitive.
+  </Accordion>
+  
+  <Accordion title="Filter Hierarchy">
+    Don't mix different filter types in the same column. The results are unpredictable.
+  </Accordion>
+  
+  <Accordion title="Sorting Not Supported">
+    AutoFilter sorting functionality is not supported by PhpSpreadsheet.
+  </Accordion>
+  
+  <Accordion title="When Filters Are Applied">
+    Filters are automatically applied when the file is saved, not when you set filter expressions.
+  </Accordion>
+</AccordionGroup>
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Add data
+$worksheet->fromArray([
+    ['Country', 'Sales', 'Year'],
+    ['USA', 1000, 2020],
+    ['France', 800, 2020],
+    ['Germany', 1200, 2021],
+    ['UK', 900, 2021],
+]);
+
+// Set autofilter
+$worksheet->setAutoFilter('A1:C5');
+
+// Add custom filter for sales > 900
+$columnFilter = $worksheet->getAutoFilter()->getColumn('B');
+$columnFilter->setFilterType(Column::AUTOFILTER_FILTERTYPE_CUSTOMFILTER);
+$columnFilter->createRule()
+    ->setRule(
+        Rule::AUTOFILTER_COLUMN_RULE_GREATERTHAN,
+        900
+    )
+    ->setRuleType(Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER);
+
+// Apply the filter
+$worksheet->getAutoFilter()->showHideRows();
+```
+
+## Related Topics
+
+- [Conditional Formatting](/advanced/conditional-formatting)
+- [Tables](/advanced/tables)
+- [Data Validation](/essentials/data-validation)

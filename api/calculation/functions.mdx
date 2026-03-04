@@ -1,0 +1,420 @@
+---
+title: Function Categories
+description: Overview of PhpSpreadsheet calculation functions and categories
+---
+
+PhpSpreadsheet provides extensive support for Excel-compatible functions across multiple categories. The calculation engine supports hundreds of functions for various purposes.
+
+## Function Categories
+
+Functions are organized into the following categories:
+
+### Database Functions
+
+Database functions perform calculations on data organized in a database-like structure.
+
+**Category constant:** `Category::CATEGORY_DATABASE`
+
+**Common functions:**
+- `DAVERAGE` - Average values from database records matching criteria
+- `DCOUNT` - Count numeric values matching criteria
+- `DSUM` - Sum values from database records matching criteria
+- `DMAX` / `DMIN` - Find maximum/minimum values matching criteria
+
+**Example:**
+```php
+// Database structure in A1:C10
+// Name | Age | Salary
+$sheet->setCellValue('E1', '=DSUM(A1:C10, "Salary", A1:A2)');
+```
+
+### Date and Time Functions
+
+**Category constant:** `Category::CATEGORY_DATE_AND_TIME`
+
+**Common functions:**
+- `DATE(year, month, day)` - Create a date value
+- `TODAY()` - Current date
+- `NOW()` - Current date and time
+- `YEAR()`, `MONTH()`, `DAY()` - Extract date components
+- `HOUR()`, `MINUTE()`, `SECOND()` - Extract time components
+- `DATEDIF()` - Calculate date differences
+- `NETWORKDAYS()` - Calculate working days between dates
+- `EOMONTH()` - End of month date
+
+**Example:**
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+$calc = Calculation::getInstance($spreadsheet);
+
+// Create a date
+$result = $calc->calculateFormula('=DATE(2024, 3, 15)');
+
+// Calculate days between dates
+$result = $calc->calculateFormula('=DAYS(B1, A1)');
+
+// Get current date
+$today = $calc->calculateFormula('=TODAY()');
+
+// Calculate age in years
+$age = $calc->calculateFormula('=DATEDIF(A1, TODAY(), "Y")');
+```
+
+### Engineering Functions
+
+**Category constant:** `Category::CATEGORY_ENGINEERING`
+
+Functions for engineering calculations including:
+- Number base conversions (BIN2DEC, DEC2HEX, etc.)
+- Bessel functions (BESSELI, BESSELJ, etc.)
+- Complex number operations (COMPLEX, IMABS, IMSUM, etc.)
+- Bitwise operations (BITAND, BITOR, BITXOR)
+- Unit conversions (CONVERT)
+
+**Example:**
+```php
+// Convert decimal to hexadecimal
+$hex = $calc->calculateFormula('=DEC2HEX(255)'); // Returns: FF
+
+// Complex number operations
+$sum = $calc->calculateFormula('=IMSUM("3+4i", "5-2i")'); // Returns: 8+2i
+
+// Convert units
+$meters = $calc->calculateFormula('=CONVERT(5, "mi", "km")'); // Miles to kilometers
+```
+
+### Financial Functions
+
+**Category constant:** `Category::CATEGORY_FINANCIAL`
+
+Comprehensive financial calculations:
+- Present/Future value (PV, FV, NPV, XNPV)
+- Payment calculations (PMT, IPMT, PPMT)
+- Interest rates (RATE, IRR, XIRR, EFFECT, NOMINAL)
+- Depreciation (SLN, DDB, DB, SYD)
+- Securities (PRICE, YIELD, ACCRINT)
+- Treasury bills (TBILLPRICE, TBILLYIELD)
+
+**Example:**
+```php
+// Calculate loan payment
+$payment = $calc->calculateFormula('=PMT(0.05/12, 360, 200000)');
+// Monthly payment for $200,000 loan at 5% over 30 years
+
+// Calculate present value
+$pv = $calc->calculateFormula('=PV(0.08/12, 120, -1000)');
+
+// Calculate IRR for cash flows
+$irr = $calc->calculateFormula('=IRR(A1:A10)');
+```
+
+### Information Functions
+
+**Category constant:** `Category::CATEGORY_INFORMATION`
+
+Functions to test data types and handle errors:
+- `ISBLANK()`, `ISERROR()`, `ISNA()`, `ISNUMBER()`, `ISTEXT()`
+- `ISEVEN()`, `ISODD()`, `ISLOGICAL()`, `ISFORMULA()`
+- `TYPE()` - Returns data type code
+- `N()` - Convert value to number
+- `NA()` - Return #N/A error
+- `ERROR.TYPE()` - Identify error type
+
+**Example:**
+```php
+// Check if cell is blank
+$result = $calc->calculateFormula('=IF(ISBLANK(A1), "Empty", "Has value")');
+
+// Handle errors gracefully
+$result = $calc->calculateFormula('=IF(ISERROR(A1/B1), 0, A1/B1)');
+
+// Check data type
+$result = $calc->calculateFormula('=ISNUMBER(A1)');
+```
+
+### Logical Functions
+
+**Category constant:** `Category::CATEGORY_LOGICAL`
+
+Logical operations and conditional logic:
+- `IF()`, `IFS()`, `IFERROR()`, `IFNA()` - Conditional expressions
+- `AND()`, `OR()`, `NOT()`, `XOR()` - Boolean logic
+- `TRUE()`, `FALSE()` - Boolean constants
+- `SWITCH()` - Multi-case conditional
+
+**Example:**
+```php
+// Simple IF statement
+$result = $calc->calculateFormula('=IF(A1>100, "High", "Low")');
+
+// Multiple conditions with IFS
+$result = $calc->calculateFormula('=IFS(A1>90, "A", A1>80, "B", A1>70, "C", TRUE, "F")');
+
+// Error handling
+$result = $calc->calculateFormula('=IFERROR(A1/B1, "Division error")');
+
+// Boolean logic
+$result = $calc->calculateFormula('=AND(A1>0, B1<100)');
+```
+
+### Lookup and Reference Functions
+
+**Category constant:** `Category::CATEGORY_LOOKUP_AND_REFERENCE`
+
+Functions for searching and referencing data:
+- `VLOOKUP()`, `HLOOKUP()` - Vertical/horizontal lookup
+- `INDEX()`, `MATCH()` - Array lookup and position
+- `LOOKUP()` - Simple lookup
+- `CHOOSE()` - Select from list
+- `OFFSET()`, `INDIRECT()` - Dynamic references
+- `FILTER()`, `SORT()`, `UNIQUE()` - Array manipulation
+- `TRANSPOSE()` - Transpose arrays
+- `COLUMN()`, `ROW()`, `COLUMNS()`, `ROWS()` - Reference info
+
+**Example:**
+```php
+// VLOOKUP to find value
+$result = $calc->calculateFormula('=VLOOKUP("ProductA", A1:C10, 3, FALSE)');
+
+// INDEX and MATCH combination
+$result = $calc->calculateFormula('=INDEX(C1:C10, MATCH("ProductA", A1:A10, 0))');
+
+// Filter array
+$result = $calc->calculateFormula('=FILTER(A1:C10, B1:B10>100)');
+
+// Get unique values
+$result = $calc->calculateFormula('=UNIQUE(A1:A100)');
+```
+
+### Math and Trigonometry Functions
+
+**Category constant:** `Category::CATEGORY_MATH_AND_TRIG`
+
+Extensive mathematical functions:
+- Basic: `SUM()`, `PRODUCT()`, `ABS()`, `ROUND()`, `SQRT()`
+- Aggregate: `SUMIF()`, `SUMIFS()`, `SUMPRODUCT()`, `SUBTOTAL()`
+- Rounding: `CEILING()`, `FLOOR()`, `ROUND()`, `ROUNDUP()`, `ROUNDDOWN()`
+- Trigonometry: `SIN()`, `COS()`, `TAN()`, `ASIN()`, `ACOS()`, `ATAN()`
+- Advanced: `POWER()`, `EXP()`, `LN()`, `LOG()`, `LOG10()`
+- Matrix: `MMULT()`, `MDETERM()`, `MINVERSE()`
+- Statistical: `GCD()`, `LCM()`, `FACT()`, `COMBIN()`
+- Random: `RAND()`, `RANDBETWEEN()`, `RANDARRAY()`
+
+**Example:**
+```php
+// Basic sum
+$result = $calc->calculateFormula('=SUM(A1:A10)');
+
+// Conditional sum
+$result = $calc->calculateFormula('=SUMIF(A1:A10, ">100")');
+
+// Multiple criteria sum
+$result = $calc->calculateFormula('=SUMIFS(C1:C10, A1:A10, "ProductA", B1:B10, ">100")');
+
+// Rounding
+$result = $calc->calculateFormula('=ROUND(A1, 2)');
+
+// Matrix multiplication
+$result = $calc->calculateFormula('=MMULT(A1:B2, C1:D2)');
+
+// Random value
+$result = $calc->calculateFormula('=RANDBETWEEN(1, 100)');
+```
+
+### Statistical Functions
+
+**Category constant:** `Category::CATEGORY_STATISTICAL`
+
+Comprehensive statistical analysis:
+- Averages: `AVERAGE()`, `AVERAGEA()`, `AVERAGEIF()`, `AVERAGEIFS()`, `MEDIAN()`, `MODE()`
+- Counting: `COUNT()`, `COUNTA()`, `COUNTBLANK()`, `COUNTIF()`, `COUNTIFS()`
+- Min/Max: `MIN()`, `MAX()`, `MINA()`, `MAXA()`, `MINIFS()`, `MAXIFS()`
+- Distribution: `STDEV()`, `STDEVP()`, `VAR()`, `VARP()`
+- Percentiles: `PERCENTILE()`, `QUARTILE()`, `RANK()`
+- Regression: `FORECAST()`, `TREND()`, `GROWTH()`, `LINEST()`, `LOGEST()`
+- Correlation: `CORREL()`, `COVAR()`, `RSQ()`, `PEARSON()`
+- Distributions: `NORMDIST()`, `BINOMDIST()`, `POISSON()`, `TDIST()`, `CHIDIST()`
+
+**Example:**
+```php
+// Average calculations
+$avg = $calc->calculateFormula('=AVERAGE(A1:A10)');
+$avgIf = $calc->calculateFormula('=AVERAGEIF(A1:A10, ">50")');
+
+// Count values
+$count = $calc->calculateFormula('=COUNT(A1:A10)');
+$countIf = $calc->calculateFormula('=COUNTIF(A1:A10, ">100")');
+
+// Standard deviation
+$stdev = $calc->calculateFormula('=STDEV(A1:A10)');
+
+// Correlation
+$correl = $calc->calculateFormula('=CORREL(A1:A10, B1:B10)');
+
+// Percentile
+$p75 = $calc->calculateFormula('=PERCENTILE(A1:A100, 0.75)');
+```
+
+### Text and Data Functions
+
+**Category constant:** `Category::CATEGORY_TEXT_AND_DATA`
+
+Text manipulation and formatting:
+- Case conversion: `UPPER()`, `LOWER()`, `PROPER()`
+- Extraction: `LEFT()`, `RIGHT()`, `MID()`, `TEXTBEFORE()`, `TEXTAFTER()`
+- Search: `FIND()`, `SEARCH()`
+- Manipulation: `CONCATENATE()`, `CONCAT()`, `TEXTJOIN()`, `REPLACE()`, `SUBSTITUTE()`
+- Formatting: `TEXT()`, `DOLLAR()`, `FIXED()`, `VALUE()`
+- Info: `LEN()`, `EXACT()`, `TRIM()`, `CLEAN()`
+- Special: `CHAR()`, `CODE()`, `UNICHAR()`, `UNICODE()`
+
+**Example:**
+```php
+// Concatenate text
+$result = $calc->calculateFormula('=CONCAT(A1, " ", B1)');
+$result = $calc->calculateFormula('=TEXTJOIN(", ", TRUE, A1:A10)');
+
+// Extract text
+$result = $calc->calculateFormula('=LEFT(A1, 5)');
+$result = $calc->calculateFormula('=MID(A1, 3, 10)');
+
+// Search and replace
+$result = $calc->calculateFormula('=SUBSTITUTE(A1, "old", "new")');
+$result = $calc->calculateFormula('=REPLACE(A1, 1, 5, "text")');
+
+// Format numbers
+$result = $calc->calculateFormula('=TEXT(A1, "$#,##0.00")');
+$result = $calc->calculateFormula('=DOLLAR(A1, 2)');
+
+// Case conversion
+$result = $calc->calculateFormula('=UPPER(A1)');
+```
+
+### Web Functions
+
+**Category constant:** `Category::CATEGORY_WEB`
+
+Web-related functions:
+- `WEBSERVICE()` - Retrieve data from web service
+- `ENCODEURL()` - URL-encode a string
+
+**Example:**
+```php
+// Encode URL
+$encoded = $calc->calculateFormula('=ENCODEURL("https://example.com/search?q=hello world")');
+
+// Fetch web data
+$data = $calc->calculateFormula('=WEBSERVICE("https://api.example.com/data")');
+```
+
+## Using Functions
+
+### Compatibility Mode
+
+Set calculation compatibility mode for specific spreadsheet applications:
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Functions;
+
+// Excel compatibility (default)
+Functions::setCompatibilityMode(Functions::COMPATIBILITY_EXCEL);
+
+// Gnumeric compatibility
+Functions::setCompatibilityMode(Functions::COMPATIBILITY_GNUMERIC);
+
+// OpenOffice compatibility
+Functions::setCompatibilityMode(Functions::COMPATIBILITY_OPENOFFICE);
+
+// Get current mode
+$mode = Functions::getCompatibilityMode();
+```
+
+### Return Date Format
+
+Control how date functions return values:
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Functions;
+
+// Return as Excel serial number (default)
+Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
+
+// Return as PHP DateTime object
+Functions::setReturnDateType(Functions::RETURNDATE_PHP_DATETIME_OBJECT);
+
+// Return as Unix timestamp
+Functions::setReturnDateType(Functions::RETURNDATE_UNIX_TIMESTAMP);
+
+// Get current setting
+$dateType = Functions::getReturnDateType();
+```
+
+## Checking Function Support
+
+Before using a function, you can check if it's implemented:
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+$calc = Calculation::getInstance($spreadsheet);
+
+// Check single function
+if ($calc->isImplemented('XLOOKUP')) {
+    $result = $calc->calculateFormula('=XLOOKUP("value", A1:A10, B1:B10)');
+} else {
+    // Function not yet implemented, use alternative
+}
+
+// Get all implemented functions
+$allFunctions = $calc->getImplementedFunctionNames();
+echo "Total functions: " . count($allFunctions);
+```
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+use PhpOffice\PhpSpreadsheet\Calculation\Functions;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Set data
+$sheet->fromArray([
+    ['Product', 'Price', 'Quantity', 'Date'],
+    ['Apple', 1.20, 100, '2024-01-15'],
+    ['Banana', 0.80, 150, '2024-01-16'],
+    ['Orange', 1.50, 80, '2024-01-17'],
+], null, 'A1');
+
+$calc = Calculation::getInstance($spreadsheet);
+
+// Math: Calculate total value
+$sheet->setCellValue('E2', '=B2*C2');
+$sheet->setCellValue('E5', '=SUM(E2:E4)');
+
+// Statistical: Average price
+$avgPrice = $calc->calculateFormula('=AVERAGE(B2:B4)');
+
+// Logical: Conditional
+$sheet->setCellValue('F2', '=IF(C2>100, "High", "Low")');
+
+// Text: Combine fields
+$sheet->setCellValue('G2', '=CONCAT(A2, " - ", TEXT(B2, "$0.00"))');
+
+// Lookup: Find product
+$result = $calc->calculateFormula('=VLOOKUP("Banana", A2:D4, 2, FALSE)');
+
+// Date: Calculate days since
+$sheet->setCellValue('H2', '=DAYS(TODAY(), D2)');
+
+echo "Average Price: $" . number_format($avgPrice, 2) . "\n";
+echo "Banana Price: $" . $result . "\n";
+```
+
+## See Also
+
+- [Calculation Engine](/api/calculation/engine)
+- [Function Reference](/api/calculation/function-reference)

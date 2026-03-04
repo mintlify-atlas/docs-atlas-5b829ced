@@ -1,0 +1,283 @@
+---
+title: 'Creating Spreadsheets'
+description: 'Learn how to create new spreadsheets with multiple sheets and data'
+---
+
+## Creating a Basic Spreadsheet
+
+Creating a new spreadsheet with PhpSpreadsheet is straightforward:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+require 'vendor/autoload.php';
+
+// Create new Spreadsheet object
+$spreadsheet = new Spreadsheet();
+
+// Set document properties
+$spreadsheet->getProperties()
+    ->setCreator('Your Name')
+    ->setLastModifiedBy('Your Name')
+    ->setTitle('PhpSpreadsheet Document')
+    ->setSubject('Sample Document')
+    ->setDescription('Document created with PhpSpreadsheet')
+    ->setKeywords('office phpspreadsheet php')
+    ->setCategory('Reports');
+
+// Add data to the active sheet
+$spreadsheet->getActiveSheet()
+    ->setCellValue('A1', 'Hello')
+    ->setCellValue('B2', 'World!');
+
+// Save the file
+$writer = new Xlsx($spreadsheet);
+$writer->save('new_spreadsheet.xlsx');
+```
+
+## Creating Multiple Worksheets
+
+You can create spreadsheets with multiple worksheets:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+
+// Work with the first sheet (automatically created)
+$sheet1 = $spreadsheet->getActiveSheet();
+$sheet1->setTitle('Sales Data');
+$sheet1->setCellValue('A1', 'Product');
+$sheet1->setCellValue('B1', 'Revenue');
+$sheet1->setCellValue('A2', 'Widget A');
+$sheet1->setCellValue('B2', 1000);
+$sheet1->setCellValue('A3', 'Widget B');
+$sheet1->setCellValue('B3', 1500);
+
+// Create a second sheet
+$sheet2 = $spreadsheet->createSheet();
+$sheet2->setTitle('Expenses');
+$sheet2->setCellValue('A1', 'Category');
+$sheet2->setCellValue('B1', 'Amount');
+$sheet2->setCellValue('A2', 'Marketing');
+$sheet2->setCellValue('B2', 500);
+$sheet2->setCellValue('A3', 'Operations');
+$sheet2->setCellValue('B3', 750);
+
+// Create a third sheet
+$sheet3 = $spreadsheet->createSheet();
+$sheet3->setTitle('Summary');
+$sheet3->setCellValue('A1', 'Total Revenue');
+$sheet3->setCellValue('B1', '=\'Sales Data\'!B2+\'Sales Data\'!B3');
+$sheet3->setCellValue('A2', 'Total Expenses');
+$sheet3->setCellValue('B2', '=Expenses!B2+Expenses!B3');
+$sheet3->setCellValue('A3', 'Net Profit');
+$sheet3->setCellValue('B3', '=B1-B2');
+
+// Set the first sheet as active
+$spreadsheet->setActiveSheetIndex(0);
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('multi_sheet.xlsx');
+```
+
+## Cloning Worksheets
+
+You can clone an existing worksheet to create a copy:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+
+// Set up the first sheet
+$spreadsheet->setActiveSheetIndex(0)
+    ->setCellValue('A1', 'Hello')
+    ->setCellValue('B2', 'world!')
+    ->setCellValue('C1', 'Hello')
+    ->setCellValue('D2', 'world!');
+
+$spreadsheet->getActiveSheet()->setTitle('Original');
+
+// Clone the worksheet
+$clonedSheet = clone $spreadsheet->getActiveSheet();
+
+// Modify the cloned sheet
+$clonedSheet
+    ->setCellValue('A1', 'Goodbye')
+    ->setCellValue('A2', 'cruel')
+    ->setCellValue('C1', 'Goodbye')
+    ->setCellValue('C2', 'cruel');
+
+// Rename and add the cloned sheet
+$clonedSheet->setTitle('Modified Copy');
+$spreadsheet->addSheet($clonedSheet);
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('cloned_sheets.xlsx');
+```
+
+## Setting Column Widths and Row Heights
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add some data
+$sheet->setCellValue('A1', 'Name');
+$sheet->setCellValue('B1', 'Description');
+$sheet->setCellValue('C1', 'Price');
+
+$sheet->setCellValue('A2', 'Product 1');
+$sheet->setCellValue('B2', 'This is a longer description of the product');
+$sheet->setCellValue('C2', 19.99);
+
+// Set column widths
+$sheet->getColumnDimension('A')->setWidth(15);
+$sheet->getColumnDimension('B')->setWidth(50);
+$sheet->getColumnDimension('C')->setWidth(12);
+
+// Set auto-width for a column
+$sheet->getColumnDimension('A')->setAutoSize(true);
+
+// Set row height
+$sheet->getRowDimension(1)->setRowHeight(25);
+
+// Set auto-height (especially useful for wrapped text)
+$sheet->getRowDimension(2)->setRowHeight(-1);
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('formatted_dimensions.xlsx');
+```
+
+## Adding Bulk Data
+
+For adding multiple rows of data efficiently:
+
+```php
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+require 'vendor/autoload.php';
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Sample data array
+$data = [
+    ['Name', 'Email', 'Phone', 'City'],
+    ['John Doe', 'john@example.com', '555-0100', 'New York'],
+    ['Jane Smith', 'jane@example.com', '555-0101', 'Los Angeles'],
+    ['Bob Johnson', 'bob@example.com', '555-0102', 'Chicago'],
+    ['Alice Brown', 'alice@example.com', '555-0103', 'Houston'],
+];
+
+// Insert data starting from cell A1
+$sheet->fromArray($data, null, 'A1');
+
+// Or insert row by row
+$rowNumber = 1;
+foreach ($data as $row) {
+    $columnLetter = 'A';
+    foreach ($row as $value) {
+        $sheet->setCellValue($columnLetter . $rowNumber, $value);
+        $columnLetter++;
+    }
+    $rowNumber++;
+}
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('bulk_data.xlsx');
+```
+
+## Working with Different File Formats
+
+<CodeGroup>
+
+```php Save as XLSX
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$spreadsheet = new Spreadsheet();
+// ... add data ...
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('file.xlsx');
+```
+
+```php Save as XLS
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+
+$spreadsheet = new Spreadsheet();
+// ... add data ...
+
+$writer = new Xls($spreadsheet);
+$writer->save('file.xls');
+```
+
+```php Save as ODS
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Ods;
+
+$spreadsheet = new Spreadsheet();
+// ... add data ...
+
+$writer = new Ods($spreadsheet);
+$writer->save('file.ods');
+```
+
+```php Save as CSV
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$spreadsheet = new Spreadsheet();
+// ... add data ...
+
+$writer = new Csv($spreadsheet);
+$writer->setDelimiter(',');
+$writer->setEnclosure('"');
+$writer->setLineEnding("\r\n");
+$writer->save('file.csv');
+```
+
+</CodeGroup>
+
+## Key Takeaways
+
+- Use `new Spreadsheet()` to create a new spreadsheet with one default worksheet
+- Set document properties using `getProperties()` for better file metadata
+- Create additional sheets with `createSheet()` or clone existing sheets
+- Use `fromArray()` for bulk data insertion
+- Set column widths and row heights with dimension methods
+- Choose the appropriate writer class for your desired output format

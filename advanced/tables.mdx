@@ -1,0 +1,285 @@
+---
+title: 'Excel Tables'
+description: 'Create and manage Excel tables with structured data, filters, and formatting'
+---
+
+## Introduction
+
+Excel tables (previously known as Excel lists) make it easier to manage and analyze groups of related data. Tables provide structured references, automatic formatting, and integrated filtering capabilities.
+
+<Note>
+Tables are currently supported in the Xlsx reader and Html writer. To enable table formatting for the Html writer, use `setTableFormats(true)`.
+</Note>
+
+## Creating a Table
+
+### Basic Table Setup
+
+Create a table by specifying the range and a unique name:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Table;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Add data with headers
+$worksheet->setCellValue('A1', 'Year')
+    ->setCellValue('B1', 'Quarter')
+    ->setCellValue('C1', 'Country')
+    ->setCellValue('D1', 'Sales');
+
+$dataArray = [
+    ['2010', 'Q1', 'United States', 790],
+    ['2010', 'Q2', 'United States', 730],
+    ['2010', 'Q3', 'United States', 860],
+    ['2011', 'Q1', 'United States', 800],
+];
+
+$worksheet->fromArray($dataArray, null, 'A2');
+
+// Create the table
+$table = new Table('A1:D5', 'Sales_Data');
+$worksheet->addTable($table);
+```
+
+<Warning>
+The range must include the header row. Each table in a workbook must have a unique name.
+</Warning>
+
+## Table Styling
+
+### Applying a Theme
+
+Excel provides predefined table styles:
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Table\TableStyle;
+
+$tableStyle = new TableStyle();
+$tableStyle->setTheme(TableStyle::TABLE_STYLE_MEDIUM2);
+$table->setStyle($tableStyle);
+```
+
+### Available Table Themes
+
+Table style constants follow the pattern `TABLE_STYLE_*`:
+
+- **Light Styles**: `TABLE_STYLE_LIGHT1` through `TABLE_STYLE_LIGHT21`
+- **Medium Styles**: `TABLE_STYLE_MEDIUM1` through `TABLE_STYLE_MEDIUM28`
+- **Dark Styles**: `TABLE_STYLE_DARK1` through `TABLE_STYLE_DARK11`
+
+### Stripe and Column Options
+
+Customize which elements are highlighted:
+
+```php
+$tableStyle->setShowRowStripes(true);      // Alternate row colors
+$tableStyle->setShowColumnStripes(true);   // Alternate column colors
+$tableStyle->setShowFirstColumn(true);     // Highlight first column
+$tableStyle->setShowLastColumn(true);      // Highlight last column
+```
+
+## Working with Table Columns
+
+### Configuring Columns
+
+Access and configure individual table columns:
+
+```php
+// Hide filter button on a column
+$table->getColumn('D')->setShowFilterButton(false);
+
+// Set column formula
+$table->getColumn('E')->setColumnFormula('=[@Sales]*1.2');
+```
+
+### Column Total Formulas
+
+Add totals row with formulas:
+
+```php
+$table->setShowTotalsRow(true);
+$table->getColumn('D')->setTotalRowFunction(Table\Column::TOTAL_FUNCTION_SUM);
+```
+
+Available total functions:
+- `TOTAL_FUNCTION_AVERAGE`
+- `TOTAL_FUNCTION_COUNT`
+- `TOTAL_FUNCTION_COUNT_NUMS`
+- `TOTAL_FUNCTION_MAX`
+- `TOTAL_FUNCTION_MIN`
+- `TOTAL_FUNCTION_SUM`
+- `TOTAL_FUNCTION_STD_DEV`
+- `TOTAL_FUNCTION_VAR`
+- `TOTAL_FUNCTION_CUSTOM` (for custom formulas)
+
+## Table Filters
+
+### Adding AutoFilters
+
+Tables automatically include AutoFilter functionality:
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter;
+
+// Access the table's autofilter
+$autoFilter = $table->getAutoFilter();
+
+// Add a filter rule
+$autoFilter->getColumn('A')
+    ->setFilterType(AutoFilter\Column::AUTOFILTER_FILTERTYPE_CUSTOMFILTER)
+    ->createRule()
+    ->setRule(
+        AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_GREATERTHANOREQUAL,
+        2011
+    )
+    ->setRuleType(AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER);
+```
+
+<Tip>
+See the [AutoFilters documentation](/advanced/autofilters) for complete details on filter types and configurations.
+</Tip>
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Table;
+use PhpOffice\PhpSpreadsheet\Worksheet\Table\TableStyle;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Add headers and data
+$worksheet->fromArray([
+    ['Year', 'Quarter', 'Country', 'Sales'],
+    ['2010', 'Q1', 'United States', 790],
+    ['2010', 'Q2', 'United States', 730],
+    ['2010', 'Q3', 'United States', 860],
+    ['2010', 'Q4', 'United States', 850],
+    ['2011', 'Q1', 'United States', 800],
+    ['2011', 'Q2', 'United States', 700],
+    ['2011', 'Q3', 'United States', 900],
+    ['2011', 'Q4', 'United States', 950],
+]);
+
+// Create table
+$table = new Table('A1:D9', 'Sales_Data');
+
+// Configure columns
+$table->getColumn('D')->setShowFilterButton(false);
+
+// Add filter
+$table->getAutoFilter()->getColumn('A')
+    ->setFilterType(AutoFilter\Column::AUTOFILTER_FILTERTYPE_CUSTOMFILTER)
+    ->createRule()
+    ->setRule(
+        AutoFilter\Column\Rule::AUTOFILTER_COLUMN_RULE_GREATERTHANOREQUAL,
+        2011
+    )
+    ->setRuleType(AutoFilter\Column\Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER);
+
+// Apply styling
+$tableStyle = new TableStyle();
+$tableStyle->setTheme(TableStyle::TABLE_STYLE_MEDIUM2);
+$tableStyle->setShowRowStripes(true);
+$tableStyle->setShowColumnStripes(false);
+$tableStyle->setShowFirstColumn(true);
+$tableStyle->setShowLastColumn(false);
+$table->setStyle($tableStyle);
+
+// Add to worksheet
+$worksheet->addTable($table);
+
+// Save
+$writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->save('table.xlsx');
+```
+
+## Reading Tables from Files
+
+When reading an Excel file with tables:
+
+```php
+$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load('table.xlsx');
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Get all tables in the worksheet
+$tables = $worksheet->getTableCollection();
+
+foreach ($tables as $table) {
+    echo 'Table: ' . $table->getName() . PHP_EOL;
+    echo 'Range: ' . $table->getRange() . PHP_EOL;
+    
+    // Get table style
+    $style = $table->getStyle();
+    echo 'Theme: ' . $style->getTheme() . PHP_EOL;
+}
+```
+
+## Structured References
+
+Tables support structured references in formulas:
+
+```php
+// Reference specific column
+$worksheet->setCellValue('F2', '=Sales_Data[@Sales]');
+
+// Reference entire column
+$worksheet->setCellValue('F3', '=SUM(Sales_Data[Sales])');
+
+// Reference this row
+$worksheet->setCellValue('E2', '=[@Sales]*0.1');
+```
+
+### Structured Reference Syntax
+
+| Reference | Description |
+|-----------|-------------|
+| `TableName[ColumnName]` | Entire column (data only) |
+| `TableName[@ColumnName]` | Current row's cell in that column |
+| `TableName[[#Headers],[ColumnName]]` | Column header |
+| `TableName[[#Totals],[ColumnName]]` | Column total |
+| `TableName[#All]` | Entire table including headers and totals |
+| `TableName[#Data]` | All data rows |
+| `TableName[#Headers]` | Header row |
+| `TableName[#Totals]` | Totals row |
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Descriptive Table Names">
+    Choose meaningful names that describe the data, making formulas more readable.
+  </Accordion>
+  
+  <Accordion title="Include Header Row">
+    Always ensure the first row of your table range contains headers.
+  </Accordion>
+  
+  <Accordion title="Unique Table Names">
+    Each table in a workbook must have a unique name. Duplicate names will cause errors.
+  </Accordion>
+  
+  <Accordion title="Apply Consistent Formatting">
+    Use table styles for consistent appearance across your spreadsheets.
+  </Accordion>
+</AccordionGroup>
+
+## HTML Export
+
+To export tables with formatting to HTML:
+
+```php
+$writer = new \PhpOffice\PhpSpreadsheet\Writer\Html($spreadsheet);
+$writer->setTableFormats(true);
+$writer->save('output.html');
+```
+
+## Related Topics
+
+- [AutoFilters](/advanced/autofilters)
+- [Conditional Formatting](/advanced/conditional-formatting)
+- [Reading and Writing Files](/essentials/reading-writing)

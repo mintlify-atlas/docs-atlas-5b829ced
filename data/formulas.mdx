@@ -1,0 +1,399 @@
+---
+title: 'Working with Formulas'
+description: 'Formula syntax, calculation engine, and formula evaluation in PhpSpreadsheet'
+---
+
+## Overview
+
+PhpSpreadsheet provides a powerful calculation engine that can evaluate Excel formulas. Formulas are stored as strings beginning with `=` and can reference other cells, use Excel functions, and perform complex calculations.
+
+## Setting Formulas
+
+### Basic Formula Entry
+
+```php
+// Set a simple formula
+$sheet->setCellValue('A1', 10);
+$sheet->setCellValue('A2', 20);
+$sheet->setCellValue('A3', '=SUM(A1:A2)');
+
+// Formula with multiple functions
+$sheet->setCellValue('B1', '=IF(A1>5, A1*2, A1/2)');
+
+// Formula referencing other sheets
+$sheet->setCellValue('C1', '=Sheet2!A1 + Sheet2!B1');
+```
+
+<Note>
+Formulas must always use:
+- `.` (period) as decimal separator
+- `,` (comma) as function argument separator
+- `;` (semicolon) as matrix row separator
+- English function names
+</Note>
+
+### Formula Examples
+
+<CodeGroup>
+
+```php Math Functions
+$sheet->setCellValue('B2', 3);
+$sheet->setCellValue('B3', 7);
+$sheet->setCellValue('B4', 13);
+$sheet->setCellValue('B5', '=SUM(B2:B4)');
+$sheet->setCellValue('B6', '=AVERAGE(B2:B4)');
+$sheet->setCellValue('B7', '=MAX(B2:B4)');
+$sheet->setCellValue('B8', '=MIN(B2:B4)');
+```
+
+```php Conditional Logic
+$sheet->setCellValue('A1', 85);
+$sheet->setCellValue('B1', '=IF(A1>=90, "A", IF(A1>=80, "B", "C"))');
+$sheet->setCellValue('B2', '=AND(A1>50, A1<100)');
+$sheet->setCellValue('B3', '=OR(A1<60, A1>90)');
+```
+
+```php Text Functions
+$sheet->setCellValue('A1', 'John');
+$sheet->setCellValue('A2', 'Doe');
+$sheet->setCellValue('A3', '=CONCATENATE(A1, " ", A2)');
+$sheet->setCellValue('A4', '=UPPER(A3)');
+$sheet->setCellValue('A5', '=LEFT(A1, 2)');
+```
+
+```php Date Functions
+$sheet->setCellValue('A1', '=TODAY()');
+$sheet->setCellValue('A2', '=NOW()');
+$sheet->setCellValue('A3', '=DATE(2024, 12, 25)');
+$sheet->setCellValue('A4', '=DATEDIF(A3, TODAY(), "d")');
+```
+
+</CodeGroup>
+
+## Calculating Formula Values
+
+### Getting Calculated Values
+
+```php
+$sheet->setCellValue('A1', 10);
+$sheet->setCellValue('A2', 20);
+$sheet->setCellValue('A3', '=SUM(A1:A2)');
+
+// Get the formula itself
+$formula = $sheet->getCell('A3')->getValue();
+// Returns: "=SUM(A1:A2)"
+
+// Calculate and get the result
+$result = $sheet->getCell('A3')->getCalculatedValue();
+// Returns: 30
+
+// Get as string
+$resultString = $sheet->getCell('A3')->getCalculatedValueString();
+// Returns: "30"
+```
+
+### Checking if a Cell Contains a Formula
+
+```php
+$cell = $sheet->getCell('A3');
+
+if ($cell->isFormula()) {
+    echo "This cell contains a formula: " . $cell->getValue();
+    echo "Result: " . $cell->getCalculatedValue();
+} else {
+    echo "This cell contains a value: " . $cell->getValue();
+}
+```
+
+## Calculation Engine
+
+### Formula Calculation
+
+The calculation engine evaluates formulas when you call `getCalculatedValue()`:
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+$sheet->setCellValue('E11', '=SUM(E4:E9)');
+
+// Calculate the formula
+$total = $sheet->getCell('E11')->getCalculatedValue();
+
+// Get calculation instance
+$calculation = Calculation::getInstance($spreadsheet);
+```
+
+### Calculation Cache
+
+Formula results are cached for performance:
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+// Disable calculation cache (forces recalculation every time)
+Calculation::getInstance($spreadsheet)->disableCalculationCache();
+
+// Clear cache without disabling
+Calculation::getInstance($spreadsheet)->clearCalculationCache();
+
+// Re-enable cache
+Calculation::getInstance($spreadsheet)->enableCalculationCache();
+```
+
+<Info>
+The cache improves performance by storing calculated results, but you may need to clear it if underlying data changes.
+</Info>
+
+### Array Return Types
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+$calculation = Calculation::getInstance($spreadsheet);
+
+// Get array formulas as arrays
+$calculation->setInstanceArrayReturnType(
+    Calculation::RETURN_ARRAY_AS_ARRAY
+);
+
+// Get first value only (default)
+$calculation->setInstanceArrayReturnType(
+    Calculation::RETURN_ARRAY_AS_VALUE
+);
+```
+
+## Automatic Formula Adjustment
+
+PhpSpreadsheet automatically adjusts formulas when you insert or delete rows/columns:
+
+```php
+$sheet->setCellValue('E4', 10);
+$sheet->setCellValue('E5', 20);
+$sheet->setCellValue('E6', 30);
+$sheet->setCellValue('E7', 40);
+$sheet->setCellValue('E8', 50);
+$sheet->setCellValue('E9', 60);
+$sheet->setCellValue('E11', '=SUM(E4:E9)');
+
+// Insert 2 new rows before row 7
+$sheet->insertNewRowBefore(7, 2);
+
+// Formula is now automatically adjusted to: =SUM(E4:E11)
+echo $sheet->getCell('E13')->getValue();
+```
+
+### Absolute References
+
+Use `$` to anchor cell references:
+
+```php
+// Relative reference - adjusts when copied or rows/columns inserted
+$sheet->setCellValue('A1', '=SUM(B1:B10)');
+
+// Absolute column, relative row
+$sheet->setCellValue('A2', '=SUM($B1:$B10)');
+
+// Absolute row, relative column  
+$sheet->setCellValue('A3', '=SUM(B$1:B$10)');
+
+// Fully absolute - never adjusts
+$sheet->setCellValue('A4', '=SUM($B$1:$B$10)');
+```
+
+## Array Formulas
+
+PhpSpreadsheet supports array formulas that return multiple values:
+
+```php
+// Set an array formula
+$sheet->setCellValue('A1', '{=TRANSPOSE(B1:B5)}');
+
+// Set formula attributes for array formulas
+$cell = $sheet->getCell('A1');
+$cell->setFormulaAttributes([
+    't' => 'array',
+    'ref' => 'A1:E1'
+]);
+```
+
+<Note>
+Array formulas are enclosed in curly braces `{}` in Excel, but you set them without the braces in PhpSpreadsheet.
+</Note>
+
+## Formula Validation and Errors
+
+### Handling Formula Errors
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Exception as CalculationException;
+
+$sheet->setCellValue('A1', 10);
+$sheet->setCellValue('A2', 0);
+$sheet->setCellValue('A3', '=A1/A2');
+
+try {
+    $result = $sheet->getCell('A3')->getCalculatedValue();
+} catch (CalculationException $e) {
+    echo "Formula error: " . $e->getMessage();
+}
+
+// Check for Excel error values
+$value = $sheet->getCell('A3')->getCalculatedValue();
+if (is_string($value) && str_starts_with($value, '#')) {
+    echo "Excel error: $value"; // e.g., "#DIV/0!"
+}
+```
+
+### Common Error Values
+
+| Error | Meaning |
+|-------|----------|
+| `#DIV/0!` | Division by zero |
+| `#N/A` | Value not available |
+| `#NAME?` | Unrecognized function name |
+| `#NULL!` | Incorrect range operator |
+| `#NUM!` | Invalid numeric value |
+| `#REF!` | Invalid cell reference |
+| `#VALUE!` | Wrong type of argument |
+| `#SPILL!` | Array formula result blocked |
+
+## Escaping Formulas
+
+To store text beginning with `=` without treating it as a formula:
+
+```php
+$sheet->setCellValue('A1', '=This is not a formula');
+
+// Mark as quote prefix to prevent evaluation
+$sheet->getCell('A1')->getStyle()->setQuotePrefix(true);
+
+// Now calling getCalculatedValue() returns the string as-is
+echo $sheet->getCell('A1')->getCalculatedValue();
+// Returns: "=This is not a formula"
+```
+
+## Date and Time in Formulas
+
+### Setting Return Type for Date Functions
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Functions;
+
+// Return as PHP timestamp (default)
+Functions::setReturnDateType(Functions::RETURNDATE_PHP_NUMERIC);
+
+// Return as PHP DateTime object
+Functions::setReturnDateType(Functions::RETURNDATE_PHP_OBJECT);
+
+// Return as Excel timestamp
+Functions::setReturnDateType(Functions::RETURNDATE_EXCEL);
+
+// Example usage
+$sheet->setCellValue('A1', '=TODAY()');
+$result = $sheet->getCell('A1')->getCalculatedValue();
+// Type depends on the return date type setting
+```
+
+### Date Function Examples
+
+```php
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+
+// Set date values
+$sheet->setCellValue('A1', '2024-01-01');
+$sheet->setCellValue('A2', '2024-12-31');
+
+// Calculate difference in days
+$sheet->setCellValue('A3', '=DATEDIF(A1, A2, "d")');
+
+// Add months to a date  
+$sheet->setCellValue('A4', '=EDATE(A1, 6)');
+
+// Extract date parts
+$sheet->setCellValue('A5', '=YEAR(A1)');
+$sheet->setCellValue('A6', '=MONTH(A1)');
+$sheet->setCellValue('A7', '=DAY(A1)');
+```
+
+## Known Limitations
+
+<Warning>
+The PhpSpreadsheet calculation engine has some limitations:
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="Not All Functions Supported">
+    Not all Excel functions are implemented. Check the [function list](/references/function-list) for supported functions.
+  </Accordion>
+  
+  <Accordion title="Operator Precedence Differences">
+    In Excel, `+` wins over `&` (concatenation), but this may differ in PhpSpreadsheet. Use parentheses to ensure correct order of operations.
+  </Accordion>
+  
+  <Accordion title="Type Coercion Differences">
+    PHP's type coercion differs from Excel. For example, `=3+"Hello"` returns `3` in PhpSpreadsheet but `#VALUE!` in Excel.
+  </Accordion>
+  
+  <Accordion title="External Workbook References">
+    Formulas referencing external workbooks will return cached values or errors.
+  </Accordion>
+</AccordionGroup>
+
+## Pre-Calculated Formulas
+
+When writing files, you can choose whether to calculate formulas:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+
+// Calculate all formulas before saving (slower but ensures values are current)
+$writer->setPreCalculateFormulas(true);
+
+// Don't calculate (default) - Excel will calculate when file is opened
+$writer->setPreCalculateFormulas(false);
+
+$writer->save('output.xlsx');
+```
+
+<Info>
+If `setPreCalculateFormulas(false)`, Excel will show "Calculating..." when opening the file as it recalculates all formulas.
+</Info>
+
+## Best Practices
+
+<Steps>
+  <Step title="Use English Function Names">
+    Always use English function names in formulas, even if your users speak other languages. PhpSpreadsheet handles locale internally.
+  </Step>
+  
+  <Step title="Test Formula Support">
+    Before deploying, test that all formulas you need are supported by the calculation engine. Unsupported functions will return `#NAME?` or cached values.
+  </Step>
+  
+  <Step title="Handle Errors Gracefully">
+    Always check for formula errors, especially when calculating user-provided formulas.
+  </Step>
+  
+  <Step title="Clear Cache When Needed">
+    If you modify cell values after calculating formulas, clear the calculation cache to ensure fresh results.
+  </Step>
+</Steps>
+
+## Related Topics
+
+<CardGroup cols={2}>
+  <Card title="Accessing Cells" icon="table-cells" href="/data/accessing-cells">
+    Reading and writing cell values
+  </Card>
+  <Card title="Defined Names" icon="tag" href="/data/defined-names">
+    Using named ranges in formulas
+  </Card>
+  <Card title="Cell Values" icon="database" href="/data/cell-values">
+    Understanding data types
+  </Card>
+  <Card title="Function Reference" icon="book" href="/references/function-list">
+    Complete list of supported functions
+  </Card>
+</CardGroup>

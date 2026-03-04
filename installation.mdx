@@ -1,0 +1,211 @@
+---
+title: Installation
+description: Install PhpSpreadsheet via Composer and configure system requirements
+---
+
+PhpSpreadsheet is installed via [Composer](https://getcomposer.org/), the dependency manager for PHP.
+
+## Install via Composer
+
+<Steps>
+  <Step title="Install Composer">
+    If you don't have Composer installed, download it from [getcomposer.org](https://getcomposer.org/).
+  </Step>
+  
+  <Step title="Add PhpSpreadsheet to your project">
+    Run the following command in your project directory:
+    
+    ```bash
+    composer require phpoffice/phpspreadsheet
+    ```
+  </Step>
+  
+  <Step title="Include the autoloader">
+    In your PHP files, include Composer's autoloader:
+    
+    ```php
+    <?php
+    require 'vendor/autoload.php';
+    
+    use PhpOffice\PhpSpreadsheet\Spreadsheet;
+    use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+    ```
+  </Step>
+</Steps>
+
+## System requirements
+
+### PHP version
+
+PhpSpreadsheet requires **PHP 8.1 or higher**.
+
+<Note>
+  Support for PHP versions is maintained for six months beyond their official end of life. The current minimum version (8.1) will be supported until June 30, 2026.
+</Note>
+
+### Required PHP extensions
+
+The following PHP extensions are required for PhpSpreadsheet to function:
+
+- **ext-ctype** - Character type checking
+- **ext-dom** - DOM document manipulation
+- **ext-fileinfo** - File information
+- **ext-filter** - Data filtering
+- **ext-gd** - Image processing
+- **ext-iconv** - Character encoding conversion
+- **ext-libxml** - XML library
+- **ext-mbstring** - Multibyte string handling
+- **ext-simplexml** - Simple XML parsing
+- **ext-xml** - XML parsing
+- **ext-xmlreader** - XML reader
+- **ext-xmlwriter** - XML writer
+- **ext-zip** - ZIP archive handling
+- **ext-zlib** - Compression
+
+<Warning>
+  If any required extension is missing, Composer will fail during installation. Install the missing extensions through your system's package manager or PHP configuration.
+</Warning>
+
+### Composer dependencies
+
+PhpSpreadsheet automatically installs the following required packages:
+
+- `maennchen/zipstream-php` (^2.1 || ^3.0) - Streaming ZIP archives
+- `markbaker/complex` (^3.0) - Complex number calculations
+- `markbaker/matrix` (^3.0) - Matrix calculations
+- `psr/simple-cache` (^1.0 || ^2.0 || ^3.0) - Caching interface
+
+## Optional dependencies
+
+### PDF export libraries
+
+To export spreadsheets to PDF format, install one of these libraries:
+
+<CodeGroup>
+```bash mpdf
+composer require mpdf/mpdf
+```
+
+```bash dompdf
+composer require dompdf/dompdf
+```
+
+```bash tcpdf
+composer require tecnickcom/tcpdf
+```
+</CodeGroup>
+
+Then use the PDF writer:
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+// or
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Dompdf;
+// or
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf;
+
+$writer = new Mpdf($spreadsheet);
+$writer->save('output.pdf');
+```
+
+### Chart rendering
+
+To render charts or include charts with PDF/HTML writers:
+
+```bash
+composer require mitoteam/jpgraph
+```
+
+### Internationalization
+
+For number format wizards and locale support:
+
+```bash
+# ext-intl is typically available via your system package manager
+# Ubuntu/Debian: sudo apt-get install php-intl
+# macOS: built into PHP
+# Windows: enable in php.ini
+```
+
+## Verifying installation
+
+Create a test file to verify your installation:
+
+```php test.php
+<?php
+require 'vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+echo "PhpSpreadsheet is installed!\n";
+echo "Creating a test spreadsheet...\n";
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setCellValue('A1', 'Hello PhpSpreadsheet!');
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('test.xlsx');
+
+echo "Success! Check test.xlsx\n";
+```
+
+Run the test:
+
+```bash
+php test.php
+```
+
+If you see "Success! Check test.xlsx" and the file is created, your installation is working correctly.
+
+## Troubleshooting
+
+### Missing extensions
+
+If Composer reports missing extensions:
+
+<AccordionGroup>
+  <Accordion title="Ubuntu/Debian">
+    ```bash
+    sudo apt-get install php-xml php-mbstring php-gd php-zip
+    ```
+  </Accordion>
+  
+  <Accordion title="macOS (Homebrew)">
+    Most extensions are included with PHP. For missing ones:
+    ```bash
+    brew install php
+    ```
+  </Accordion>
+  
+  <Accordion title="Windows">
+    Edit your `php.ini` file and uncomment (remove `;` from) the required extensions:
+    ```ini
+    extension=gd
+    extension=mbstring
+    extension=zip
+    extension=xml
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Memory limits
+
+For large spreadsheets, you may need to increase PHP's memory limit:
+
+```php
+ini_set('memory_limit', '512M');
+```
+
+Or in your `php.ini`:
+
+```ini
+memory_limit = 512M
+```
+
+## Next steps
+
+<Card title="Quick start" icon="rocket" href="/quickstart">
+  Now that you've installed PhpSpreadsheet, learn how to create your first spreadsheet
+</Card>

@@ -1,0 +1,467 @@
+---
+title: File Formats
+description: Supported spreadsheet file formats, their capabilities, and format-specific considerations in PhpSpreadsheet
+---
+
+## Overview
+
+PhpSpreadsheet supports reading and writing multiple spreadsheet file formats, allowing you to work with files from various sources and save your data in the format that best suits your needs.
+
+## Supported Formats
+
+PhpSpreadsheet provides comprehensive support for the following file formats:
+
+<CardGroup cols={2}>
+  <Card title="Excel 2007+ (XLSX)" icon="file-excel">
+    Office Open XML format - Full read/write support
+  </Card>
+  <Card title="Excel 97-2003 (XLS)" icon="file">
+    BIFF8 format - Full read/write support
+  </Card>
+  <Card title="OpenDocument (ODS)" icon="file-lines">
+    LibreOffice/OpenOffice format - Full read/write support
+  </Card>
+  <Card title="CSV" icon="file-csv">
+    Comma-separated values - Full read/write support
+  </Card>
+</CardGroup>
+
+### Format Capabilities Matrix
+
+| Format | Reading | Writing | Notes |
+|--------|:-------:|:-------:|-------|
+| **Office Open XML (.xlsx)** <br/> Excel 2007 and above | ✓ | ✓ | Main format, best feature support |
+| **BIFF 8 (.xls)** <br/> Excel 97 and above | ✓ | ✓ | Legacy binary format |
+| **BIFF 5 (.xls)** <br/> Excel 95 | ✓ | | Read-only support |
+| **Open Document Format (.ods)** <br/> OASIS/LibreOffice Calc | ✓ | ✓ | Open standard format |
+| **SpreadsheetML (.xml)** <br/> Excel 2003 | ✓ | | XML-based format |
+| **Gnumeric** | ✓ | | Gnumeric spreadsheet format |
+| **HTML** | ✓ | ✓ | Web format, limited features |
+| **SYLK** | ✓ | | Symbolic Link format |
+| **CSV** | ✓ | ✓ | Plain text, data only |
+| **PDF** | | ✓ | Requires external library * |
+
+<Note>
+**PDF Export**: PDF writing requires one of these libraries to be installed separately:
+- **dompdf/dompdf**
+- **mpdf/mpdf**
+- **tecnickcom/tcpdf**
+
+See [PDF Export](#pdf-export) for configuration details.
+</Note>
+
+## Feature Support by Format
+
+Not all formats support all PhpSpreadsheet features. For detailed feature compatibility, consult the [Features Cross-reference](https://phpspreadsheet.readthedocs.io/en/latest/references/features-cross-reference/) in the PhpSpreadsheet documentation.
+
+### Feature Comparison
+
+| Feature | XLSX | XLS | ODS | CSV | HTML |
+|---------|:----:|:---:|:---:|:---:|:----:|
+| Multiple worksheets | ✓ | ✓ | ✓ | | |
+| Cell formulas | ✓ | ✓ | ✓ | | |
+| Rich text formatting | ✓ | ✓ | ✓ | | ✓ |
+| Cell styling | ✓ | ✓ | ✓ | | ✓ |
+| Images | ✓ | ✓ | ✓ | | ✓ |
+| Charts | ✓ | ✓ | Partial | | * |
+| Conditional formatting | ✓ | ✓ | Limited | | |
+| Data validation | ✓ | ✓ | ✓ | | |
+| Comments | ✓ | ✓ | ✓ | | |
+| Hyperlinks | ✓ | ✓ | ✓ | | ✓ |
+| Page setup | ✓ | ✓ | ✓ | | |
+
+<Info>
+**Chart Export**: Charts can be exported to HTML and PDF formats if you install a chart rendering library (jpgraph or mitoteam/jpgraph). Otherwise, charts are defined in XLSX files but not rendered in HTML/PDF output.
+</Info>
+
+## Format-Specific Details
+
+### Excel 2007+ (XLSX)
+
+**Office Open XML** is the primary format for PhpSpreadsheet. It provides the best support for all features.
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+// Reading
+$spreadsheet = IOFactory::load('file.xlsx');
+
+// Writing
+$writer = new Xlsx($spreadsheet);
+$writer->save('output.xlsx');
+```
+
+**Key Features:**
+- XML-based, human-readable structure
+- Supports all PhpSpreadsheet features
+- Industry standard
+- Excellent compression
+- Modern format, widely compatible
+
+### Excel 97-2003 (XLS)
+
+**BIFF8 (Binary Interchange File Format)** is the legacy Excel format.
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+use PhpOffice\PhpSpreadsheet\Writer\Xls as XlsWriter;
+
+// Reading
+$reader = new Xls();
+$spreadsheet = $reader->load('file.xls');
+
+// Writing
+$writer = new XlsWriter($spreadsheet);
+$writer->save('output.xls');
+```
+
+**Key Features:**
+- Binary format
+- Good backward compatibility
+- Smaller file size than XLSX
+- Some limitations compared to XLSX
+
+**Limitations:**
+- Maximum 65,536 rows × 256 columns
+- Limited conditional formatting support
+- No modern Excel features
+
+### OpenDocument (ODS)
+
+**ODS** is the open standard format used by LibreOffice Calc and OpenOffice.
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Ods;
+use PhpOffice\PhpSpreadsheet\Writer\Ods as OdsWriter;
+
+// Reading
+$reader = new Ods();
+$spreadsheet = $reader->load('file.ods');
+
+// Writing
+$writer = new OdsWriter($spreadsheet);
+$writer->save('output.ods');
+```
+
+**Key Features:**
+- Open standard (OASIS)
+- Good LibreOffice/OpenOffice compatibility
+- ZIP-based like XLSX
+- Alternative to proprietary formats
+
+### CSV (Comma-Separated Values)
+
+**CSV** is a plain text format for tabular data.
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+use PhpOffice\PhpSpreadsheet\Writer\Csv as CsvWriter;
+
+// Reading
+$reader = new Csv();
+$reader->setDelimiter(',');
+$reader->setEnclosure('"');
+$reader->setSheetIndex(0);
+$spreadsheet = $reader->load('file.csv');
+
+// Writing
+$writer = new CsvWriter($spreadsheet);
+$writer->setDelimiter(',');
+$writer->setEnclosure('"');
+$writer->setLineEnding("\r\n");
+$writer->setSheetIndex(0);
+$writer->save('output.csv');
+```
+
+**Key Features:**
+- Plain text, human-readable
+- Universal compatibility
+- Small file size
+- Easy to parse
+
+**Limitations:**
+- **Single worksheet only**
+- **No formatting** (colors, fonts, etc.)
+- **No formulas** (values only)
+- **No images or charts**
+- Data types may be ambiguous
+
+**CSV Options:**
+
+```php
+$reader = new Csv();
+$reader->setDelimiter(';');           // Change delimiter
+$reader->setEnclosure('"');           // Quote character
+$reader->setEscapeCharacter('\\');    // Escape character
+$reader->setInputEncoding('UTF-8');   // Character encoding
+
+$writer = new CsvWriter($spreadsheet);
+$writer->setDelimiter(',');
+$writer->setEnclosure('"');
+$writer->setLineEnding("\r\n");       // Windows line endings
+$writer->setUseBOM(true);             // Add UTF-8 BOM
+$writer->setIncludeSeparatorLine(false);
+```
+
+### HTML
+
+**HTML** format allows you to display spreadsheets on the web.
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Html;
+use PhpOffice\PhpSpreadsheet\Writer\Html as HtmlWriter;
+
+// Reading
+$reader = new Html();
+$spreadsheet = $reader->load('table.html');
+
+// Writing
+$writer = new HtmlWriter($spreadsheet);
+$writer->save('output.html');
+```
+
+**Writing Options:**
+
+```php
+$writer = new HtmlWriter($spreadsheet);
+$writer->setSheetIndex(0);            // Which sheet to export
+$writer->setImagesRoot('images/');    // Path for images
+$writer->setEmbedImages(false);       // Embed images as base64
+$writer->setUseInlineCss(true);       // Use inline styles
+```
+
+**Key Features:**
+- Web-compatible output
+- Preserves basic formatting
+- Can include images
+- Interactive in browsers
+
+**Limitations:**
+- Limited styling compared to Excel
+- No formulas (values are calculated)
+- Single sheet per file
+
+### PDF Export
+
+PDF is write-only and requires an external library.
+
+#### Installation
+
+Choose one PDF library:
+
+```bash
+# Option 1: Dompdf
+composer require dompdf/dompdf
+
+# Option 2: mPDF
+composer require mpdf/mpdf
+
+# Option 3: TCPDF
+composer require tecnickcom/tcpdf
+```
+
+#### Configuration
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Dompdf;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf;
+
+// Register your chosen PDF writer
+IOFactory::registerWriter('Pdf', Dompdf::class);
+// or
+IOFactory::registerWriter('Pdf', Mpdf::class);
+// or
+IOFactory::registerWriter('Pdf', Tcpdf::class);
+
+// Create and save
+$writer = IOFactory::createWriter($spreadsheet, 'Pdf');
+$writer->save('output.pdf');
+```
+
+**PDF Options:**
+
+```php
+$writer = IOFactory::createWriter($spreadsheet, 'Pdf');
+$writer->setSheetIndex(0);            // Which sheet to export
+$writer->writeAllSheets();            // Export all sheets
+```
+
+## Using IOFactory
+
+The `IOFactory` class simplifies reader and writer creation:
+
+### Automatic Format Detection
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Load file with automatic format detection
+$spreadsheet = IOFactory::load('unknown-format.xlsx');
+```
+
+### Explicit Format
+
+```php
+// Create reader for specific format
+$reader = IOFactory::createReader('Xlsx');
+$spreadsheet = $reader->load('file.xlsx');
+
+// Create writer for specific format
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->save('output.xlsx');
+```
+
+### Format Constants
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Reader constants
+IOFactory::READER_XLSX      // 'Xlsx'
+IOFactory::READER_XLS       // 'Xls'
+IOFactory::READER_ODS       // 'Ods'
+IOFactory::READER_CSV       // 'Csv'
+IOFactory::READER_HTML      // 'Html'
+IOFactory::READER_XML       // 'Xml'
+IOFactory::READER_GNUMERIC  // 'Gnumeric'
+IOFactory::READER_SYLK      // 'Slk'
+
+// Writer constants
+IOFactory::WRITER_XLSX      // 'Xlsx'
+IOFactory::WRITER_XLS       // 'Xls'
+IOFactory::WRITER_ODS       // 'Ods'
+IOFactory::WRITER_CSV       // 'Csv'
+IOFactory::WRITER_HTML      // 'Html'
+```
+
+## Format Conversion
+
+Convert between formats easily:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Convert XLS to XLSX
+$spreadsheet = IOFactory::load('old-file.xls');
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->save('new-file.xlsx');
+
+// Convert XLSX to CSV
+$spreadsheet = IOFactory::load('data.xlsx');
+$writer = IOFactory::createWriter($spreadsheet, 'Csv');
+$writer->save('data.csv');
+
+// Convert XLSX to PDF
+$spreadsheet = IOFactory::load('report.xlsx');
+IOFactory::registerWriter('Pdf', \PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf::class);
+$writer = IOFactory::createWriter($spreadsheet, 'Pdf');
+$writer->save('report.pdf');
+```
+
+## Choosing the Right Format
+
+### When to Use XLSX
+
+- **Modern Excel compatibility** required
+- Need **full feature support** (formulas, formatting, charts)
+- Working with **large datasets** (>65K rows)
+- **Industry standard** format needed
+
+### When to Use XLS
+
+- **Legacy compatibility** required
+- Working with older Excel versions
+- **Smaller file size** preferred
+- Limited dataset (less than 65K rows)
+
+### When to Use ODS
+
+- **Open source** requirement
+- LibreOffice/OpenOffice users
+- Avoiding proprietary formats
+- Cross-platform compatibility
+
+### When to Use CSV
+
+- **Simple tabular data**
+- No formatting needed
+- **Database import/export**
+- **Universal compatibility** required
+- Human-readable plain text
+
+### When to Use HTML
+
+- **Web display** of data
+- **Email** reports (with styling)
+- Quick data visualization
+- Browser-based viewing
+
+### When to Use PDF
+
+- **Print-ready** documents
+- **Read-only** distribution
+- Professional reports
+- Archival purposes
+
+## Practical Examples
+
+### Multi-Format Export
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setCellValue('A1', 'Report Data');
+
+// Export to multiple formats
+$formats = ['Xlsx', 'Xls', 'Ods', 'Csv', 'Html'];
+
+foreach ($formats as $format) {
+    $writer = IOFactory::createWriter($spreadsheet, $format);
+    $writer->save("output." . strtolower($format));
+}
+```
+
+### Batch Format Conversion
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$inputDir = 'input/';
+$outputDir = 'output/';
+
+$files = glob($inputDir . '*.xls');
+
+foreach ($files as $file) {
+    $spreadsheet = IOFactory::load($file);
+    $filename = basename($file, '.xls');
+    
+    $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+    $writer->save($outputDir . $filename . '.xlsx');
+    
+    $spreadsheet->disconnectWorksheets();
+    unset($spreadsheet);
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Reading Files" icon="book-open" href="/essentials/reading-files">
+    Load spreadsheets from various formats
+  </Card>
+  <Card title="Writing Files" icon="floppy-disk" href="/essentials/writing-files">
+    Save spreadsheets in different formats
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
+    Understanding PhpSpreadsheet's design
+  </Card>
+  <Card title="Performance" icon="gauge" href="/advanced/performance">
+    Optimize large file handling
+  </Card>
+</CardGroup>

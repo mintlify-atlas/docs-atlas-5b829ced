@@ -1,0 +1,508 @@
+---
+title: Xls Reader
+description: API reference for the PhpSpreadsheet Xls reader class for reading Excel 97-2003 (.xls) files
+---
+
+## Overview
+
+The `Xls` reader class loads Excel 97-2003 (.xls) files, which use the Binary Interchange File Format (BIFF). This format was the standard Excel format before Excel 2007.
+
+## Class Information
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Reader\Xls`
+
+**Extends:** `XlsBase`
+
+**Implements:** `IReader`
+
+**Source:** `src/PhpSpreadsheet/Reader/Xls.php:63`
+
+## Basic Usage
+
+### Simple File Loading
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+
+$reader = new Xls();
+$spreadsheet = $reader->load('data.xls');
+
+// Access worksheet data
+$sheet = $spreadsheet->getActiveSheet();
+$data = $sheet->toArray();
+```
+
+### Using IOFactory
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Auto-detect and load
+$spreadsheet = IOFactory::load('data.xls');
+
+// Or create specific reader
+$reader = IOFactory::createReader('Xls');
+$spreadsheet = $reader->load('data.xls');
+```
+
+## Key Methods
+
+### __construct()
+
+Creates a new Xls reader instance.
+
+```php
+public function __construct();
+```
+
+**Example:**
+
+```php
+$reader = new Xls();
+```
+
+### canRead()
+
+Checks if the file can be read by this reader.
+
+```php
+public function canRead(string $filename): bool;
+```
+
+<ParamField path="filename" type="string" required>
+  Path to the file to check
+</ParamField>
+
+**Returns:** `bool` - True if the file is a valid XLS file
+
+**Example:**
+
+```php
+$reader = new Xls();
+if ($reader->canRead('data.xls')) {
+    $spreadsheet = $reader->load('data.xls');
+}
+```
+
+### load()
+
+Loads a spreadsheet from an XLS file.
+
+```php
+public function load(string $filename, int $flags = 0): Spreadsheet;
+```
+
+<ParamField path="filename" type="string" required>
+  Path to the XLS file to load
+</ParamField>
+
+<ParamField path="flags" type="int" default="0">
+  Optional flags:
+  - `IReader::LOAD_WITH_CHARTS` - Load charts from the file
+  - `IReader::READ_DATA_ONLY` - Read only data, ignore formatting
+  - `IReader::IGNORE_EMPTY_CELLS` - Skip empty cells
+  - `IReader::ALLOW_EXTERNAL_IMAGES` - Allow external images
+  - `IReader::CREATE_BLANK_SHEET_IF_NONE_READ` - Create blank sheet if none read
+</ParamField>
+
+**Returns:** `Spreadsheet` object
+
+**Example:**
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+use PhpOffice\PhpSpreadsheet\Reader\IReader;
+
+$reader = new Xls();
+$spreadsheet = $reader->load(
+    'data.xls',
+    IReader::READ_DATA_ONLY | IReader::IGNORE_EMPTY_CELLS
+);
+```
+
+### listWorksheetNames()
+
+Returns worksheet names without loading the entire file.
+
+```php
+public function listWorksheetNames(string $filename): array;
+```
+
+<ParamField path="filename" type="string" required>
+  Path to the XLS file
+</ParamField>
+
+**Returns:** Array of worksheet names
+
+**Example:**
+
+```php
+$reader = new Xls();
+$worksheetNames = $reader->listWorksheetNames('data.xls');
+foreach ($worksheetNames as $name) {
+    echo "Sheet: $name\n";
+}
+```
+
+### listWorksheetInfo()
+
+Returns detailed worksheet information without loading the entire file.
+
+```php
+public function listWorksheetInfo(string $filename): array;
+```
+
+<ParamField path="filename" type="string" required>
+  Path to the XLS file
+</ParamField>
+
+**Returns:** Array of worksheet information with keys:
+- `worksheetName` - Worksheet name
+- `lastColumnLetter` - Last column letter (e.g., 'Z')
+- `lastColumnIndex` - Last column index (0-based)
+- `totalRows` - Total number of rows
+- `totalColumns` - Total number of columns
+- `sheetState` - Visibility state (visible, hidden, veryHidden)
+
+**Example:**
+
+```php
+$reader = new Xls();
+$info = $reader->listWorksheetInfo('data.xls');
+foreach ($info as $worksheet) {
+    echo "Sheet: {$worksheet['worksheetName']}\n";
+    echo "Rows: {$worksheet['totalRows']}, ";
+    echo "Columns: {$worksheet['totalColumns']}\n";
+}
+```
+
+## Configuration Methods
+
+### setReadDataOnly()
+
+Sets whether to read only data values (no formatting).
+
+```php
+public function setReadDataOnly(bool $readDataOnly): self;
+```
+
+<ParamField path="readDataOnly" type="bool" required>
+  True to read only data, false to read data and formatting
+</ParamField>
+
+**Example:**
+
+```php
+$reader = new Xls();
+$reader->setReadDataOnly(true);
+$spreadsheet = $reader->load('data.xls');
+```
+
+### setReadEmptyCells()
+
+Sets whether to read empty cells.
+
+```php
+public function setReadEmptyCells(bool $readEmptyCells): self;
+```
+
+<ParamField path="readEmptyCells" type="bool" required>
+  True to read empty cells, false to skip them
+</ParamField>
+
+**Example:**
+
+```php
+$reader = new Xls();
+$reader->setReadEmptyCells(false);
+$spreadsheet = $reader->load('data.xls');
+```
+
+### setIncludeCharts()
+
+Sets whether to load charts from the file.
+
+```php
+public function setIncludeCharts(bool $includeCharts): self;
+```
+
+<ParamField path="includeCharts" type="bool" required>
+  True to load charts, false to ignore them
+</ParamField>
+
+**Example:**
+
+```php
+$reader = new Xls();
+$reader->setIncludeCharts(true);
+$spreadsheet = $reader->load('data.xls');
+```
+
+### setLoadSheetsOnly()
+
+Specifies which worksheets to load.
+
+```php
+public function setLoadSheetsOnly(string|array|null $value): self;
+```
+
+<ParamField path="value" type="string|array|null" required>
+  Array of sheet names, single sheet name, or null for all sheets
+</ParamField>
+
+**Example:**
+
+```php
+// Load single sheet
+$reader = new Xls();
+$reader->setLoadSheetsOnly('Sheet1');
+$spreadsheet = $reader->load('data.xls');
+
+// Load multiple sheets
+$reader->setLoadSheetsOnly(['Sheet1', 'Sheet3']);
+$spreadsheet = $reader->load('data.xls');
+```
+
+### setLoadAllSheets()
+
+Resets the reader to load all worksheets.
+
+```php
+public function setLoadAllSheets(): self;
+```
+
+**Example:**
+
+```php
+$reader = new Xls();
+$reader->setLoadSheetsOnly('Sheet1');
+// ... later
+$reader->setLoadAllSheets();
+$spreadsheet = $reader->load('data.xls');
+```
+
+### setReadFilter()
+
+Sets a read filter to selectively load cells.
+
+```php
+public function setReadFilter(IReadFilter $readFilter): self;
+```
+
+<ParamField path="readFilter" type="IReadFilter" required>
+  Object implementing IReadFilter interface
+</ParamField>
+
+**Example:**
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+
+class MyFilter implements IReadFilter
+{
+    public function readCell(string $columnAddress, int $row, string $worksheetName = ''): bool
+    {
+        return $row >= 1 && $row <= 100; // Only rows 1-100
+    }
+}
+
+$reader = new Xls();
+$reader->setReadFilter(new MyFilter());
+$spreadsheet = $reader->load('data.xls');
+```
+
+## Supported Features
+
+The Xls reader supports loading the following Excel features:
+
+- **Cell data** - Values, formulas, data types
+- **Formatting** - Fonts, colors, borders, fills, number formats
+- **Styling** - Cell styles, conditional formatting
+- **Charts** - Basic chart types (when `setIncludeCharts(true)`)
+- **Images** - Embedded images
+- **Sheet properties** - Hidden sheets, grid lines
+- **Page setup** - Print settings, page margins
+- **Data validation** - Cell validation rules
+- **Hyperlinks** - Cell hyperlinks
+- **Comments** - Cell comments
+- **Merged cells** - Cell merges
+- **Named ranges** - Defined names
+- **Document properties** - Title, author, keywords, etc.
+
+### Limitations
+
+Compared to the Xlsx reader, the Xls reader has some limitations:
+
+- Older binary format with less feature support
+- Limited chart support compared to Xlsx
+- No support for Excel tables
+- Maximum 65,536 rows (BIFF8 limitation)
+- Maximum 256 columns (BIFF8 limitation)
+
+## Format Versions
+
+The Xls reader supports multiple BIFF (Binary Interchange File Format) versions:
+
+- **BIFF5** - Excel 5.0/95
+- **BIFF8** - Excel 97-2003 (most common)
+
+The reader automatically detects the BIFF version and handles it accordingly.
+
+## Performance Optimization
+
+### Reading Large Files
+
+For large XLS files, use these optimization techniques:
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+use PhpOffice\PhpSpreadsheet\Reader\IReader;
+
+$reader = new Xls();
+
+// Read data only (skip formatting)
+$reader->setReadDataOnly(true);
+
+// Ignore empty cells
+$reader->setReadEmptyCells(false);
+
+// Load with flags
+$spreadsheet = $reader->load(
+    'large_file.xls',
+    IReader::READ_DATA_ONLY | IReader::IGNORE_EMPTY_CELLS
+);
+```
+
+### Chunked Reading
+
+Read large files in chunks using a read filter:
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+
+class ChunkFilter implements IReadFilter
+{
+    private int $startRow;
+    private int $endRow;
+
+    public function __construct(int $startRow, int $chunkSize)
+    {
+        $this->startRow = $startRow;
+        $this->endRow = $startRow + $chunkSize - 1;
+    }
+
+    public function readCell(string $columnAddress, int $row, string $worksheetName = ''): bool
+    {
+        return $row >= $this->startRow && $row <= $this->endRow;
+    }
+}
+
+$reader = new Xls();
+$reader->setReadDataOnly(true);
+
+// Process in chunks of 1000 rows
+for ($startRow = 1; $startRow <= 10000; $startRow += 1000) {
+    $chunkFilter = new ChunkFilter($startRow, 1000);
+    $reader->setReadFilter($chunkFilter);
+    $spreadsheet = $reader->load('large_file.xls');
+    
+    // Process this chunk
+    $sheet = $spreadsheet->getActiveSheet();
+    foreach ($sheet->getRowIterator() as $row) {
+        // Process row
+    }
+}
+```
+
+## Error Handling
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+
+$reader = new Xls();
+
+try {
+    // Check if file can be read
+    if (!$reader->canRead('data.xls')) {
+        throw new Exception('File is not a valid XLS file');
+    }
+    
+    $spreadsheet = $reader->load('data.xls');
+    
+} catch (ReaderException $e) {
+    echo 'Error loading XLS file: ' . $e->getMessage();
+} catch (\Exception $e) {
+    echo 'General error: ' . $e->getMessage();
+}
+```
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
+
+// Create reader
+$reader = new Xls();
+
+// Configure reader
+$reader->setReadDataOnly(true);
+$reader->setLoadSheetsOnly(['Data']);
+
+try {
+    // Verify file
+    if (!$reader->canRead('report.xls')) {
+        throw new Exception('Invalid XLS file');
+    }
+    
+    // Load file
+    $spreadsheet = $reader->load('report.xls');
+    
+    // Access data
+    $sheet = $spreadsheet->getActiveSheet();
+    $highestRow = $sheet->getHighestRow();
+    $highestColumn = $sheet->getHighestColumn();
+    
+    echo "Loaded {$highestRow} rows and {$highestColumn} columns\n";
+    
+    // Process data
+    for ($row = 1; $row <= $highestRow; $row++) {
+        $value = $sheet->getCell("A{$row}")->getValue();
+        // Process value
+    }
+    
+} catch (ReaderException $e) {
+    echo 'Reader error: ' . $e->getMessage();
+}
+```
+
+## Working with Formulas
+
+The Xls reader can read formulas from XLS files:
+
+```php
+$reader = new Xls();
+$spreadsheet = $reader->load('data.xls');
+
+$sheet = $spreadsheet->getActiveSheet();
+$cell = $sheet->getCell('A1');
+
+// Get calculated value
+$value = $cell->getCalculatedValue();
+
+// Get formula
+$formula = $cell->getValue();
+if ($cell->getDataType() === 'f') {
+    echo "Formula: $formula\n";
+    echo "Result: $value\n";
+}
+```
+
+## Related Documentation
+
+- [Readers Overview](/api/readers/overview)
+- [Xlsx Reader](/api/readers/xlsx)
+- [IOFactory](/api/io-factory)

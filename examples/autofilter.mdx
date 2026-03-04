@@ -1,0 +1,384 @@
+---
+title: 'AutoFilter Examples'
+description: 'Learn how to set up and use AutoFilters for data filtering in Excel'
+icon: 'filter'
+---
+
+## Overview
+
+AutoFilters allow users to filter data in Excel worksheets. PhpSpreadsheet can create autofilters and even pre-configure filter rules that Excel will apply when the file is opened.
+
+## Basic AutoFilter
+
+The simplest way to add an autofilter is to enable it for your data range:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add headers and data
+$sheet->setCellValue('A1', 'Year')
+    ->setCellValue('B1', 'Quarter')
+    ->setCellValue('C1', 'Country')
+    ->setCellValue('D1', 'Sales');
+
+$dataArray = [
+    ['2010', 'Q1', 'United States', 790],
+    ['2010', 'Q2', 'United States', 730],
+    ['2010', 'Q3', 'United States', 860],
+    ['2010', 'Q4', 'United States', 850],
+    ['2011', 'Q1', 'United States', 800],
+    ['2011', 'Q2', 'United States', 700],
+    ['2010', 'Q1', 'Belgium', 380],
+    ['2010', 'Q2', 'Belgium', 390],
+    ['2011', 'Q1', 'Belgium', 400],
+    ['2011', 'Q2', 'Belgium', 350],
+];
+$sheet->fromArray($dataArray, null, 'A2');
+
+// Make title row bold
+$sheet->getStyle('A1:D1')->getFont()->setBold(true);
+
+// Set autofilter - include the complete range
+$filterRange = $sheet->calculateWorksheetDimension();
+$sheet->setAutoFilter($filterRange); // e.g., 'A1:D11'
+```
+
+<Info>
+  Always include the complete filter range including headers. While Excel supports setting only the caption row, it's best practice to include all data rows.
+</Info>
+
+## Custom Filter Rules
+
+You can pre-configure filter rules that Excel will apply automatically:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add data (same as above)
+$sheet->setCellValue('A1', 'Year')
+    ->setCellValue('B1', 'Quarter')
+    ->setCellValue('C1', 'Country')
+    ->setCellValue('D1', 'Sales');
+
+$dataArray = [
+    ['2010', 'Q1', 'United States', 790],
+    ['2010', 'Q2', 'United States', 730],
+    ['2010', 'Q3', 'United States', 860],
+    ['2010', 'Q4', 'United States', 850],
+    ['2011', 'Q1', 'Belgium', 400],
+    ['2011', 'Q2', 'Belgium', 350],
+    ['2010', 'Q1', 'UK', 690],
+    ['2010', 'Q2', 'UK', 610],
+    ['2011', 'Q1', 'Japan', 720],
+];
+$sheet->fromArray($dataArray, null, 'A2');
+
+// Set autofilter range
+$filterRange = $sheet->calculateWorksheetDimension();
+$sheet->setAutoFilter($filterRange);
+
+// Get autofilter object
+$autoFilter = $sheet->getAutoFilter();
+
+// Filter the Country column using wildcards
+// Show countries beginning with "U" (United States and UK)
+$autoFilter->getColumn('C')
+    ->setFilterType(Column::AUTOFILTER_FILTERTYPE_CUSTOMFILTER)
+    ->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_EQUAL, 'u*') // * is wildcard
+    ->setRuleType(Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER);
+
+// Add "Japan" to the country filter
+$autoFilter->getColumn('C')
+    ->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_EQUAL, 'japan')
+    ->setRuleType(Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER);
+```
+
+<Note>
+  When using wildcards in filters, you must set the filter type to `AUTOFILTER_FILTERTYPE_CUSTOMFILTER`.
+</Note>
+
+## Filtering by Value List
+
+Filter to show only specific values:
+
+```php
+// Filter to show only Q1 and Q3
+$autoFilter->getColumn('B')
+    ->setFilterType(Column::AUTOFILTER_FILTERTYPE_FILTER)
+    ->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_EQUAL, 'Q1');
+
+$autoFilter->getColumn('B')
+    ->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_EQUAL, 'Q3');
+```
+
+## Date Group Filters
+
+Filter dates by day, month, or year:
+
+```php
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+$sheet->setCellValue('A1', 'Date')
+    ->setCellValue('B1', 'Sales');
+
+// Add date data
+$dates = [
+    [Date::formattedPHPToExcel(2024, 1, 15), 500],
+    [Date::formattedPHPToExcel(2024, 1, 31), 750],
+    [Date::formattedPHPToExcel(2024, 2, 14), 600],
+    [Date::formattedPHPToExcel(2024, 2, 28), 800],
+    [Date::formattedPHPToExcel(2024, 3, 31), 900],
+];
+$sheet->fromArray($dates, null, 'A2');
+
+// Format date column
+$sheet->getStyle('A2:A6')
+    ->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDD);
+
+// Set autofilter
+$sheet->setAutoFilter('A1:B6');
+$autoFilter = $sheet->getAutoFilter();
+
+// Filter to show only last day of each month
+$currentYear = 2024;
+$periods = [1, 2, 3]; // January, February, March
+
+foreach ($periods as $period) {
+    $dateString = sprintf('%04d-%02d-01T00:00:00', $currentYear, $period);
+    $dateTime = new DateTime($dateString);
+    $endDate = (int) $dateTime->format('t'); // Last day of month
+
+    $autoFilter->getColumn('A')
+        ->setFilterType(Column::AUTOFILTER_FILTERTYPE_FILTER)
+        ->createRule()
+        ->setRule(
+            Rule::AUTOFILTER_COLUMN_RULE_EQUAL,
+            [
+                'year' => $currentYear,
+                'month' => $period,
+                'day' => $endDate,
+            ]
+        )
+        ->setRuleType(Rule::AUTOFILTER_RULETYPE_DATEGROUP);
+}
+```
+
+## Filtering Blank Values
+
+Filter to show only blank cells:
+
+```php
+// Display only sales values that are blank
+$autoFilter->getColumn('D')
+    ->setFilterType(Column::AUTOFILTER_FILTERTYPE_FILTER)
+    ->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_EQUAL, ''); // Empty string
+```
+
+## Numeric Filters
+
+Apply filters based on numeric comparisons:
+
+```php
+// Show sales greater than 700
+$autoFilter->getColumn('D')
+    ->setFilterType(Column::AUTOFILTER_FILTERTYPE_CUSTOMFILTER)
+    ->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_GREATERTHAN, '700')
+    ->setRuleType(Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER);
+```
+
+### Available Comparison Operators
+
+- `AUTOFILTER_COLUMN_RULE_EQUAL` - Equals
+- `AUTOFILTER_COLUMN_RULE_NOTEQUAL` - Not equal
+- `AUTOFILTER_COLUMN_RULE_GREATERTHAN` - Greater than
+- `AUTOFILTER_COLUMN_RULE_GREATERTHANOREQUAL` - Greater than or equal
+- `AUTOFILTER_COLUMN_RULE_LESSTHAN` - Less than
+- `AUTOFILTER_COLUMN_RULE_LESSTHANOREQUAL` - Less than or equal
+
+## Combined Filters (AND/OR)
+
+Combine multiple filter conditions:
+
+```php
+// Show sales between 600 and 800 (AND condition)
+$column = $autoFilter->getColumn('D')
+    ->setFilterType(Column::AUTOFILTER_FILTERTYPE_CUSTOMFILTER)
+    ->setJoin(Column::AUTOFILTER_COLUMN_JOIN_AND);
+
+$column->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_GREATERTHANOREQUAL, '600')
+    ->setRuleType(Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER);
+
+$column->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_LESSTHANOREQUAL, '800')
+    ->setRuleType(Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER);
+```
+
+## Dynamic Filters
+
+Use dynamic date filters:
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule;
+
+// Filter for dates in the current month
+$autoFilter->getColumn('A')
+    ->setFilterType(Column::AUTOFILTER_FILTERTYPE_DYNAMICFILTER)
+    ->createRule()
+    ->setRule(
+        Rule::AUTOFILTER_COLUMN_RULE_EQUAL,
+        null,
+        Rule::AUTOFILTER_RULETYPE_DYNAMIC_THISMONTH
+    )
+    ->setRuleType(Rule::AUTOFILTER_RULETYPE_DYNAMICFILTER);
+```
+
+### Available Dynamic Filters
+
+- `AUTOFILTER_RULETYPE_DYNAMIC_TODAY`
+- `AUTOFILTER_RULETYPE_DYNAMIC_YESTERDAY`
+- `AUTOFILTER_RULETYPE_DYNAMIC_TOMORROW`
+- `AUTOFILTER_RULETYPE_DYNAMIC_THISWEEK`
+- `AUTOFILTER_RULETYPE_DYNAMIC_LASTWEEK`
+- `AUTOFILTER_RULETYPE_DYNAMIC_NEXTWEEK`
+- `AUTOFILTER_RULETYPE_DYNAMIC_THISMONTH`
+- `AUTOFILTER_RULETYPE_DYNAMIC_LASTMONTH`
+- `AUTOFILTER_RULETYPE_DYNAMIC_NEXTMONTH`
+- `AUTOFILTER_RULETYPE_DYNAMIC_THISQUARTER`
+- `AUTOFILTER_RULETYPE_DYNAMIC_LASTQUARTER`
+- `AUTOFILTER_RULETYPE_DYNAMIC_NEXTQUARTER`
+- `AUTOFILTER_RULETYPE_DYNAMIC_THISYEAR`
+- `AUTOFILTER_RULETYPE_DYNAMIC_LASTYEAR`
+- `AUTOFILTER_RULETYPE_DYNAMIC_NEXTYEAR`
+
+## Applying Filters in PhpSpreadsheet
+
+By default, filter rules are defined but not executed. Excel will apply them when opening the file. To apply filters in PhpSpreadsheet:
+
+```php
+// Apply the filter rules to hide rows
+$autoFilter->showHideRows();
+```
+
+<Warning>
+  Applying filters with `showHideRows()` will actually hide rows in the spreadsheet. This is useful for testing but may not be desired in all cases. Generally, it's better to let Excel apply the filters when the file is opened.
+</Warning>
+
+## Complete Example
+
+Here's a complete example with multiple filters:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column;
+use PhpOffice\PhpSpreadsheet\Worksheet\AutoFilter\Column\Rule;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add headers
+$sheet->setCellValue('A1', 'Year')
+    ->setCellValue('B1', 'Quarter')
+    ->setCellValue('C1', 'Country')
+    ->setCellValue('D1', 'Sales');
+
+// Add data
+$data = [
+    ['2010', 'Q1', 'United States', 790],
+    ['2010', 'Q2', 'United States', 730],
+    ['2010', 'Q3', 'United States', 860],
+    ['2010', 'Q4', 'United States', 850],
+    ['2011', 'Q1', 'United States', 800],
+    ['2011', 'Q2', 'United States', 700],
+    ['2010', 'Q1', 'Belgium', 380],
+    ['2010', 'Q2', 'Belgium', 390],
+    ['2010', 'Q3', 'Belgium', 420],
+    ['2010', 'Q4', 'Belgium', 460],
+    ['2011', 'Q1', 'Belgium', 400],
+    ['2011', 'Q2', 'Belgium', 350],
+    ['2010', 'Q1', 'UK', 690],
+    ['2010', 'Q2', 'UK', 610],
+    ['2010', 'Q3', 'UK', 620],
+];
+$sheet->fromArray($data, null, 'A2');
+
+// Style the header
+$sheet->getStyle('A1:D1')->getFont()->setBold(true);
+$sheet->getStyle('A1:D1')->getAlignment()->setWrapText(true);
+
+// Format sales as currency
+$lastRow = count($data) + 1;
+$sheet->getStyle("D2:D{$lastRow}")
+    ->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_CURRENCY_USD_INTEGER);
+
+// Auto-size columns
+foreach (range('A', 'D') as $col) {
+    $sheet->getColumnDimension($col)->setAutoSize(true);
+}
+
+// Freeze the header row
+$sheet->freezePane('A2');
+
+// Set autofilter
+$filterRange = $sheet->calculateWorksheetDimension();
+$sheet->setAutoFilter($filterRange);
+
+$autoFilter = $sheet->getAutoFilter();
+
+// Filter: Show only 2010 data
+$autoFilter->getColumn('A')
+    ->setFilterType(Column::AUTOFILTER_FILTERTYPE_FILTER)
+    ->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_EQUAL, '2010');
+
+// Filter: Show only Q1 and Q2
+$autoFilter->getColumn('B')
+    ->setFilterType(Column::AUTOFILTER_FILTERTYPE_FILTER)
+    ->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_EQUAL, 'Q1');
+
+$autoFilter->getColumn('B')
+    ->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_EQUAL, 'Q2');
+
+// Filter: Sales greater than 500
+$autoFilter->getColumn('D')
+    ->setFilterType(Column::AUTOFILTER_FILTERTYPE_CUSTOMFILTER)
+    ->createRule()
+    ->setRule(Rule::AUTOFILTER_COLUMN_RULE_GREATERTHAN, '500')
+    ->setRuleType(Rule::AUTOFILTER_RULETYPE_CUSTOMFILTER);
+```
+
+## Expected Result
+
+When you open the Excel file:
+
+- Drop-down arrows appear in the header row
+- Clicking them shows filter options
+- Pre-configured filters are already applied
+- Only rows matching all filter criteria are visible
+- Filtered row numbers appear in blue in Excel
+
+## Related Topics
+
+- [Data Validation](/examples/data-validation)
+- [Working with Data](/topics/accessing-cells)
+- [Conditional Formatting](/examples/conditional-formatting)

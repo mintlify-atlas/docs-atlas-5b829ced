@@ -1,0 +1,612 @@
+---
+title: Cell Class
+description: Class for managing individual cells and their values
+---
+
+The `Cell` class represents a single cell within a worksheet. It manages the cell's value, data type, formula, style, and various properties.
+
+## Class Overview
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Cell`
+
+**Source:** `src/PhpSpreadsheet/Cell/Cell.php`
+
+A Cell object contains a value, knows its coordinate, data type, and provides access to formatting and calculation features.
+
+## Constructor
+
+### `__construct(mixed $value, ?string $dataType, Worksheet $worksheet)`
+
+Create a new cell.
+
+<ParamField path="value" type="mixed">
+  Initial value for the cell
+</ParamField>
+
+<ParamField path="dataType" type="string|null">
+  Data type (see DataType::TYPE_*), or null for automatic detection
+</ParamField>
+
+<ParamField path="worksheet" type="Worksheet">
+  Parent worksheet
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+
+// Cells are typically created via worksheet methods
+$cell = $worksheet->getCell('A1');
+```
+
+<Note>
+Cells are typically created through worksheet methods like `getCell()` or `setCellValue()` rather than instantiated directly.
+</Note>
+
+## Getting Cell Information
+
+### `getCoordinate()`
+
+Get the cell coordinate.
+
+<ParamField path="Return" type="string">
+  Cell coordinate (e.g., 'A1', 'B5')
+</ParamField>
+
+```php
+$cell = $worksheet->getCell('A1');
+$coordinate = $cell->getCoordinate(); // 'A1'
+```
+
+### `getColumn()`
+
+Get the cell column.
+
+<ParamField path="Return" type="string">
+  Column letter (e.g., 'A', 'B', 'AA')
+</ParamField>
+
+```php
+$column = $cell->getColumn(); // 'A'
+```
+
+### `getRow()`
+
+Get the cell row number.
+
+<ParamField path="Return" type="int">
+  Row number (1-based)
+</ParamField>
+
+```php
+$row = $cell->getRow(); // 1
+```
+
+### `getWorksheet()`
+
+Get the parent worksheet.
+
+<ParamField path="Return" type="Worksheet">
+  The worksheet containing this cell
+</ParamField>
+
+```php
+$worksheet = $cell->getWorksheet();
+```
+
+## Value Operations
+
+### `getValue()`
+
+Get the cell value.
+
+<ParamField path="Return" type="mixed">
+  The raw cell value
+</ParamField>
+
+```php
+$value = $cell->getValue();
+```
+
+### `getValueString()`
+
+Get the cell value as a string.
+
+<ParamField path="Return" type="string">
+  String representation of the value
+</ParamField>
+
+```php
+$stringValue = $cell->getValueString();
+```
+
+### `setValue(mixed $value, ?IValueBinder $binder = null)`
+
+Set the cell value.
+
+<ParamField path="value" type="mixed">
+  Value to set (string, number, DateTime, bool, etc.)
+</ParamField>
+
+<ParamField path="binder" type="IValueBinder|null">
+  Optional custom value binder
+</ParamField>
+
+<ParamField path="Return" type="Cell">
+  The cell object for method chaining
+</ParamField>
+
+```php
+// Set different types of values
+$cell->setValue('Hello World');
+$cell->setValue(123.45);
+$cell->setValue(new DateTime());
+$cell->setValue(true);
+$cell->setValue('=SUM(A1:A10)'); // Formula
+```
+
+### `setValueExplicit(mixed $value, string $dataType = DataType::TYPE_STRING)`
+
+Set the cell value with an explicit data type.
+
+<ParamField path="value" type="mixed">
+  Value to set
+</ParamField>
+
+<ParamField path="dataType" type="string">
+  Explicit data type constant
+</ParamField>
+
+<ParamField path="Return" type="Cell">
+  The cell object for method chaining
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+
+// Force a number to be treated as text
+$cell->setValueExplicit('00123', DataType::TYPE_STRING);
+
+// Set a formula
+$cell->setValueExplicit('=A1+B1', DataType::TYPE_FORMULA);
+
+// Set a boolean
+$cell->setValueExplicit(true, DataType::TYPE_BOOL);
+```
+
+### Available Data Types
+
+```php
+DataType::TYPE_STRING   // String value
+DataType::TYPE_FORMULA  // Formula
+DataType::TYPE_NUMERIC  // Numeric value
+DataType::TYPE_BOOL     // Boolean
+DataType::TYPE_NULL     // Null/empty
+DataType::TYPE_INLINE   // Inline string (rich text)
+DataType::TYPE_ERROR    // Error value
+DataType::TYPE_ISO_DATE // ISO date format
+```
+
+## Data Type
+
+### `getDataType()`
+
+Get the cell data type.
+
+<ParamField path="Return" type="string">
+  Data type constant (DataType::TYPE_*)
+</ParamField>
+
+```php
+$dataType = $cell->getDataType();
+if ($dataType === DataType::TYPE_FORMULA) {
+    echo "This cell contains a formula";
+}
+```
+
+### `setDataType(string $dataType)`
+
+Set the cell data type.
+
+<ParamField path="dataType" type="string">
+  Data type constant
+</ParamField>
+
+<ParamField path="Return" type="Cell">
+  The cell object
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+
+$cell->setDataType(DataType::TYPE_STRING);
+```
+
+### `isFormula()`
+
+Check if the cell contains a formula.
+
+<ParamField path="Return" type="bool">
+  True if cell contains a formula
+</ParamField>
+
+```php
+if ($cell->isFormula()) {
+    echo "Formula: " . $cell->getValue();
+}
+```
+
+## Calculated Values
+
+### `getCalculatedValue(bool $resetLog = true)`
+
+Get the calculated cell value (evaluates formulas).
+
+<ParamField path="resetLog" type="bool" default="true">
+  Whether to reset the calculation log
+</ParamField>
+
+<ParamField path="Return" type="mixed">
+  The calculated value
+</ParamField>
+
+```php
+$cell->setValue('=SUM(A1:A10)');
+$calculatedValue = $cell->getCalculatedValue();
+echo $calculatedValue; // e.g., 55
+```
+
+### `getCalculatedValueString()`
+
+Get the calculated value as a string.
+
+<ParamField path="Return" type="string">
+  String representation of calculated value
+</ParamField>
+
+```php
+$stringValue = $cell->getCalculatedValueString();
+```
+
+### `getOldCalculatedValue()`
+
+Get the cached calculated value from the file.
+
+<ParamField path="Return" type="mixed">
+  Cached calculated value
+</ParamField>
+
+```php
+// Get the value last calculated by Excel
+$oldValue = $cell->getOldCalculatedValue();
+```
+
+### `setCalculatedValue(mixed $originalValue, bool $tryNumeric = true)`
+
+Set the old calculated value (cached).
+
+<ParamField path="originalValue" type="mixed">
+  Cached calculated value
+</ParamField>
+
+<ParamField path="tryNumeric" type="bool" default="true">
+  Try to convert to numeric
+</ParamField>
+
+```php
+$cell->setCalculatedValue(100);
+```
+
+## Formatted Value
+
+### `getFormattedValue()`
+
+Get the cell value with number formatting applied.
+
+<ParamField path="Return" type="string">
+  Formatted value string
+</ParamField>
+
+```php
+$cell->setValue(1234.56);
+$cell->getStyle()
+    ->getNumberFormat()
+    ->setFormatCode('$#,##0.00');
+
+$formatted = $cell->getFormattedValue(); // '$1,234.56'
+```
+
+## Styling
+
+### `getStyle()`
+
+Get the cell's style object.
+
+<ParamField path="Return" type="Style">
+  Style object for this cell
+</ParamField>
+
+```php
+$style = $cell->getStyle();
+$style->getFont()->setBold(true);
+$style->getAlignment()->setHorizontal('center');
+$style->getFill()
+    ->setFillType(Fill::FILL_SOLID)
+    ->getStartColor()->setARGB('FFFF00');
+```
+
+### `getAppliedStyle()`
+
+Get the applied style (including conditional formatting).
+
+<ParamField path="Return" type="Style">
+  Effective style object
+</ParamField>
+
+```php
+$appliedStyle = $cell->getAppliedStyle();
+```
+
+## Hyperlinks
+
+### `hasHyperlink()`
+
+Check if the cell has a hyperlink.
+
+<ParamField path="Return" type="bool">
+  True if cell has a hyperlink
+</ParamField>
+
+```php
+if ($cell->hasHyperlink()) {
+    $url = $cell->getHyperlink()->getUrl();
+}
+```
+
+### `getHyperlink()`
+
+Get the cell's hyperlink.
+
+<ParamField path="Return" type="Hyperlink">
+  Hyperlink object
+</ParamField>
+
+```php
+$hyperlink = $cell->getHyperlink();
+echo $hyperlink->getUrl();
+```
+
+### `setHyperlink(?Hyperlink $hyperlink = null)`
+
+Set a hyperlink for the cell.
+
+<ParamField path="hyperlink" type="Hyperlink|null">
+  Hyperlink object, or null to remove
+</ParamField>
+
+<ParamField path="Return" type="Cell">
+  The cell object
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\Hyperlink;
+
+$hyperlink = new Hyperlink('https://example.com', 'Visit Example');
+$cell->setHyperlink($hyperlink);
+
+// Remove hyperlink
+$cell->setHyperlink(null);
+```
+
+## Data Validation
+
+### `hasDataValidation()`
+
+Check if the cell has data validation.
+
+<ParamField path="Return" type="bool">
+  True if cell has validation rules
+</ParamField>
+
+```php
+if ($cell->hasDataValidation()) {
+    $validation = $cell->getDataValidation();
+}
+```
+
+### `getDataValidation()`
+
+Get the cell's data validation object.
+
+<ParamField path="Return" type="DataValidation">
+  Data validation object
+</ParamField>
+
+```php
+$validation = $cell->getDataValidation();
+$validation->setType(DataValidation::TYPE_WHOLE)
+    ->setOperator(DataValidation::OPERATOR_BETWEEN)
+    ->setFormula1(1)
+    ->setFormula2(100)
+    ->setShowErrorMessage(true)
+    ->setErrorTitle('Invalid Value')
+    ->setError('Value must be between 1 and 100');
+```
+
+### `setDataValidation(?DataValidation $dataValidation = null)`
+
+Set data validation for the cell.
+
+<ParamField path="dataValidation" type="DataValidation|null">
+  Data validation object, or null to remove
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+
+$validation = new DataValidation();
+$validation->setType(DataValidation::TYPE_LIST)
+    ->setFormula1('"Option1,Option2,Option3"')
+    ->setShowDropDown(true);
+
+$cell->setDataValidation($validation);
+```
+
+### `hasValidValue()`
+
+Check if the cell's value is valid according to its validation rules.
+
+<ParamField path="Return" type="bool">
+  True if value is valid
+</ParamField>
+
+```php
+if (!$cell->hasValidValue()) {
+    echo "Cell value does not meet validation criteria";
+}
+```
+
+## Merge Ranges
+
+### `isInMergeRange()`
+
+Check if the cell is part of a merged range.
+
+<ParamField path="Return" type="bool">
+  True if cell is in a merge range
+</ParamField>
+
+```php
+if ($cell->isInMergeRange()) {
+    $range = $cell->getMergeRange();
+}
+```
+
+### `isMergeRangeValueCell()`
+
+Check if this is the master cell (top-left) of a merged range.
+
+<ParamField path="Return" type="bool">
+  True if this is the value cell
+</ParamField>
+
+```php
+if ($cell->isMergeRangeValueCell()) {
+    echo "This is the master cell of a merge range";
+}
+```
+
+### `getMergeRange()`
+
+Get the merge range that this cell belongs to.
+
+<ParamField path="Return" type="string|false">
+  Range string (e.g., 'A1:C3'), or false if not merged
+</ParamField>
+
+```php
+$range = $cell->getMergeRange();
+if ($range !== false) {
+    echo "Cell is part of merge range: $range";
+}
+```
+
+## Range Checking
+
+### `isInRange(string $range)`
+
+Check if the cell is within a specified range.
+
+<ParamField path="range" type="string">
+  Range to check (e.g., 'A1:D10')
+</ParamField>
+
+<ParamField path="Return" type="bool">
+  True if cell is in the range
+</ParamField>
+
+```php
+if ($cell->isInRange('A1:D10')) {
+    echo "Cell is within the range";
+}
+```
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\Cell\Hyperlink;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Get a cell
+$cell = $worksheet->getCell('A1');
+
+// Set value and check type
+$cell->setValue('Product Name');
+echo $cell->getDataType(); // TYPE_STRING
+echo $cell->getCoordinate(); // 'A1'
+echo $cell->getColumn(); // 'A'
+echo $cell->getRow(); // 1
+
+// Style the cell
+$cell->getStyle()
+    ->getFont()->setBold(true)
+    ->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+// Add a hyperlink
+$hyperlink = new Hyperlink('https://example.com', 'Click here');
+$cell->setHyperlink($hyperlink);
+
+// Work with formula cell
+$formulaCell = $worksheet->getCell('B1');
+$formulaCell->setValue('=SUM(A1:A10)');
+
+if ($formulaCell->isFormula()) {
+    $calculatedValue = $formulaCell->getCalculatedValue();
+    echo "Formula result: $calculatedValue";
+}
+
+// Add data validation
+$cell = $worksheet->getCell('C1');
+$validation = $cell->getDataValidation();
+$validation->setType(DataValidation::TYPE_WHOLE)
+    ->setOperator(DataValidation::OPERATOR_BETWEEN)
+    ->setFormula1(1)
+    ->setFormula2(100)
+    ->setShowErrorMessage(true)
+    ->setErrorTitle('Invalid Number')
+    ->setError('Please enter a number between 1 and 100');
+
+// Set value with explicit type
+$cell = $worksheet->getCell('D1');
+$cell->setValueExplicit('00123', DataType::TYPE_STRING);
+
+// Check if cell is in a range
+if ($cell->isInRange('D1:D100')) {
+    echo "Cell is in the range";
+}
+
+// Get formatted value
+$cell = $worksheet->getCell('E1');
+$cell->setValue(1234.56);
+$cell->getStyle()
+    ->getNumberFormat()
+    ->setFormatCode('$#,##0.00');
+echo $cell->getFormattedValue(); // '$1,234.56'
+```
+
+## Related Classes
+
+- [Worksheet](/api/worksheet) - Parent worksheet containing the cell
+- [Spreadsheet](/api/spreadsheet) - Parent workbook
+- `DataType` - Cell data type constants
+- `DataValidation` - Cell data validation rules
+- `Hyperlink` - Cell hyperlink
+- `Style` - Cell formatting and style

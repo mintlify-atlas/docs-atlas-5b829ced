@@ -1,0 +1,535 @@
+---
+title: Function Reference
+description: Complete list of supported Excel functions in PhpSpreadsheet
+---
+
+This page lists all Excel functions supported by PhpSpreadsheet, organized by category. Functions marked as "Not yet Implemented" are recognized but will return a `#Not Yet Implemented` error.
+
+## Cube Functions
+
+| Excel Function | Implementation Status |
+|----------------|----------------------|
+| CUBEKPIMEMBER | Not yet Implemented |
+| CUBEMEMBER | Not yet Implemented |
+| CUBEMEMBERPROPERTY | Not yet Implemented |
+| CUBERANKEDMEMBER | Not yet Implemented |
+| CUBESET | Not yet Implemented |
+| CUBESETCOUNT | Not yet Implemented |
+| CUBEVALUE | Not yet Implemented |
+
+## Database Functions
+
+Database functions operate on data organized in a list or database format.
+
+| Excel Function | PhpSpreadsheet Implementation | Description |
+|----------------|-------------------------------|-------------|
+| DAVERAGE | ✓ Implemented | Average of values in database matching criteria |
+| DCOUNT | ✓ Implemented | Count of numeric values matching criteria |
+| DCOUNTA | ✓ Implemented | Count of non-empty values matching criteria |
+| DGET | ✓ Implemented | Extract single value matching criteria |
+| DMAX | ✓ Implemented | Maximum value matching criteria |
+| DMIN | ✓ Implemented | Minimum value matching criteria |
+| DPRODUCT | ✓ Implemented | Product of values matching criteria |
+| DSTDEV | ✓ Implemented | Standard deviation of sample matching criteria |
+| DSTDEVP | ✓ Implemented | Standard deviation of population matching criteria |
+| DSUM | ✓ Implemented | Sum of values matching criteria |
+| DVAR | ✓ Implemented | Variance of sample matching criteria |
+| DVARP | ✓ Implemented | Variance of population matching criteria |
+
+## Date and Time Functions
+
+| Excel Function | PhpSpreadsheet Implementation | Description |
+|----------------|-------------------------------|-------------|
+| DATE | ✓ Implemented | Create date from year, month, day |
+| DATEDIF | ✓ Implemented | Calculate difference between dates |
+| DATESTRING | Not yet Implemented | |
+| DATEVALUE | ✓ Implemented | Convert date string to serial number |
+| DAY | ✓ Implemented | Extract day from date |
+| DAYS | ✓ Implemented | Days between two dates |
+| DAYS360 | ✓ Implemented | Days between dates using 360-day year |
+| EDATE | ✓ Implemented | Date n months before/after start date |
+| EOMONTH | ✓ Implemented | Last day of month n months away |
+| HOUR | ✓ Implemented | Extract hour from time |
+| ISOWEEKNUM | ✓ Implemented | ISO week number of year |
+| MINUTE | ✓ Implemented | Extract minute from time |
+| MONTH | ✓ Implemented | Extract month from date |
+| NETWORKDAYS | ✓ Implemented | Working days between dates |
+| NETWORKDAYS.INTL | Not yet Implemented | |
+| NOW | ✓ Implemented | Current date and time |
+| SECOND | ✓ Implemented | Extract second from time |
+| TIME | ✓ Implemented | Create time from hours, minutes, seconds |
+| TIMEVALUE | ✓ Implemented | Convert time string to serial number |
+| TODAY | ✓ Implemented | Current date |
+| WEEKDAY | ✓ Implemented | Day of week |
+| WEEKNUM | ✓ Implemented | Week number of year |
+| WORKDAY | ✓ Implemented | Date n workdays from start |
+| WORKDAY.INTL | Not yet Implemented | |
+| YEAR | ✓ Implemented | Extract year from date |
+| YEARFRAC | ✓ Implemented | Fraction of year between dates |
+
+## Engineering Functions
+
+| Excel Function | PhpSpreadsheet Implementation | Description |
+|----------------|-------------------------------|-------------|
+| BESSELI | ✓ Implemented | Modified Bessel function In(x) |
+| BESSELJ | ✓ Implemented | Bessel function Jn(x) |
+| BESSELK | ✓ Implemented | Modified Bessel function Kn(x) |
+| BESSELY | ✓ Implemented | Bessel function Yn(x) |
+| BIN2DEC | ✓ Implemented | Binary to decimal |
+| BIN2HEX | ✓ Implemented | Binary to hexadecimal |
+| BIN2OCT | ✓ Implemented | Binary to octal |
+| BITAND | ✓ Implemented | Bitwise AND |
+| BITLSHIFT | ✓ Implemented | Bitwise left shift |
+| BITOR | ✓ Implemented | Bitwise OR |
+| BITRSHIFT | ✓ Implemented | Bitwise right shift |
+| BITXOR | ✓ Implemented | Bitwise XOR |
+| COMPLEX | ✓ Implemented | Create complex number |
+| CONVERT | ✓ Implemented | Convert units |
+| DEC2BIN | ✓ Implemented | Decimal to binary |
+| DEC2HEX | ✓ Implemented | Decimal to hexadecimal |
+| DEC2OCT | ✓ Implemented | Decimal to octal |
+| DELTA | ✓ Implemented | Test if values are equal |
+| ERF | ✓ Implemented | Error function |
+| ERF.PRECISE | ✓ Implemented | Error function (precise) |
+| ERFC | ✓ Implemented | Complementary error function |
+| ERFC.PRECISE | ✓ Implemented | Complementary error function (precise) |
+| GESTEP | ✓ Implemented | Test if greater than threshold |
+| HEX2BIN | ✓ Implemented | Hexadecimal to binary |
+| HEX2DEC | ✓ Implemented | Hexadecimal to decimal |
+| HEX2OCT | ✓ Implemented | Hexadecimal to octal |
+| IMABS | ✓ Implemented | Absolute value of complex number |
+| IMAGINARY | ✓ Implemented | Imaginary part of complex number |
+| IMARGUMENT | ✓ Implemented | Argument of complex number |
+| IMCONJUGATE | ✓ Implemented | Complex conjugate |
+| IMCOS | ✓ Implemented | Cosine of complex number |
+| IMCOSH | ✓ Implemented | Hyperbolic cosine of complex number |
+| IMCOT | ✓ Implemented | Cotangent of complex number |
+| IMCSC | ✓ Implemented | Cosecant of complex number |
+| IMCSCH | ✓ Implemented | Hyperbolic cosecant of complex number |
+| IMDIV | ✓ Implemented | Division of complex numbers |
+| IMEXP | ✓ Implemented | Exponential of complex number |
+| IMLN | ✓ Implemented | Natural logarithm of complex number |
+| IMLOG10 | ✓ Implemented | Base-10 logarithm of complex number |
+| IMLOG2 | ✓ Implemented | Base-2 logarithm of complex number |
+| IMPOWER | ✓ Implemented | Complex number raised to power |
+| IMPRODUCT | ✓ Implemented | Product of complex numbers |
+| IMREAL | ✓ Implemented | Real part of complex number |
+| IMSEC | ✓ Implemented | Secant of complex number |
+| IMSECH | ✓ Implemented | Hyperbolic secant of complex number |
+| IMSIN | ✓ Implemented | Sine of complex number |
+| IMSINH | ✓ Implemented | Hyperbolic sine of complex number |
+| IMSQRT | ✓ Implemented | Square root of complex number |
+| IMSUB | ✓ Implemented | Subtraction of complex numbers |
+| IMSUM | ✓ Implemented | Sum of complex numbers |
+| IMTAN | ✓ Implemented | Tangent of complex number |
+| OCT2BIN | ✓ Implemented | Octal to binary |
+| OCT2DEC | ✓ Implemented | Octal to decimal |
+| OCT2HEX | ✓ Implemented | Octal to hexadecimal |
+
+## Financial Functions
+
+| Excel Function | PhpSpreadsheet Implementation | Description |
+|----------------|-------------------------------|-------------|
+| ACCRINT | ✓ Implemented | Accrued interest for periodic payments |
+| ACCRINTM | ✓ Implemented | Accrued interest at maturity |
+| AMORDEGRC | ✓ Implemented | Depreciation (French accounting) |
+| AMORLINC | ✓ Implemented | Depreciation (French accounting, linear) |
+| COUPDAYBS | ✓ Implemented | Days from beginning of coupon period |
+| COUPDAYS | ✓ Implemented | Days in coupon period |
+| COUPDAYSNC | ✓ Implemented | Days to next coupon |
+| COUPNCD | ✓ Implemented | Next coupon date |
+| COUPNUM | ✓ Implemented | Number of coupons |
+| COUPPCD | ✓ Implemented | Previous coupon date |
+| CUMIPMT | ✓ Implemented | Cumulative interest |
+| CUMPRINC | ✓ Implemented | Cumulative principal |
+| DB | ✓ Implemented | Fixed-declining balance depreciation |
+| DDB | ✓ Implemented | Double-declining balance depreciation |
+| DISC | ✓ Implemented | Discount rate |
+| DOLLARDE | ✓ Implemented | Dollar fraction to decimal |
+| DOLLARFR | ✓ Implemented | Dollar decimal to fraction |
+| DURATION | Not yet Implemented | |
+| EFFECT | ✓ Implemented | Effective annual interest rate |
+| FV | ✓ Implemented | Future value |
+| FVSCHEDULE | ✓ Implemented | Future value with variable rates |
+| INTRATE | ✓ Implemented | Interest rate |
+| IPMT | ✓ Implemented | Interest payment |
+| IRR | ✓ Implemented | Internal rate of return |
+| ISPMT | ✓ Implemented | Interest payment for period |
+| MDURATION | Not yet Implemented | |
+| MIRR | ✓ Implemented | Modified internal rate of return |
+| NOMINAL | ✓ Implemented | Nominal annual interest rate |
+| NPER | ✓ Implemented | Number of periods |
+| NPV | ✓ Implemented | Net present value |
+| PDURATION | ✓ Implemented | Periods required for investment |
+| PMT | ✓ Implemented | Payment for loan |
+| PPMT | ✓ Implemented | Principal payment |
+| PRICE | ✓ Implemented | Price of security |
+| PRICEDISC | ✓ Implemented | Price of discounted security |
+| PRICEMAT | ✓ Implemented | Price at maturity |
+| PV | ✓ Implemented | Present value |
+| RATE | ✓ Implemented | Interest rate per period |
+| RECEIVED | ✓ Implemented | Amount received at maturity |
+| RRI | ✓ Implemented | Equivalent interest rate |
+| SLN | ✓ Implemented | Straight-line depreciation |
+| SYD | ✓ Implemented | Sum-of-years' digits depreciation |
+| TBILLEQ | ✓ Implemented | Treasury bill bond equivalent yield |
+| TBILLPRICE | ✓ Implemented | Treasury bill price |
+| TBILLYIELD | ✓ Implemented | Treasury bill yield |
+| USDOLLAR | ✓ Implemented | Format as US dollar |
+| VDB | Not yet Implemented | |
+| XIRR | ✓ Implemented | Internal rate of return for irregular cash flows |
+| XNPV | ✓ Implemented | Net present value for irregular cash flows |
+| YIELD | Not yet Implemented | |
+| YIELDDISC | ✓ Implemented | Yield of discounted security |
+| YIELDMAT | ✓ Implemented | Yield at maturity |
+
+## Information Functions
+
+| Excel Function | PhpSpreadsheet Implementation | Description |
+|----------------|-------------------------------|-------------|
+| CELL | Not yet Implemented | |
+| ERROR.TYPE | ✓ Implemented | Error type number |
+| INFO | ✓ Implemented | System information |
+| ISBLANK | ✓ Implemented | Test if blank |
+| ISERR | ✓ Implemented | Test if error (except #N/A) |
+| ISERROR | ✓ Implemented | Test if any error |
+| ISEVEN | ✓ Implemented | Test if even number |
+| ISFORMULA | ✓ Implemented | Test if cell contains formula |
+| ISLOGICAL | ✓ Implemented | Test if logical value |
+| ISNA | ✓ Implemented | Test if #N/A error |
+| ISNONTEXT | ✓ Implemented | Test if not text |
+| ISNUMBER | ✓ Implemented | Test if number |
+| ISODD | ✓ Implemented | Test if odd number |
+| ISREF | ✓ Implemented | Test if reference |
+| ISTEXT | ✓ Implemented | Test if text |
+| N | ✓ Implemented | Convert to number |
+| NA | ✓ Implemented | Return #N/A error |
+| TYPE | ✓ Implemented | Data type |
+
+## Logical Functions
+
+| Excel Function | PhpSpreadsheet Implementation | Description |
+|----------------|-------------------------------|-------------|
+| AND | ✓ Implemented | Logical AND |
+| FALSE | ✓ Implemented | Boolean FALSE |
+| IF | ✓ Implemented | Conditional statement |
+| IFERROR | ✓ Implemented | Return value if error |
+| IFNA | ✓ Implemented | Return value if #N/A |
+| IFS | ✓ Implemented | Multiple conditional statements |
+| NOT | ✓ Implemented | Logical NOT |
+| OR | ✓ Implemented | Logical OR |
+| SWITCH | ✓ Implemented | Switch case statement |
+| TRUE | ✓ Implemented | Boolean TRUE |
+| XOR | ✓ Implemented | Logical XOR |
+
+## Lookup and Reference Functions
+
+| Excel Function | PhpSpreadsheet Implementation | Description |
+|----------------|-------------------------------|-------------|
+| ADDRESS | ✓ Implemented | Cell address as text |
+| CHOOSE | ✓ Implemented | Choose value from list |
+| CHOOSECOLS | ✓ Implemented | Choose columns from array |
+| CHOOSEROWS | ✓ Implemented | Choose rows from array |
+| COLUMN | ✓ Implemented | Column number |
+| COLUMNS | ✓ Implemented | Number of columns |
+| DROP | ✓ Implemented | Drop rows/columns from array |
+| EXPAND | ✓ Implemented | Expand array to dimensions |
+| FILTER | ✓ Implemented | Filter array by criteria |
+| FORMULATEXT | ✓ Implemented | Formula as text |
+| HLOOKUP | ✓ Implemented | Horizontal lookup |
+| HSTACK | ✓ Implemented | Stack arrays horizontally |
+| HYPERLINK | ✓ Implemented | Create hyperlink |
+| INDEX | ✓ Implemented | Value at array position |
+| INDIRECT | ✓ Implemented | Indirect reference |
+| LOOKUP | ✓ Implemented | Lookup value |
+| MATCH | ✓ Implemented | Position in array |
+| OFFSET | ✓ Implemented | Offset reference |
+| ROW | ✓ Implemented | Row number |
+| ROWS | ✓ Implemented | Number of rows |
+| SORT | ✓ Implemented | Sort array |
+| SORTBY | ✓ Implemented | Sort array by other array |
+| TAKE | ✓ Implemented | Take rows/columns from array |
+| TOCOL | ✓ Implemented | Convert to column |
+| TOROW | ✓ Implemented | Convert to row |
+| TRANSPOSE | ✓ Implemented | Transpose array |
+| UNIQUE | ✓ Implemented | Unique values |
+| VLOOKUP | ✓ Implemented | Vertical lookup |
+| VSTACK | ✓ Implemented | Stack arrays vertically |
+| XLOOKUP | Not yet Implemented | |
+| XMATCH | Not yet Implemented | |
+
+## Math and Trigonometry Functions
+
+| Excel Function | PhpSpreadsheet Implementation | Description |
+|----------------|-------------------------------|-------------|
+| ABS | ✓ Implemented | Absolute value |
+| ACOS | ✓ Implemented | Arccosine |
+| ACOSH | ✓ Implemented | Hyperbolic arccosine |
+| ACOT | ✓ Implemented | Arccotangent |
+| ACOTH | ✓ Implemented | Hyperbolic arccotangent |
+| ARABIC | ✓ Implemented | Roman to Arabic numeral |
+| ASIN | ✓ Implemented | Arcsine |
+| ASINH | ✓ Implemented | Hyperbolic arcsine |
+| ATAN | ✓ Implemented | Arctangent |
+| ATAN2 | ✓ Implemented | Arctangent from x and y |
+| ATANH | ✓ Implemented | Hyperbolic arctangent |
+| BASE | ✓ Implemented | Convert to base |
+| CEILING | ✓ Implemented | Round up to multiple |
+| CEILING.MATH | ✓ Implemented | Round up (math mode) |
+| CEILING.PRECISE | ✓ Implemented | Round up (precise) |
+| COMBIN | ✓ Implemented | Combinations |
+| COMBINA | ✓ Implemented | Combinations with repetition |
+| COS | ✓ Implemented | Cosine |
+| COSH | ✓ Implemented | Hyperbolic cosine |
+| COT | ✓ Implemented | Cotangent |
+| COTH | ✓ Implemented | Hyperbolic cotangent |
+| CSC | ✓ Implemented | Cosecant |
+| CSCH | ✓ Implemented | Hyperbolic cosecant |
+| DEGREES | ✓ Implemented | Radians to degrees |
+| EVEN | ✓ Implemented | Round to nearest even |
+| EXP | ✓ Implemented | Exponential |
+| FACT | ✓ Implemented | Factorial |
+| FACTDOUBLE | ✓ Implemented | Double factorial |
+| FLOOR | ✓ Implemented | Round down to multiple |
+| FLOOR.MATH | ✓ Implemented | Round down (math mode) |
+| FLOOR.PRECISE | ✓ Implemented | Round down (precise) |
+| GCD | ✓ Implemented | Greatest common divisor |
+| INT | ✓ Implemented | Round down to integer |
+| LCM | ✓ Implemented | Least common multiple |
+| LN | ✓ Implemented | Natural logarithm |
+| LOG | ✓ Implemented | Logarithm |
+| LOG10 | ✓ Implemented | Base-10 logarithm |
+| MDETERM | ✓ Implemented | Matrix determinant |
+| MINVERSE | ✓ Implemented | Matrix inverse |
+| MMULT | ✓ Implemented | Matrix multiplication |
+| MOD | ✓ Implemented | Modulo |
+| MROUND | ✓ Implemented | Round to multiple |
+| MULTINOMIAL | ✓ Implemented | Multinomial |
+| MUNIT | ✓ Implemented | Identity matrix |
+| ODD | ✓ Implemented | Round to nearest odd |
+| PI | ✓ Implemented | Pi constant |
+| POWER | ✓ Implemented | Power |
+| PRODUCT | ✓ Implemented | Product |
+| QUOTIENT | ✓ Implemented | Integer quotient |
+| RADIANS | ✓ Implemented | Degrees to radians |
+| RAND | ✓ Implemented | Random number |
+| RANDARRAY | ✓ Implemented | Random array |
+| RANDBETWEEN | ✓ Implemented | Random integer between |
+| ROMAN | ✓ Implemented | Arabic to Roman numeral |
+| ROUND | ✓ Implemented | Round number |
+| ROUNDDOWN | ✓ Implemented | Round down |
+| ROUNDUP | ✓ Implemented | Round up |
+| SEC | ✓ Implemented | Secant |
+| SECH | ✓ Implemented | Hyperbolic secant |
+| SEQUENCE | ✓ Implemented | Sequence array |
+| SERIESSUM | ✓ Implemented | Series sum |
+| SIGN | ✓ Implemented | Sign of number |
+| SIN | ✓ Implemented | Sine |
+| SINH | ✓ Implemented | Hyperbolic sine |
+| SQRT | ✓ Implemented | Square root |
+| SQRTPI | ✓ Implemented | Square root of pi multiple |
+| SUBTOTAL | ✓ Implemented | Subtotal |
+| SUM | ✓ Implemented | Sum |
+| SUMIF | ✓ Implemented | Conditional sum |
+| SUMIFS | ✓ Implemented | Multiple criteria sum |
+| SUMPRODUCT | ✓ Implemented | Sum of products |
+| SUMSQ | ✓ Implemented | Sum of squares |
+| SUMX2MY2 | ✓ Implemented | Sum of X² - Y² |
+| SUMX2PY2 | ✓ Implemented | Sum of X² + Y² |
+| SUMXMY2 | ✓ Implemented | Sum of (X - Y)² |
+| TAN | ✓ Implemented | Tangent |
+| TANH | ✓ Implemented | Hyperbolic tangent |
+| TRUNC | ✓ Implemented | Truncate |
+
+## Statistical Functions
+
+| Excel Function | PhpSpreadsheet Implementation | Description |
+|----------------|-------------------------------|-------------|
+| AVEDEV | ✓ Implemented | Average deviation |
+| AVERAGE | ✓ Implemented | Average |
+| AVERAGEA | ✓ Implemented | Average (includes text/logical) |
+| AVERAGEIF | ✓ Implemented | Conditional average |
+| AVERAGEIFS | ✓ Implemented | Multiple criteria average |
+| BETA.INV | ✓ Implemented | Beta distribution inverse |
+| BETADIST | ✓ Implemented | Beta distribution |
+| BETAINV | ✓ Implemented | Beta distribution inverse |
+| BINOM.DIST | ✓ Implemented | Binomial distribution |
+| BINOM.DIST.RANGE | ✓ Implemented | Binomial distribution range |
+| BINOM.INV | ✓ Implemented | Binomial distribution inverse |
+| BINOMDIST | ✓ Implemented | Binomial distribution |
+| CHIDIST | ✓ Implemented | Chi-squared distribution |
+| CHIINV | ✓ Implemented | Chi-squared inverse |
+| CHISQ.DIST | ✓ Implemented | Chi-squared distribution |
+| CHISQ.DIST.RT | ✓ Implemented | Chi-squared right tail |
+| CHISQ.INV | ✓ Implemented | Chi-squared inverse |
+| CHISQ.INV.RT | ✓ Implemented | Chi-squared inverse right tail |
+| CHISQ.TEST | ✓ Implemented | Chi-squared test |
+| CHITEST | ✓ Implemented | Chi-squared test |
+| CONFIDENCE | ✓ Implemented | Confidence interval |
+| CONFIDENCE.NORM | ✓ Implemented | Confidence interval (normal) |
+| CORREL | ✓ Implemented | Correlation coefficient |
+| COUNT | ✓ Implemented | Count numbers |
+| COUNTA | ✓ Implemented | Count non-empty |
+| COUNTBLANK | ✓ Implemented | Count blank |
+| COUNTIF | ✓ Implemented | Conditional count |
+| COUNTIFS | ✓ Implemented | Multiple criteria count |
+| COVAR | ✓ Implemented | Covariance |
+| COVARIANCE.P | ✓ Implemented | Population covariance |
+| CRITBINOM | ✓ Implemented | Critical binomial |
+| DEVSQ | ✓ Implemented | Sum of squared deviations |
+| EXPON.DIST | ✓ Implemented | Exponential distribution |
+| EXPONDIST | ✓ Implemented | Exponential distribution |
+| F.DIST | ✓ Implemented | F distribution |
+| FISHER | ✓ Implemented | Fisher transformation |
+| FISHERINV | ✓ Implemented | Fisher inverse |
+| FORECAST | ✓ Implemented | Linear forecast |
+| FORECAST.LINEAR | ✓ Implemented | Linear forecast |
+| GAMMA | ✓ Implemented | Gamma function |
+| GAMMA.DIST | ✓ Implemented | Gamma distribution |
+| GAMMA.INV | ✓ Implemented | Gamma inverse |
+| GAMMADIST | ✓ Implemented | Gamma distribution |
+| GAMMAINV | ✓ Implemented | Gamma inverse |
+| GAMMALN | ✓ Implemented | Natural log of gamma |
+| GAMMALN.PRECISE | ✓ Implemented | Natural log of gamma (precise) |
+| GAUSS | ✓ Implemented | Gaussian distribution |
+| GEOMEAN | ✓ Implemented | Geometric mean |
+| GROWTH | ✓ Implemented | Exponential growth |
+| HARMEAN | ✓ Implemented | Harmonic mean |
+| HYPGEOMDIST | ✓ Implemented | Hypergeometric distribution |
+| INTERCEPT | ✓ Implemented | Linear regression intercept |
+| KURT | ✓ Implemented | Kurtosis |
+| LARGE | ✓ Implemented | Kth largest value |
+| LINEST | ✓ Implemented | Linear regression statistics |
+| LOGEST | ✓ Implemented | Exponential regression statistics |
+| LOGINV | ✓ Implemented | Lognormal inverse |
+| LOGNORM.DIST | ✓ Implemented | Lognormal distribution |
+| LOGNORM.INV | ✓ Implemented | Lognormal inverse |
+| LOGNORMDIST | ✓ Implemented | Lognormal distribution |
+| MAX | ✓ Implemented | Maximum |
+| MAXA | ✓ Implemented | Maximum (includes text/logical) |
+| MAXIFS | ✓ Implemented | Multiple criteria maximum |
+| MEDIAN | ✓ Implemented | Median |
+| MIN | ✓ Implemented | Minimum |
+| MINA | ✓ Implemented | Minimum (includes text/logical) |
+| MINIFS | ✓ Implemented | Multiple criteria minimum |
+| MODE | ✓ Implemented | Most common value |
+| MODE.SNGL | ✓ Implemented | Most common value |
+| NEGBINOMDIST | ✓ Implemented | Negative binomial distribution |
+| NORM.DIST | ✓ Implemented | Normal distribution |
+| NORM.INV | ✓ Implemented | Normal inverse |
+| NORM.S.DIST | ✓ Implemented | Standard normal distribution |
+| NORM.S.INV | ✓ Implemented | Standard normal inverse |
+| NORMDIST | ✓ Implemented | Normal distribution |
+| NORMINV | ✓ Implemented | Normal inverse |
+| NORMSDIST | ✓ Implemented | Standard normal distribution |
+| NORMSINV | ✓ Implemented | Standard normal inverse |
+| PEARSON | ✓ Implemented | Pearson correlation |
+| PERCENTILE | ✓ Implemented | Percentile |
+| PERCENTILE.INC | ✓ Implemented | Percentile (inclusive) |
+| PERCENTRANK | ✓ Implemented | Percent rank |
+| PERCENTRANK.INC | ✓ Implemented | Percent rank (inclusive) |
+| PERMUT | ✓ Implemented | Permutations |
+| PERMUTATIONA | ✓ Implemented | Permutations with repetition |
+| POISSON | ✓ Implemented | Poisson distribution |
+| POISSON.DIST | ✓ Implemented | Poisson distribution |
+| QUARTILE | ✓ Implemented | Quartile |
+| QUARTILE.INC | ✓ Implemented | Quartile (inclusive) |
+| RANK | ✓ Implemented | Rank |
+| RANK.EQ | ✓ Implemented | Rank (equal) |
+| RSQ | ✓ Implemented | R-squared |
+| SKEW | ✓ Implemented | Skewness |
+| SLOPE | ✓ Implemented | Linear regression slope |
+| SMALL | ✓ Implemented | Kth smallest value |
+| STANDARDIZE | ✓ Implemented | Standardize value |
+| STDEV | ✓ Implemented | Standard deviation |
+| STDEV.P | ✓ Implemented | Population standard deviation |
+| STDEV.S | ✓ Implemented | Sample standard deviation |
+| STDEVA | ✓ Implemented | Standard deviation (includes text/logical) |
+| STDEVP | ✓ Implemented | Population standard deviation |
+| STDEVPA | ✓ Implemented | Population standard deviation (includes text/logical) |
+| STEYX | ✓ Implemented | Standard error |
+| T.DIST | ✓ Implemented | Student's t distribution |
+| T.DIST.2T | ✓ Implemented | Student's t two-tailed |
+| T.DIST.RT | ✓ Implemented | Student's t right-tailed |
+| T.INV | ✓ Implemented | Student's t inverse |
+| T.INV.2T | ✓ Implemented | Student's t inverse two-tailed |
+| TDIST | ✓ Implemented | Student's t distribution |
+| TINV | ✓ Implemented | Student's t inverse |
+| TREND | ✓ Implemented | Linear trend |
+| TRIMMEAN | ✓ Implemented | Trimmed mean |
+| VAR | ✓ Implemented | Variance |
+| VAR.P | ✓ Implemented | Population variance |
+| VAR.S | ✓ Implemented | Sample variance |
+| VARA | ✓ Implemented | Variance (includes text/logical) |
+| VARP | ✓ Implemented | Population variance |
+| VARPA | ✓ Implemented | Population variance (includes text/logical) |
+| WEIBULL | ✓ Implemented | Weibull distribution |
+| WEIBULL.DIST | ✓ Implemented | Weibull distribution |
+| Z.TEST | ✓ Implemented | Z-test |
+| ZTEST | ✓ Implemented | Z-test |
+
+## Text and Data Functions
+
+| Excel Function | PhpSpreadsheet Implementation | Description |
+|----------------|-------------------------------|-------------|
+| ARRAYTOTEXT | ✓ Implemented | Convert array to text |
+| BAHTTEXT | ✓ Implemented | Thai Baht text |
+| CHAR | ✓ Implemented | Character from code |
+| CLEAN | ✓ Implemented | Remove non-printable characters |
+| CODE | ✓ Implemented | Character code |
+| CONCAT | ✓ Implemented | Concatenate |
+| CONCATENATE | ✓ Implemented | Concatenate |
+| DOLLAR | ✓ Implemented | Format as currency |
+| EXACT | ✓ Implemented | Exact text match |
+| FIND | ✓ Implemented | Find substring (case-sensitive) |
+| FINDB | ✓ Implemented | Find substring in bytes |
+| FIXED | ✓ Implemented | Format as fixed decimal |
+| LEFT | ✓ Implemented | Left substring |
+| LEFTB | ✓ Implemented | Left bytes |
+| LEN | ✓ Implemented | Text length |
+| LENB | ✓ Implemented | Text length in bytes |
+| LOWER | ✓ Implemented | Convert to lowercase |
+| MID | ✓ Implemented | Middle substring |
+| MIDB | ✓ Implemented | Middle bytes |
+| NUMBERVALUE | ✓ Implemented | Convert text to number |
+| PROPER | ✓ Implemented | Proper case |
+| REPLACE | ✓ Implemented | Replace substring |
+| REPLACEB | ✓ Implemented | Replace bytes |
+| REPT | ✓ Implemented | Repeat text |
+| RIGHT | ✓ Implemented | Right substring |
+| RIGHTB | ✓ Implemented | Right bytes |
+| SEARCH | ✓ Implemented | Find substring (case-insensitive) |
+| SEARCHB | ✓ Implemented | Find bytes (case-insensitive) |
+| SUBSTITUTE | ✓ Implemented | Substitute text |
+| T | ✓ Implemented | Convert to text |
+| TEXT | ✓ Implemented | Format text |
+| TEXTAFTER | ✓ Implemented | Text after delimiter |
+| TEXTBEFORE | ✓ Implemented | Text before delimiter |
+| TEXTJOIN | ✓ Implemented | Join text with delimiter |
+| TEXTSPLIT | ✓ Implemented | Split text |
+| TRIM | ✓ Implemented | Remove extra spaces |
+| UNICHAR | ✓ Implemented | Unicode character |
+| UNICODE | ✓ Implemented | Unicode code point |
+| UPPER | ✓ Implemented | Convert to uppercase |
+| VALUE | ✓ Implemented | Convert text to number |
+| VALUETOTEXT | ✓ Implemented | Convert value to text |
+
+## Web Functions
+
+| Excel Function | PhpSpreadsheet Implementation | Description |
+|----------------|-------------------------------|-------------|
+| ENCODEURL | ✓ Implemented | Encode URL |
+| FILTERXML | Not yet Implemented | |
+| WEBSERVICE | ✓ Implemented | Get data from web service |
+
+## Notes
+
+- Functions marked as "Not yet Implemented" are recognized by the parser but will return `#Not Yet Implemented` error when executed.
+- Some functions have multiple variants (e.g., STDEV, STDEV.S, STDEV.P) for compatibility with different Excel versions.
+- All function names are case-insensitive in formulas.
+- Array functions support both CSE (Ctrl+Shift+Enter) and dynamic array behavior depending on context.
+
+## See Also
+
+- [Calculation Engine](/api/calculation/engine)
+- [Function Categories](/api/calculation/functions)

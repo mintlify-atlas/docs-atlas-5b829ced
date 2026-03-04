@@ -1,0 +1,429 @@
+---
+title: 'Chart Examples'
+description: 'Learn how to create various chart types including line, column, pie, and more'
+icon: 'chart-line'
+---
+
+## Overview
+
+PhpSpreadsheet provides comprehensive charting capabilities. You can create various chart types, customize their appearance, and embed them in your Excel files. Charts are defined using data series, labels, and plot areas.
+
+## Basic Chart Components
+
+Every chart in PhpSpreadsheet consists of:
+
+- **Data Series Values**: The actual data to plot
+- **Data Series Labels**: Labels for each data series (legend)
+- **X-Axis Tick Values**: Category labels for the X-axis
+- **Plot Area**: Container for the data series
+- **Legend**: Chart legend
+- **Title**: Chart title
+
+## Line Chart
+
+Create a basic line chart showing data over time:
+
+```php
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Legend as ChartLegend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Add data
+$worksheet->fromArray([
+    ['', 2010, 2011, 2012],
+    ['Q1', 12, 15, 21],
+    ['Q2', 56, 73, 86],
+    ['Q3', 52, 61, 69],
+    ['Q4', 30, 32, 0],
+]);
+
+// Set the Labels for each data series (legend entries)
+$dataSeriesLabels = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$B$1', null, 1), // 2010
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$C$1', null, 1), // 2011
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$D$1', null, 1), // 2012
+];
+
+// Set the X-Axis Labels (categories)
+$xAxisTickValues = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$A$2:$A$5', null, 4), // Q1 to Q4
+];
+
+// Set the Data values for each data series
+$dataSeriesValues = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$B$2:$B$5', null, 4),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$C$2:$C$5', null, 4),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$D$2:$D$5', null, 4),
+];
+
+// Build the dataseries
+$series = new DataSeries(
+    DataSeries::TYPE_LINECHART, // plotType
+    null, // plotGrouping
+    range(0, count($dataSeriesValues) - 1), // plotOrder
+    $dataSeriesLabels, // plotLabel
+    $xAxisTickValues, // plotCategory
+    $dataSeriesValues // plotValues
+);
+
+// Set the series in the plot area
+$plotArea = new PlotArea(null, [$series]);
+
+// Set the chart legend
+$legend = new ChartLegend(ChartLegend::POSITION_TOPRIGHT, null, false);
+
+$title = new Title('Test Line Chart');
+$yAxisLabel = new Title('Value ($k)');
+
+// Create the chart
+$chart = new Chart(
+    'chart1', // name
+    $title, // title
+    $legend, // legend
+    $plotArea, // plotArea
+    true, // plotVisibleOnly
+    DataSeries::EMPTY_AS_GAP, // displayBlanksAs
+    null, // xAxisLabel
+    $yAxisLabel // yAxisLabel
+);
+
+// Set the position where the chart should appear in the worksheet
+$chart->setTopLeftPosition('A7');
+$chart->setBottomRightPosition('H20');
+
+// Add the chart to the worksheet
+$worksheet->addChart($chart);
+```
+
+## Column Chart
+
+Create a vertical column chart (bar chart with vertical orientation):
+
+```php
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Legend as ChartLegend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Add data
+$worksheet->fromArray([
+    ['', 2010, 2011, 2012],
+    ['Q1', 12, 15, 21],
+    ['Q2', 56, 73, 86],
+    ['Q3', 52, 61, 69],
+    ['Q4', 30, 32, 0],
+]);
+
+// Set up data series (same as line chart)
+$dataSeriesLabels = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$B$1', null, 1),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$C$1', null, 1),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$D$1', null, 1),
+];
+
+$xAxisTickValues = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$A$2:$A$5', null, 4),
+];
+
+$dataSeriesValues = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$B$2:$B$5', null, 4),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$C$2:$C$5', null, 4),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$D$2:$D$5', null, 4),
+];
+
+// Build the dataseries
+$series = new DataSeries(
+    DataSeries::TYPE_BARCHART, // plotType
+    DataSeries::GROUPING_STANDARD, // plotGrouping
+    range(0, count($dataSeriesValues) - 1), // plotOrder
+    $dataSeriesLabels,
+    $xAxisTickValues,
+    $dataSeriesValues
+);
+
+// Make it a vertical column rather than a horizontal bar graph
+$series->setPlotDirection(DataSeries::DIRECTION_COL);
+
+$plotArea = new PlotArea(null, [$series]);
+$legend = new ChartLegend(ChartLegend::POSITION_RIGHT, null, false);
+
+$title = new Title('Test Column Chart');
+$yAxisLabel = new Title('Value ($k)');
+
+$chart = new Chart(
+    'chart1',
+    $title,
+    $legend,
+    $plotArea,
+    true,
+    DataSeries::EMPTY_AS_GAP,
+    null,
+    $yAxisLabel
+);
+
+$chart->setTopLeftPosition('A7');
+$chart->setBottomRightPosition('H20');
+
+$worksheet->addChart($chart);
+```
+
+## Pie Chart
+
+Create a pie chart to show proportions:
+
+```php
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Layout;
+use PhpOffice\PhpSpreadsheet\Chart\Legend as ChartLegend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+$worksheet->fromArray([
+    ['', 2010, 2011, 2012],
+    ['Q1', 12, 15, 21],
+    ['Q2', 56, 73, 86],
+    ['Q3', 52, 61, 69],
+    ['Q4', 30, 32, 0],
+]);
+
+// For pie charts, we typically plot one data series
+$dataSeriesLabels = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$C$1', null, 1), // 2011
+];
+
+$xAxisTickValues = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$A$2:$A$5', null, 4), // Q1 to Q4
+];
+
+$dataSeriesValues = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$C$2:$C$5', null, 4),
+];
+
+// Build the dataseries
+$series = new DataSeries(
+    DataSeries::TYPE_PIECHART, // plotType
+    null, // plotGrouping (Pie charts don't have any grouping)
+    range(0, count($dataSeriesValues) - 1),
+    $dataSeriesLabels,
+    $xAxisTickValues,
+    $dataSeriesValues
+);
+
+// Set up a layout object for the Pie chart
+$layout = new Layout();
+$layout->setShowVal(true); // Show values
+$layout->setShowPercent(true); // Show percentages
+
+$plotArea = new PlotArea($layout, [$series]);
+$legend = new ChartLegend(ChartLegend::POSITION_RIGHT, null, false);
+
+$title = new Title('Test Pie Chart');
+
+$chart = new Chart(
+    'chart1',
+    $title,
+    $legend,
+    $plotArea,
+    true,
+    DataSeries::EMPTY_AS_GAP,
+    null,
+    null // yAxisLabel - Pie charts don't have a Y-Axis
+);
+
+$chart->setTopLeftPosition('A7');
+$chart->setBottomRightPosition('H20');
+
+$worksheet->addChart($chart);
+```
+
+## Donut Chart
+
+Similar to a pie chart but with a hole in the center:
+
+```php
+// Same setup as pie chart, but change the type
+$series = new DataSeries(
+    DataSeries::TYPE_DONUTCHART, // plotType
+    null, // plotGrouping
+    range(0, count($dataSeriesValues) - 1),
+    $dataSeriesLabels,
+    $xAxisTickValues,
+    $dataSeriesValues
+);
+
+// Set up a layout to show categories and values
+$layout = new Layout();
+$layout->setShowVal(true);
+$layout->setShowCatName(true);
+
+$plotArea = new PlotArea($layout, [$series]);
+
+$title = new Title('Test Donut Chart');
+
+$chart = new Chart(
+    'chart2',
+    $title,
+    null, // No legend for this example
+    $plotArea,
+    true,
+    DataSeries::EMPTY_AS_GAP,
+    null,
+    null
+);
+
+$chart->setTopLeftPosition('I7');
+$chart->setBottomRightPosition('P20');
+
+$worksheet->addChart($chart);
+```
+
+## Customizing Chart Appearance
+
+### Chart Types
+
+Available chart types:
+
+- `DataSeries::TYPE_LINECHART` - Line charts
+- `DataSeries::TYPE_BARCHART` - Bar/Column charts
+- `DataSeries::TYPE_PIECHART` - Pie charts
+- `DataSeries::TYPE_DONUTCHART` - Donut charts
+- `DataSeries::TYPE_AREACHART` - Area charts
+- `DataSeries::TYPE_SCATTERCHART` - Scatter (XY) charts
+- `DataSeries::TYPE_RADARCHART` - Radar charts
+- `DataSeries::TYPE_BUBBLECHART` - Bubble charts
+- `DataSeries::TYPE_STOCKCHART` - Stock charts
+
+### Legend Positions
+
+```php
+// Available legend positions
+$legend = new ChartLegend(ChartLegend::POSITION_RIGHT, null, false);
+// POSITION_TOP, POSITION_BOTTOM, POSITION_LEFT, POSITION_RIGHT, POSITION_TOPRIGHT
+```
+
+### Handling Empty Values
+
+```php
+// Options for displaying blank cells
+$chart = new Chart(
+    'chart1',
+    $title,
+    $legend,
+    $plotArea,
+    true,
+    DataSeries::EMPTY_AS_GAP, // or EMPTY_AS_ZERO, EMPTY_AS_SPAN
+    null,
+    $yAxisLabel
+);
+```
+
+### Custom Colors
+
+You can set custom colors for data series:
+
+```php
+use PhpOffice\PhpSpreadsheet\Chart\Properties;
+
+// Set fill color for a data series label
+$dataSeriesLabels[0]->setFillColor('FF0000'); // Red
+
+// Set line width for a data series
+$dataSeriesValues[2]->setLineWidth(60000 / Properties::POINTS_WIDTH_MULTIPLIER);
+```
+
+## Multiple Charts on One Sheet
+
+You can add multiple charts to a single worksheet by positioning them differently:
+
+```php
+// First chart
+$chart1->setTopLeftPosition('A7');
+$chart1->setBottomRightPosition('H20');
+$worksheet->addChart($chart1);
+
+// Second chart (positioned to the right)
+$chart2->setTopLeftPosition('I7');
+$chart2->setBottomRightPosition('P20');
+$worksheet->addChart($chart2);
+```
+
+## Saving Charts
+
+Charts are only supported in Xlsx format:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->setIncludeCharts(true); // Include charts in output
+$writer->save('charts.xlsx');
+```
+
+<Warning>
+  Charts are only fully supported in Xlsx format. Other formats like CSV or HTML will not preserve chart information.
+</Warning>
+
+## Reading Existing Charts
+
+You can read charts from existing Excel files:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$reader = IOFactory::createReader('Xlsx');
+$reader->setIncludeCharts(true);
+
+$spreadsheet = $reader->load('file_with_charts.xlsx');
+$charts = $spreadsheet->getActiveSheet()->getChartCollection();
+
+foreach ($charts as $chart) {
+    echo $chart->getTitle()->getCaption() . "\n";
+}
+```
+
+## Rendering Charts as Images
+
+With appropriate libraries installed, you can render charts as images:
+
+```php
+$chart->render('chart.png');
+```
+
+<Info>
+  Chart rendering requires additional PHP extensions like GD or Imagick, and may require JpGraph for some chart types.
+</Info>
+
+## Expected Output
+
+When you open the generated Excel file:
+
+- Line charts will show trends over time with multiple series
+- Column charts display vertical bars grouped by category
+- Pie charts show proportional slices with optional percentages
+- Charts are interactive in Excel with hover tooltips
+- Legend entries correspond to data series labels
+
+## Related Topics
+
+- [Chart Customization](/topics/charts)
+- [Reading Charts](/topics/reading-files)
+- [Chart Rendering](/topics/chart-rendering)

@@ -1,0 +1,581 @@
+---
+title: Exporting to PDF
+description: Learn how to export spreadsheets to PDF format using Dompdf, Mpdf, or TCPDF
+---
+
+## Overview
+
+PhpSpreadsheet can export spreadsheets to PDF format using third-party PDF rendering libraries. You must install one of the supported libraries separately using Composer.
+
+## Supported PDF Libraries
+
+| Library | Package | Writer Class | Notes |
+|---------|---------|--------------|-------|
+| **Dompdf** | `dompdf/dompdf` | `Writer\Pdf\Dompdf` | Good HTML/CSS support, moderate speed |
+| **mPDF** | `mpdf/mpdf` | `Writer\Pdf\Mpdf` | Excellent Unicode support, feature-rich |
+| **TCPDF** | `tecnickcom/tcpdf` | `Writer\Pdf\Tcpdf` | Comprehensive features, well-tested |
+
+<Note>
+  PhpSpreadsheet does not include any PDF library by default. You must install your preferred library using Composer.
+</Note>
+
+## Installation
+
+Install one of the PDF libraries:
+
+```bash
+# Install Mpdf
+composer require mpdf/mpdf
+
+# OR install Dompdf
+composer require dompdf/dompdf
+
+# OR install TCPDF
+composer require tecnickcom/tcpdf
+```
+
+## Basic Usage
+
+### Method 1: Using IOFactory
+
+Register your chosen PDF writer, then create it:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+// Register the PDF renderer
+IOFactory::registerWriter('Pdf', Mpdf::class);
+
+// Create writer
+$writer = IOFactory::createWriter($spreadsheet, 'Pdf');
+$writer->save('output.pdf');
+```
+
+### Method 2: Direct Instantiation
+
+Instantiate the writer directly:
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+$writer = new Mpdf($spreadsheet);
+$writer->save('output.pdf');
+```
+
+### Method 3: Using Specific Library Name
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Use library-specific name
+$writer = IOFactory::createWriter($spreadsheet, 'Mpdf');
+// or
+$writer = IOFactory::createWriter($spreadsheet, 'Dompdf');
+// or
+$writer = IOFactory::createWriter($spreadsheet, 'Tcpdf');
+
+$writer->save('output.pdf');
+```
+
+## Using Mpdf
+
+**Package:** `mpdf/mpdf`  
+**Class:** `PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf`
+
+### Basic Example
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+// Register Mpdf
+IOFactory::registerWriter('Pdf', Mpdf::class);
+
+$writer = IOFactory::createWriter($spreadsheet, 'Pdf');
+$writer->save('output.pdf');
+```
+
+### Mpdf Options
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+$writer = new Mpdf($spreadsheet);
+
+// Set orientation
+$writer->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+
+// Set paper size
+$writer->setPaperSize(PageSetup::PAPERSIZE_A4);
+
+// Set font
+$writer->setFont('dejavusans');
+
+// Set temporary directory
+$writer->setTempDir('/tmp');
+
+// Disable pre-calculation
+$writer->setPreCalculateFormulas(false);
+
+$writer->save('output.pdf');
+```
+
+### Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add data
+$sheet->setCellValue('A1', 'Hello');
+$sheet->setCellValue('B1', 'World');
+
+// Configure page setup
+$sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+$sheet->setShowGridLines(false);
+
+// Create PDF
+$writer = new Mpdf($spreadsheet);
+$writer->save('output.pdf');
+```
+
+## Using Dompdf
+
+**Package:** `dompdf/dompdf`  
+**Class:** `PhpOffice\PhpSpreadsheet\Writer\Pdf\Dompdf`
+
+### Basic Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Dompdf;
+
+$writer = new Dompdf($spreadsheet);
+$writer->save('output.pdf');
+```
+
+### Dompdf Options
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Dompdf;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+$writer = new Dompdf($spreadsheet);
+
+// Set orientation
+$writer->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+
+// Set paper size
+$writer->setPaperSize(PageSetup::PAPERSIZE_LETTER);
+
+// Set font
+$writer->setFont('helvetica');
+
+$writer->save('output.pdf');
+```
+
+## Using TCPDF
+
+**Package:** `tecnickcom/tcpdf`  
+**Class:** `PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf`
+
+### Basic Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf;
+
+$writer = new Tcpdf($spreadsheet);
+$writer->save('output.pdf');
+```
+
+### TCPDF Options
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+$writer = new Tcpdf($spreadsheet);
+
+// Set orientation
+$writer->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+
+// Set paper size
+$writer->setPaperSize(PageSetup::PAPERSIZE_A3);
+
+// Set font (TCPDF has many built-in fonts)
+$writer->setFont('helvetica');
+
+$writer->save('output.pdf');
+```
+
+## Common Options
+
+All PDF writers support these common options:
+
+### Page Orientation
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+// Set at worksheet level (preferred)
+$spreadsheet->getActiveSheet()
+    ->getPageSetup()
+    ->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+
+// Or override at writer level
+$writer->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+```
+
+### Paper Size
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+// Set at worksheet level
+$spreadsheet->getActiveSheet()
+    ->getPageSetup()
+    ->setPaperSize(PageSetup::PAPERSIZE_A4);
+
+// Or override at writer level
+$writer->setPaperSize(PageSetup::PAPERSIZE_LETTER);
+```
+
+**Available paper sizes:**
+- `PageSetup::PAPERSIZE_LETTER` (default)
+- `PageSetup::PAPERSIZE_LEGAL`
+- `PageSetup::PAPERSIZE_A3`
+- `PageSetup::PAPERSIZE_A4`
+- `PageSetup::PAPERSIZE_A5`
+- `PageSetup::PAPERSIZE_B4`
+- `PageSetup::PAPERSIZE_B5`
+- And many more...
+
+### Multiple Worksheets
+
+By default, only the first worksheet is exported:
+
+```php
+// Export all worksheets
+$writer->writeAllSheets();
+
+// Or export specific sheet
+$writer->setSheetIndex(2); // Export sheet 3
+```
+
+### Formula Pre-calculation
+
+```php
+// Disable for better performance
+$writer->setPreCalculateFormulas(false);
+```
+
+### Include Charts
+
+```php
+$writer->setIncludeCharts(true);
+```
+
+## Customizing PDF Output
+
+### Hide Grid Lines
+
+```php
+$spreadsheet->getActiveSheet()->setShowGridLines(false);
+```
+
+### Set Print Area
+
+```php
+$spreadsheet->getActiveSheet()->getPageSetup()->setPrintArea('A1:F20');
+```
+
+### Page Margins
+
+```php
+$sheet = $spreadsheet->getActiveSheet();
+
+// Set margins in inches
+$sheet->getPageMargins()->setTop(1);
+$sheet->getPageMargins()->setRight(0.75);
+$sheet->getPageMargins()->setLeft(0.75);
+$sheet->getPageMargins()->setBottom(1);
+```
+
+### Headers and Footers
+
+```php
+$sheet = $spreadsheet->getActiveSheet();
+
+$sheet->getHeaderFooter()->setOddHeader('&C&HCompany Name');
+$sheet->getHeaderFooter()->setOddFooter('&LPage &P of &N' . '&RDate: &D');
+```
+
+### Edit HTML Callback
+
+Modify the HTML before PDF generation:
+
+```php
+function modifyHtml(string $html): string
+{
+    // Change styles
+    $html = str_replace(
+        '{border: 1px solid black;}',
+        '{border: 2px solid blue;}',
+        $html
+    );
+    return $html;
+}
+
+$writer = new Mpdf($spreadsheet);
+$writer->setEditHtmlCallback('modifyHtml');
+$writer->save('output.pdf');
+```
+
+## Advanced Configuration
+
+### Custom TCPDF Implementation
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf;
+
+class CustomTcpdf extends \TCPDF
+{
+    // Custom configuration
+    public function Header()
+    {
+        $this->SetY(10);
+        $this->SetFont('helvetica', 'B', 12);
+        $this->Cell(0, 10, 'Custom Header', 0, 1, 'C');
+    }
+}
+
+class CustomTcpdfWriter extends Tcpdf
+{
+    protected function createExternalWriterInstance(
+        string $orientation,
+        string $unit,
+        $paperSize
+    ): \TCPDF {
+        return new CustomTcpdf($orientation, $unit, $paperSize);
+    }
+}
+
+$writer = new CustomTcpdfWriter($spreadsheet);
+$writer->save('output.pdf');
+```
+
+## Downloading PDFs
+
+### Browser Download
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+// Set headers
+header('Content-Type: application/pdf');
+header('Content-Disposition: attachment;filename="report.pdf"');
+header('Cache-Control: max-age=0');
+
+// Generate PDF to browser
+$writer = new Mpdf($spreadsheet);
+$writer->save('php://output');
+exit;
+```
+
+### Inline Display
+
+```php
+header('Content-Type: application/pdf');
+header('Content-Disposition: inline;filename="report.pdf"');
+
+$writer = new Mpdf($spreadsheet);
+$writer->save('php://output');
+exit;
+```
+
+## Number Formatting
+
+Control decimal and thousands separators:
+
+```php
+use PhpOffice\PhpSpreadsheet\Shared\StringHelper;
+
+// Set before creating the writer
+StringHelper::setDecimalSeparator('.');
+StringHelper::setThousandsSeparator(',');
+
+$writer = new Mpdf($spreadsheet);
+$writer->save('output.pdf');
+```
+
+## Choosing a PDF Library
+
+<Tabs>
+  <Tab title="Mpdf">
+    **Best for:**
+    - Unicode and international characters
+    - Complex layouts
+    - RTL (right-to-left) languages
+    - Custom headers/footers
+    
+    **Pros:**
+    - Excellent Unicode support
+    - Good HTML/CSS support
+    - Active development
+    - Good documentation
+    
+    **Cons:**
+    - Moderate speed
+    - Higher memory usage
+  </Tab>
+  
+  <Tab title="Dompdf">
+    **Best for:**
+    - Simple spreadsheets
+    - Basic formatting
+    - Quick setup
+    
+    **Pros:**
+    - Easy to use
+    - Good HTML5/CSS3 support
+    - Pure PHP (no extensions needed)
+    - Faster than Mpdf
+    
+    **Cons:**
+    - Limited font support
+    - Fewer advanced features
+    - Can struggle with complex layouts
+  </Tab>
+  
+  <Tab title="TCPDF">
+    **Best for:**
+    - Production environments
+    - Complex requirements
+    - Maximum compatibility
+    
+    **Pros:**
+    - Very comprehensive
+    - Well-tested and stable
+    - Extensive font support
+    - Many configuration options
+    
+    **Cons:**
+    - Slower performance
+    - Larger memory footprint
+    - More complex API
+  </Tab>
+</Tabs>
+
+## Troubleshooting
+
+### Memory Issues
+
+```php
+// Increase memory limit
+ini_set('memory_limit', '512M');
+
+// Disable formula pre-calculation
+$writer->setPreCalculateFormulas(false);
+
+// Process sheets individually
+for ($i = 0; $i < $spreadsheet->getSheetCount(); $i++) {
+    $writer->setSheetIndex($i);
+    $writer->save("sheet_{$i}.pdf");
+}
+```
+
+### Font Issues
+
+```php
+// Use built-in fonts
+$writer->setFont('helvetica'); // TCPDF
+$writer->setFont('dejavusans'); // Mpdf
+
+// For special characters
+$writer->setFont('dejavusanscondensed');
+```
+
+### Large File Performance
+
+```php
+// Optimize for performance
+$writer->setPreCalculateFormulas(false);
+$writer->setIncludeCharts(false);
+$spreadsheet->getActiveSheet()->setShowGridLines(false);
+```
+
+## Best Practices
+
+<Card title="Performance">
+  - Disable formula pre-calculation for large files
+  - Don't include charts unless necessary
+  - Export only required sheets
+  - Hide grid lines for cleaner output
+  - Increase PHP memory limit if needed
+</Card>
+
+<Card title="Quality">
+  - Test with sample data first
+  - Verify fonts support your character set
+  - Check page breaks in the output
+  - Test with target PDF readers
+  - Set appropriate paper size and orientation
+</Card>
+
+<Card title="Security">
+  - Validate input data before export
+  - Set appropriate cache directories
+  - Clean up temporary files
+  - Use HTTPS for downloads
+  - Sanitize user-provided content
+</Card>
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+// Create spreadsheet
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add data
+$sheet->setCellValue('A1', 'Product');
+$sheet->setCellValue('B1', 'Price');
+$sheet->setCellValue('A2', 'Widget');
+$sheet->setCellValue('B2', 19.99);
+$sheet->setCellValue('A3', 'Gadget');
+$sheet->setCellValue('B3', 29.99);
+
+// Style header
+$sheet->getStyle('A1:B1')->getFont()->setBold(true);
+$sheet->getStyle('A1:B1')->getFill()
+    ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+    ->getStartColor()->setRGB('CCCCCC');
+
+// Configure page
+$sheet->getPageSetup()
+    ->setOrientation(PageSetup::ORIENTATION_PORTRAIT)
+    ->setPaperSize(PageSetup::PAPERSIZE_A4);
+$sheet->setShowGridLines(false);
+
+// Set margins
+$sheet->getPageMargins()->setTop(1);
+$sheet->getPageMargins()->setRight(0.75);
+$sheet->getPageMargins()->setLeft(0.75);
+$sheet->getPageMargins()->setBottom(1);
+
+// Create PDF
+$writer = new Mpdf($spreadsheet);
+$writer->setPreCalculateFormulas(false);
+$writer->save('product-list.pdf');
+
+echo 'PDF generated successfully!';
+```

@@ -1,0 +1,418 @@
+---
+title: Pdf Writers
+description: PDF writer classes reference (Dompdf, Mpdf, Tcpdf)
+---
+
+PhpSpreadsheet provides three PDF writer implementations, each using a different underlying PDF library. All PDF writers extend the Html writer and render spreadsheets as HTML tables before converting to PDF.
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Writer\Pdf`
+
+**Extends:** `Html` → `BaseWriter`
+
+## Available PDF Writers
+
+PhpSpreadsheet supports three PDF libraries:
+
+1. **Dompdf** - Pure PHP library, good balance of features and ease of use
+2. **Mpdf** - Feature-rich, excellent UTF-8 and RTL support
+3. **Tcpdf** - Comprehensive features, highly configurable
+
+<Note>
+You must install one of these libraries separately via Composer:
+- `composer require dompdf/dompdf`
+- `composer require mpdf/mpdf`
+- `composer require tecnickcom/tcpdf`
+</Note>
+
+## Common PDF Writer Base
+
+All PDF writers share these common features from the `Pdf` base class:
+
+### Common Methods
+
+#### setFont()
+
+```php
+public function setFont(string $fontName): self
+```
+
+Sets the default font for the PDF.
+
+<ParamField path="fontName" type="string" required>
+  Font name (e.g., 'freesans', 'dejavusans')
+</ParamField>
+
+#### setPaperSize()
+
+```php
+public function setPaperSize(int $paperSize): self
+```
+
+Sets the paper size for the PDF.
+
+<ParamField path="paperSize" type="int" required>
+  Paper size constant from PageSetup::PAPERSIZE_*
+</ParamField>
+
+#### setOrientation()
+
+```php
+public function setOrientation(string $orientation): self
+```
+
+Sets the page orientation.
+
+<ParamField path="orientation" type="string" required>
+  PageSetup::ORIENTATION_PORTRAIT or PageSetup::ORIENTATION_LANDSCAPE
+</ParamField>
+
+#### setTempDir()
+
+```php
+public function setTempDir(string $temporaryDirectory): self
+```
+
+Sets the temporary directory for intermediate files.
+
+<ParamField path="temporaryDirectory" type="string" required>
+  Path to temporary directory (must exist)
+</ParamField>
+
+---
+
+## Dompdf Writer
+
+**Class:** `PhpOffice\PhpSpreadsheet\Writer\Pdf\Dompdf`
+
+**Install:** `composer require dompdf/dompdf`
+
+Dompdf is a pure PHP library that converts HTML to PDF. It offers good performance and doesn't require external dependencies.
+
+### Features
+
+- ✅ Pure PHP (no extensions required)
+- ✅ Automatic image embedding
+- ✅ CSS support
+- ⚠️ Limited Unicode support
+- ⚠️ Basic table rendering
+
+### Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Dompdf;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setCellValue('A1', 'Hello PDF!');
+
+$writer = new Dompdf($spreadsheet);
+$writer->save('output.pdf');
+```
+
+### Configuration
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Dompdf;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+$writer = new Dompdf($spreadsheet);
+
+// Set paper size
+$writer->setPaperSize(PageSetup::PAPERSIZE_A4);
+
+// Set orientation
+$writer->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+
+$writer->save('output.pdf');
+```
+
+---
+
+## Mpdf Writer
+
+**Class:** `PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf`
+
+**Install:** `composer require mpdf/mpdf`
+
+Mpdf is a powerful PHP library with excellent UTF-8 and internationalization support. It's ideal for multilingual documents and complex layouts.
+
+### Features
+
+- ✅ Excellent UTF-8 support
+- ✅ RTL (Right-to-Left) language support
+- ✅ CJK (Chinese, Japanese, Korean) fonts
+- ✅ Advanced CSS support
+- ✅ Page headers and footers
+- ✅ Watermarks
+
+### Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setCellValue('A1', 'مرحبا'); // Arabic text
+
+$writer = new Mpdf($spreadsheet);
+$writer->save('output.pdf');
+```
+
+### Configuration
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+$writer = new Mpdf($spreadsheet);
+
+// Set paper size and orientation
+$writer->setPaperSize(PageSetup::PAPERSIZE_LETTER);
+$writer->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+
+// Set font for Unicode support
+$writer->setFont('dejavusans');
+
+// Set temp directory
+$writer->setTempDir('/tmp/mpdf');
+
+$writer->save('output.pdf');
+```
+
+### Unicode Fonts
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+$writer = new Mpdf($spreadsheet);
+
+// Chinese, Japanese, Korean
+$writer->setFont('arialunicid0-korean');
+
+// Arabic
+$writer->setFont('dejavusans');
+
+$writer->save('unicode.pdf');
+```
+
+---
+
+## Tcpdf Writer
+
+**Class:** `PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf`
+
+**Install:** `composer require tecnickcom/tcpdf`
+
+TCPDF is a comprehensive PHP library with extensive features and high configurability. It's suitable for complex PDF requirements.
+
+### Features
+
+- ✅ Comprehensive PDF features
+- ✅ Barcodes and QR codes
+- ✅ Digital signatures
+- ✅ Multiple languages
+- ✅ Font subsetting
+- ✅ Page numbering
+- ✅ Bookmarks
+
+### Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setCellValue('A1', 'Hello PDF!');
+
+$writer = new Tcpdf($spreadsheet);
+$writer->save('output.pdf');
+```
+
+### Configuration
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+$writer = new Tcpdf($spreadsheet);
+
+// Set paper size and orientation
+$writer->setPaperSize(PageSetup::PAPERSIZE_A4);
+$writer->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+
+// Set font
+$writer->setFont('helvetica');
+
+$writer->save('output.pdf');
+```
+
+## Common Usage Patterns
+
+### Basic PDF Export
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf; // or Dompdf, Tcpdf
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add data
+$sheet->fromArray([
+    ['Name', 'Email', 'Phone'],
+    ['John Doe', 'john@example.com', '555-1234'],
+    ['Jane Smith', 'jane@example.com', '555-5678']
+]);
+
+// Style header
+$sheet->getStyle('A1:C1')->getFont()->setBold(true);
+
+$writer = new Mpdf($spreadsheet);
+$writer->save('report.pdf');
+```
+
+### Download PDF to Browser
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+// Set headers for download
+header('Content-Type: application/pdf');
+header('Content-Disposition: attachment;filename="report.pdf"');
+header('Cache-Control: max-age=0');
+
+$writer = new Mpdf($spreadsheet);
+$writer->save('php://output');
+exit;
+```
+
+### Custom Page Setup
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+// Configure worksheet page setup
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->getPageSetup()
+    ->setOrientation(PageSetup::ORIENTATION_LANDSCAPE)
+    ->setPaperSize(PageSetup::PAPERSIZE_A4);
+
+// Set margins (in inches)
+$sheet->getPageMargins()
+    ->setTop(1)
+    ->setRight(0.75)
+    ->setBottom(1)
+    ->setLeft(0.75);
+
+$writer = new Mpdf($spreadsheet);
+$writer->save('custom-page.pdf');
+```
+
+### Multiple Sheets to PDF
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+$writer = new Mpdf($spreadsheet);
+$writer->writeAllSheets(); // Include all worksheets
+$writer->save('all-sheets.pdf');
+```
+
+### Include Charts
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+$writer = new Mpdf($spreadsheet);
+$writer->setIncludeCharts(true);
+$writer->save('with-charts.pdf');
+```
+
+### Embedded Images
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+$drawing = new Drawing();
+$drawing->setPath('logo.png');
+$drawing->setCoordinates('A1');
+$drawing->setWorksheet($spreadsheet->getActiveSheet());
+
+$writer = new Mpdf($spreadsheet);
+$writer->save('with-image.pdf');
+```
+
+## Choosing a PDF Library
+
+### Use Dompdf when:
+- ✅ You need a simple, lightweight solution
+- ✅ Pure PHP is required (no extensions)
+- ✅ Basic PDF output is sufficient
+- ✅ Latin character sets are primary
+
+### Use Mpdf when:
+- ✅ You need excellent UTF-8 support
+- ✅ Working with RTL languages (Arabic, Hebrew)
+- ✅ CJK fonts are required
+- ✅ Complex layouts with CSS
+- ✅ Professional page headers/footers
+
+### Use Tcpdf when:
+- ✅ You need comprehensive PDF features
+- ✅ Digital signatures are required
+- ✅ Barcodes or QR codes are needed
+- ✅ Maximum configurability is important
+- ✅ PDF/A compliance is needed
+
+## Performance Considerations
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
+
+$writer = new Mpdf($spreadsheet);
+
+// Disable formula calculation for speed
+$writer->setPreCalculateFormulas(false);
+
+// Use disk caching for large files
+$writer->setUseDiskCaching(true, '/tmp/cache');
+
+// Set temp directory
+$writer->setTempDir('/tmp/pdf');
+
+$writer->save('output.pdf');
+```
+
+## Common Issues
+
+### Memory Limit
+
+```php
+// Increase memory limit for large PDFs
+ini_set('memory_limit', '512M');
+```
+
+### Missing Fonts
+
+```php
+// Ensure appropriate fonts are installed
+$writer->setFont('dejavusans'); // Bundled with Mpdf
+```
+
+### Image Paths
+
+```php
+// Use absolute paths for images
+$drawing->setPath('/var/www/html/images/logo.png');
+```
+
+## Related
+
+- [Html Writer](/api/writers/html) - Base class for PDF writers
+- [Xlsx Writer](/api/writers/xlsx) - For editable spreadsheets
+- [Writers Overview](/api/writers/overview) - Common writer patterns

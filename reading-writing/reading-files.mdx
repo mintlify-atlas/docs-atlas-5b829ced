@@ -1,0 +1,316 @@
+---
+title: Reading Spreadsheet Files
+description: Learn how to read and load spreadsheet files using PhpSpreadsheet's IOFactory and reader classes
+---
+
+## Overview
+
+PhpSpreadsheet provides multiple ways to read spreadsheet files from various formats. You can use the `IOFactory` class for automatic file type detection or create specific reader instances for known file types.
+
+## Using IOFactory::load()
+
+The simplest way to load a file is using the static `load()` method, which automatically detects the file type:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$spreadsheet = IOFactory::load('path/to/file.xlsx');
+```
+
+This method:
+- Attempts to identify the file type based on extension
+- Tests the file with appropriate readers
+- Loads the file and returns a `Spreadsheet` object
+
+### Loading with Flags
+
+You can pass flags to control how the file is loaded:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\IReader;
+
+$spreadsheet = IOFactory::load(
+    'file.xlsx',
+    IReader::READ_DATA_ONLY | IReader::IGNORE_EMPTY_CELLS
+);
+```
+
+**Available flags:**
+- `IReader::LOAD_WITH_CHARTS` - Load charts from the file
+- `IReader::READ_DATA_ONLY` - Read only data, not formatting
+- `IReader::IGNORE_EMPTY_CELLS` - Skip empty cells
+- `IReader::IGNORE_ROWS_WITH_NO_CELLS` - Skip rows with no cells
+- `IReader::ALLOW_EXTERNAL_IMAGES` - Allow loading external images
+- `IReader::DONT_ALLOW_EXTERNAL_IMAGES` - Block external images
+
+### Limiting Reader Types
+
+If you know the file format but want to test only specific readers:
+
+```php
+$testAgainstFormats = [
+    IOFactory::READER_XLSX,
+    IOFactory::READER_XLS,
+];
+
+$spreadsheet = IOFactory::load('file.xls', 0, $testAgainstFormats);
+```
+
+## Creating Reader Instances
+
+### Using IOFactory::createReader()
+
+Create a reader for a specific format:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Create reader by type
+$reader = IOFactory::createReader('Xlsx');
+$spreadsheet = $reader->load('file.xlsx');
+```
+
+**Available reader types:**
+- `Xlsx` - Excel 2007+ (.xlsx)
+- `Xls` - Excel 97-2003 (.xls)
+- `Xml` - Excel 2003 XML (.xml)
+- `Ods` - OpenDocument Spreadsheet (.ods)
+- `Slk` - Symbolic Link (.slk)
+- `Gnumeric` - Gnumeric (.gnumeric)
+- `Html` - HTML (.html, .htm)
+- `Csv` - CSV files (.csv)
+
+### Direct Instantiation
+
+You can also instantiate readers directly:
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+
+$reader = new Xlsx();
+$spreadsheet = $reader->load('file.xlsx');
+```
+
+## Identifying File Types
+
+Use `IOFactory::identify()` to detect the file type before loading:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Get file type as string (e.g., "Xlsx")
+$fileType = IOFactory::identify('file.xlsx');
+
+// Get full class name (since PhpSpreadsheet 4.1.0)
+$className = IOFactory::identify('file.xlsx', null, true);
+
+// Create reader based on identified type
+$reader = IOFactory::createReader($fileType);
+$spreadsheet = $reader->load('file.xlsx');
+```
+
+### Using createReaderForFile()
+
+This method combines file type detection and reader creation:
+
+```php
+$reader = IOFactory::createReaderForFile('file.xlsx');
+$spreadsheet = $reader->load('file.xlsx');
+```
+
+## Reader Options
+
+### Read Data Only
+
+Ignore formatting and structure, read only cell values:
+
+```php
+$reader = IOFactory::createReader('Xlsx');
+$reader->setReadDataOnly(true);
+$spreadsheet = $reader->load('file.xlsx');
+```
+
+<Warning>
+  When reading data only, date formatting is not loaded, so dates appear as numeric values. The Gnumeric reader is an exception and can still identify dates.
+</Warning>
+
+### Ignore Empty Cells
+
+Skip loading cells with null or empty values to save memory:
+
+```php
+$reader->setReadEmptyCells(false);
+```
+
+### Load Specific Sheets
+
+Load only named worksheets:
+
+```php
+// Load single sheet
+$reader->setLoadSheetsOnly('Sheet1');
+
+// Load multiple sheets
+$reader->setLoadSheetsOnly(['Sheet1', 'Sheet3']);
+
+// Reset to load all sheets
+$reader->setLoadAllSheets();
+```
+
+### Load Charts
+
+Include charts when loading:
+
+```php
+$reader->setIncludeCharts(true);
+$spreadsheet = $reader->load('file.xlsx');
+
+// Or using flags
+$spreadsheet = $reader->load('file.xlsx', IReader::LOAD_WITH_CHARTS);
+```
+
+## Using Read Filters
+
+Read filters allow you to load only specific cells or ranges, which is useful for large files:
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
+
+class MyReadFilter implements IReadFilter
+{
+    public function readCell($columnAddress, $row, $worksheetName = ''): bool
+    {
+        // Read only rows 1-10 and columns A-E
+        if ($row >= 1 && $row <= 10) {
+            if (in_array($columnAddress, range('A', 'E'))) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+$reader = IOFactory::createReader('Xlsx');
+$reader->setReadFilter(new MyReadFilter());
+$spreadsheet = $reader->load('large-file.xlsx');
+```
+
+### Chunking Large Files
+
+Process large files in chunks to reduce memory usage:
+
+```php
+class ChunkReadFilter implements IReadFilter
+{
+    private int $startRow = 0;
+    private int $endRow = 0;
+
+    public function setRows(int $startRow, int $chunkSize): void
+    {
+        $this->startRow = $startRow;
+        $this->endRow = $startRow + $chunkSize;
+    }
+
+    public function readCell($columnAddress, $row, $worksheetName = ''): bool
+    {
+        if ($row == 1 || ($row >= $this->startRow && $row < $this->endRow)) {
+            return true;
+        }
+        return false;
+    }
+}
+
+$reader = IOFactory::createReader('Xlsx');
+$chunkSize = 1000;
+$chunkFilter = new ChunkReadFilter();
+$reader->setReadFilter($chunkFilter);
+
+for ($startRow = 2; $startRow <= 100000; $startRow += $chunkSize) {
+    $chunkFilter->setRows($startRow, $chunkSize);
+    $spreadsheet = $reader->load('huge-file.xlsx');
+    // Process chunk...
+}
+```
+
+<Note>
+  Read filters don't renumber cells. If you filter rows 100-200, they remain numbered as 100-200, not 1-101. Use `rangeToArray()` instead of `toArray()` when working with filtered data.
+</Note>
+
+## Security Considerations
+
+### XML External Entity (XXE) Protection
+
+PhpSpreadsheet automatically protects against XXE attacks in XML-based formats (Xlsx, Xml, Ods, Gnumeric). If XML entities are detected in the DOCTYPE, an exception is thrown.
+
+### External Images
+
+By default, external images are not loaded. Enable with caution:
+
+```php
+$reader->setAllowExternalImages(true);
+
+// Or using flags
+$spreadsheet = $reader->load('file.xlsx', IReader::ALLOW_EXTERNAL_IMAGES);
+```
+
+## Error Handling
+
+Always wrap file operations in try-catch blocks:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\Exception;
+
+try {
+    $spreadsheet = IOFactory::load('file.xlsx');
+} catch (Exception $e) {
+    die('Error loading file: ' . $e->getMessage());
+}
+```
+
+## Helper Methods
+
+### List Worksheet Names
+
+Get worksheet names without loading the entire file:
+
+```php
+$reader = IOFactory::createReader('Xlsx');
+$worksheetNames = $reader->listWorksheetNames('file.xlsx');
+
+foreach ($worksheetNames as $name) {
+    echo $name . "\n";
+}
+```
+
+### List Worksheet Info
+
+Get worksheet dimensions and metadata:
+
+```php
+$worksheetData = $reader->listWorksheetInfo('file.xlsx');
+
+foreach ($worksheetData as $worksheet) {
+    echo "Name: {$worksheet['worksheetName']}\n";
+    echo "Rows: {$worksheet['totalRows']}\n";
+    echo "Columns: {$worksheet['totalColumns']}\n";
+    echo "Range: A1:{$worksheet['lastColumnLetter']}{$worksheet['totalRows']}\n";
+}
+```
+
+## Best Practices
+
+<Card title="Performance Tips">
+  - Use `setReadDataOnly(true)` when you don't need formatting
+  - Use `setReadEmptyCells(false)` to reduce memory usage
+  - Implement read filters for large files
+  - Process large files in chunks
+  - Use explicit reader types instead of auto-detection for better performance
+</Card>
+
+<Card title="Memory Management">
+  - Close spreadsheet objects when done: `$spreadsheet->disconnectWorksheets()`
+  - Process files in chunks for very large datasets
+  - Consider using read filters to load only required data
+</Card>

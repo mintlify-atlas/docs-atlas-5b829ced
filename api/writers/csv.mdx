@@ -1,0 +1,381 @@
+---
+title: Csv Writer
+description: Comma-Separated Values writer class reference
+---
+
+The `Csv` writer exports spreadsheet data to CSV (Comma-Separated Values) format, a simple text-based format widely used for data exchange.
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Writer\Csv`
+
+**Extends:** `BaseWriter`
+
+## Class Overview
+
+The Csv writer exports a single worksheet as plain text with delimited values. It only exports cell values, not formatting, formulas, or other spreadsheet features.
+
+<Warning>
+CSV files only support a single worksheet. If your spreadsheet has multiple sheets, you must select which one to export.
+</Warning>
+
+## Constructor
+
+```php
+public function __construct(Spreadsheet $spreadsheet)
+```
+
+Creates a new Csv writer instance.
+
+<ParamField path="spreadsheet" type="Spreadsheet" required>
+  The spreadsheet object to write
+</ParamField>
+
+## Key Methods
+
+### save()
+
+```php
+public function save($filename, int $flags = 0): void
+```
+
+Saves the active worksheet as a CSV file.
+
+<ParamField path="filename" type="string|resource" required>
+  File path or resource to write to
+</ParamField>
+
+<ParamField path="flags" type="int" default="0">
+  Optional flags (see [IWriter constants](/api/writers/overview#save))
+</ParamField>
+
+### setDelimiter()
+
+```php
+public function setDelimiter(string $delimiter): self
+```
+
+Sets the field delimiter character.
+
+<ParamField path="delimiter" type="string" default=",">
+  Delimiter character (e.g., ',', ';', '\t')
+</ParamField>
+
+### setEnclosure()
+
+```php
+public function setEnclosure(string $enclosure = '"'): self
+```
+
+Sets the field enclosure character used to wrap values containing special characters.
+
+<ParamField path="enclosure" type="string" default='"'>
+  Enclosure character (typically '"')
+</ParamField>
+
+### setLineEnding()
+
+```php
+public function setLineEnding(string $lineEnding): self
+```
+
+Sets the line ending sequence.
+
+<ParamField path="lineEnding" type="string" default="PHP_EOL">
+  Line ending: '\n' (Unix) or '\r\n' (Windows)
+</ParamField>
+
+### setSheetIndex()
+
+```php
+public function setSheetIndex(int $sheetIndex): self
+```
+
+Selects which worksheet to export.
+
+<ParamField path="sheetIndex" type="int" required>
+  Zero-based index of the worksheet to export
+</ParamField>
+
+### setUseBOM()
+
+```php
+public function setUseBOM(bool $useBOM): self
+```
+
+Controls whether a UTF-8 BOM (Byte Order Mark) should be written at the start of the file.
+
+<ParamField path="useBOM" type="bool" required>
+  True to include BOM, false to omit it
+</ParamField>
+
+### setIncludeSeparatorLine()
+
+```php
+public function setIncludeSeparatorLine(bool $includeSeparatorLine): self
+```
+
+Controls whether a separator line (sep=x) should be included as the first line.
+
+<ParamField path="includeSeparatorLine" type="bool" required>
+  True to include separator line, false to omit it
+</ParamField>
+
+### setExcelCompatibility()
+
+```php
+public function setExcelCompatibility(bool $excelCompatibility): self
+```
+
+Enables full Excel compatibility mode. This sets UTF-8 BOM, semicolon delimiter, double-quote enclosure, and CRLF line endings.
+
+<ParamField path="excelCompatibility" type="bool" required>
+  True to enable Excel compatibility
+</ParamField>
+
+### setOutputEncoding()
+
+```php
+public function setOutputEncoding(string $outputEncoding): self
+```
+
+Sets the output character encoding.
+
+<ParamField path="outputEncoding" type="string" required>
+  Character encoding (e.g., 'UTF-8', 'ISO-8859-1')
+</ParamField>
+
+### setVariableColumns()
+
+```php
+public function setVariableColumns(bool $pValue): self
+```
+
+Controls whether the number of columns should be allowed to vary between rows.
+
+<ParamField path="pValue" type="bool" required>
+  True for variable columns, false for fixed range
+</ParamField>
+
+### setEnclosureRequired()
+
+```php
+public function setEnclosureRequired(bool $value): self
+```
+
+Controls whether all fields should be enclosed, or only those containing special characters.
+
+<ParamField path="value" type="bool" required>
+  True to always enclose fields, false to enclose only when needed
+</ParamField>
+
+### setPreferHyperlinkToLabel()
+
+```php
+public function setPreferHyperlinkToLabel(bool $preferHyperlinkToLabel): self
+```
+
+Controls whether to export hyperlink URLs instead of cell labels.
+
+<ParamField path="preferHyperlinkToLabel" type="bool" required>
+  True to export URLs, false to export labels
+</ParamField>
+
+## Usage Examples
+
+### Basic Export
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->fromArray([
+    ['Name', 'Email', 'Phone'],
+    ['John Doe', 'john@example.com', '555-1234'],
+    ['Jane Smith', 'jane@example.com', '555-5678']
+]);
+
+$writer = new Csv($spreadsheet);
+$writer->save('contacts.csv');
+```
+
+### Custom Delimiter (Semicolon)
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$writer = new Csv($spreadsheet);
+$writer->setDelimiter(';');
+$writer->save('data.csv');
+```
+
+### Tab-Delimited File
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$writer = new Csv($spreadsheet);
+$writer->setDelimiter("\t");
+$writer->save('data.tsv');
+```
+
+### Excel-Compatible CSV
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$writer = new Csv($spreadsheet);
+$writer->setExcelCompatibility(true);
+$writer->save('excel.csv');
+
+// Equivalent to:
+// $writer->setUseBOM(true);
+// $writer->setIncludeSeparatorLine(true);
+// $writer->setEnclosure('"');
+// $writer->setDelimiter(';');
+// $writer->setLineEnding("\r\n");
+```
+
+### Export Specific Sheet
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$writer = new Csv($spreadsheet);
+$writer->setSheetIndex(1); // Export second sheet
+$writer->save('sheet2.csv');
+```
+
+### UTF-8 with BOM
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$writer = new Csv($spreadsheet);
+$writer->setUseBOM(true); // Helps Excel recognize UTF-8 encoding
+$writer->save('utf8.csv');
+```
+
+### Alternative Encoding
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$writer = new Csv($spreadsheet);
+$writer->setOutputEncoding('ISO-8859-1');
+$writer->save('latin1.csv');
+```
+
+### Export to String
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$stream = fopen('php://temp', 'r+');
+
+$writer = new Csv($spreadsheet);
+$writer->save($stream);
+
+rewind($stream);
+$csvContent = stream_get_contents($stream);
+fclose($stream);
+
+// Use $csvContent as needed
+```
+
+### Download to Browser
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+// Set headers for download
+header('Content-Type: text/csv');
+header('Content-Disposition: attachment;filename="data.csv"');
+header('Cache-Control: max-age=0');
+
+$writer = new Csv($spreadsheet);
+$writer->setUseBOM(true);
+$writer->save('php://output');
+exit;
+```
+
+### Export URLs Instead of Labels
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+// If cells contain hyperlinks, export the URLs
+$writer = new Csv($spreadsheet);
+$writer->setPreferHyperlinkToLabel(true);
+$writer->save('urls.csv');
+```
+
+### Minimal Enclosure
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+// Only enclose fields that contain special characters
+$writer = new Csv($spreadsheet);
+$writer->setEnclosureRequired(false);
+$writer->save('minimal.csv');
+```
+
+## Format Limitations
+
+CSV files do not support:
+
+- ❌ Multiple worksheets (single sheet only)
+- ❌ Cell formatting (colors, fonts, borders)
+- ❌ Formulas (only values are exported)
+- ❌ Charts
+- ❌ Images
+- ❌ Merged cells
+- ❌ Data types (everything is text)
+- ❌ Metadata
+
+## Best Practices
+
+### Pre-calculate Formulas
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+// Calculate formulas before export
+$writer = new Csv($spreadsheet);
+$writer->setPreCalculateFormulas(true);
+$writer->save('calculated.csv');
+```
+
+### Handle Special Characters
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+// Proper handling of commas, quotes, and newlines
+$sheet->setCellValue('A1', 'Text with, comma');
+$sheet->setCellValue('A2', 'Text with "quotes"');
+$sheet->setCellValue('A3', "Text with\nNewline");
+
+$writer = new Csv($spreadsheet);
+$writer->setEnclosure('"'); // Fields will be properly escaped
+$writer->save('special.csv');
+```
+
+### Regional Settings
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+// For European Excel (uses semicolon and comma for decimals)
+$writer = new Csv($spreadsheet);
+$writer->setDelimiter(';');
+$writer->setUseBOM(true);
+$writer->save('european.csv');
+```
+
+## Related
+
+- [Xlsx Writer](/api/writers/xlsx) - For full spreadsheet features
+- [Html Writer](/api/writers/html) - For web display
+- [Writers Overview](/api/writers/overview) - Common writer patterns

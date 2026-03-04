@@ -1,0 +1,386 @@
+---
+title: Html Writer
+description: HTML table format writer class reference
+---
+
+The `Html` writer exports spreadsheets to HTML format, rendering them as styled HTML tables that can be displayed in web browsers.
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Writer\Html`
+
+**Extends:** `BaseWriter`
+
+## Class Overview
+
+The Html writer converts spreadsheet data into HTML tables with inline or CSS styling. It preserves cell formatting, colors, borders, and supports images and basic features.
+
+## Constructor
+
+```php
+public function __construct(Spreadsheet $spreadsheet)
+```
+
+Creates a new Html writer instance.
+
+<ParamField path="spreadsheet" type="Spreadsheet" required>
+  The spreadsheet object to write
+</ParamField>
+
+## Key Methods
+
+### save()
+
+```php
+public function save($filename, int $flags = 0): void
+```
+
+Saves the spreadsheet as an HTML file.
+
+<ParamField path="filename" type="string|resource" required>
+  File path or resource to write to
+</ParamField>
+
+<ParamField path="flags" type="int" default="0">
+  Optional flags (see [IWriter constants](/api/writers/overview#save))
+</ParamField>
+
+### setSheetIndex()
+
+```php
+public function setSheetIndex(int $sheetIndex): self
+```
+
+Selects which worksheet to export.
+
+<ParamField path="sheetIndex" type="int" required>
+  Zero-based index of the worksheet to export
+</ParamField>
+
+### writeAllSheets()
+
+```php
+public function writeAllSheets(): self
+```
+
+Configures the writer to export all worksheets.
+
+### setGenerateSheetNavigationBlock()
+
+```php
+public function setGenerateSheetNavigationBlock(bool $generateSheetNavigationBlock): self
+```
+
+Controls whether to generate navigation tabs for multiple sheets.
+
+<ParamField path="generateSheetNavigationBlock" type="bool" required>
+  True to generate navigation, false to omit it
+</ParamField>
+
+### setUseInlineCss()
+
+```php
+public function setUseInlineCss(bool $useInlineCss): self
+```
+
+Controls whether to use inline CSS styles or generate a separate style block.
+
+<ParamField path="useInlineCss" type="bool" required>
+  True for inline styles, false for style block
+</ParamField>
+
+### setEmbedImages()
+
+```php
+public function setEmbedImages(bool $embedImages): self
+```
+
+Controls whether to embed images as data URIs or link to external files.
+
+<ParamField path="embedImages" type="bool" required>
+  True to embed images, false to link to them
+</ParamField>
+
+### setImagesRoot()
+
+```php
+public function setImagesRoot(string $imagesRoot): self
+```
+
+Sets the root path for image links when not embedding.
+
+<ParamField path="imagesRoot" type="string" required>
+  Path prefix for image URLs
+</ParamField>
+
+### setEditHtmlCallback()
+
+```php
+public function setEditHtmlCallback(?callable $callback): void
+```
+
+Sets a callback function to edit the generated HTML before output.
+
+<ParamField path="callback" type="callable|null" required>
+  Function that receives HTML string and returns modified HTML
+</ParamField>
+
+### generateHTMLHeader()
+
+```php
+public function generateHTMLHeader(bool $includeStyles = false): string
+```
+
+Generates the HTML header section.
+
+### generateSheetData()
+
+```php
+public function generateSheetData(): string
+```
+
+Generates the HTML table data.
+
+### generateHTMLFooter()
+
+```php
+public function generateHTMLFooter(): string
+```
+
+Generates the HTML footer section.
+
+### generateStyles()
+
+```php
+public function generateStyles(bool $generateSurroundingHTML = true): string
+```
+
+Generates CSS styles.
+
+### buildCSS()
+
+```php
+public function buildCSS(bool $generateSurroundingHTML = true): array
+```
+
+Builds CSS styles as an array.
+
+## Usage Examples
+
+### Basic Export
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setCellValue('A1', 'Hello World!');
+$sheet->getStyle('A1')->getFont()->setBold(true);
+
+$writer = new Html($spreadsheet);
+$writer->save('output.html');
+```
+
+### Export Specific Sheet
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$writer = new Html($spreadsheet);
+$writer->setSheetIndex(1); // Export second sheet
+$writer->save('sheet2.html');
+```
+
+### Export All Sheets with Navigation
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$writer = new Html($spreadsheet);
+$writer->writeAllSheets();
+$writer->setGenerateSheetNavigationBlock(true);
+$writer->save('all-sheets.html');
+```
+
+### Inline CSS for Email
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+// Use inline styles for better email client compatibility
+$writer = new Html($spreadsheet);
+$writer->setUseInlineCss(true);
+
+$stream = fopen('php://temp', 'r+');
+$writer->save($stream);
+rewind($stream);
+$html = stream_get_contents($stream);
+fclose($stream);
+
+// Send via email
+mail('user@example.com', 'Report', $html, [
+    'Content-Type: text/html; charset=UTF-8'
+]);
+```
+
+### Embed Images
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+// Embed images as base64 data URIs
+$writer = new Html($spreadsheet);
+$writer->setEmbedImages(true);
+$writer->save('with-images.html');
+```
+
+### External Image Links
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$writer = new Html($spreadsheet);
+$writer->setEmbedImages(false);
+$writer->setImagesRoot('/images/'); // Images at /images/*.png
+$writer->save('output.html');
+```
+
+### Custom HTML Processing
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$writer = new Html($spreadsheet);
+
+// Add custom processing
+$writer->setEditHtmlCallback(function($html) {
+    // Add custom CSS
+    $html = str_replace('</head>', 
+        '<link rel="stylesheet" href="custom.css"></head>', 
+        $html);
+    
+    // Add analytics
+    $html = str_replace('</body>', 
+        '<script src="analytics.js"></script></body>', 
+        $html);
+    
+    return $html;
+});
+
+$writer->save('custom.html');
+```
+
+### Generate HTML String
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$writer = new Html($spreadsheet);
+$html = $writer->generateHTMLAll();
+
+// Use $html as needed (display, save to database, etc.)
+```
+
+### Output to Browser
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+// Set headers for HTML display
+header('Content-Type: text/html; charset=UTF-8');
+
+$writer = new Html($spreadsheet);
+$writer->save('php://output');
+exit;
+```
+
+### Styled Table
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Header row
+$sheet->fromArray(['Name', 'Email', 'Status'], null, 'A1');
+$sheet->getStyle('A1:C1')->applyFromArray([
+    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4472C4']],
+    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
+]);
+
+// Data rows
+$sheet->fromArray([
+    ['John Doe', 'john@example.com', 'Active'],
+    ['Jane Smith', 'jane@example.com', 'Inactive']
+], null, 'A2');
+
+$writer = new Html($spreadsheet);
+$writer->save('styled.html');
+```
+
+## Format Features
+
+The Html writer supports:
+
+- ✅ Cell formatting (fonts, colors, borders, fills)
+- ✅ Alignment (horizontal, vertical)
+- ✅ Number formats (displayed as formatted text)
+- ✅ Merged cells
+- ✅ Images (embedded or linked)
+- ✅ Rich text (partial)
+- ✅ Row heights and column widths
+- ✅ Hidden rows and columns
+- ✅ Multiple worksheets
+- ⚠️ Comments (as hover tooltips)
+- ⚠️ Charts (when includeCharts is enabled, as images)
+- ❌ Formulas (values only)
+- ❌ Data validation
+- ❌ Conditional formatting
+
+## CSS Classes
+
+The generated HTML uses these CSS classes:
+
+- `.sheet0`, `.sheet1`, etc. - Individual worksheet tables
+- `.row0`, `.row1`, etc. - Table rows
+- `.column0`, `.column1`, etc. - Table columns
+- `.style0`, `.style1`, etc. - Cell styles
+- `.b` - Boolean values
+- `.n` - Numeric values
+- `.s` - String values
+- `.f` - Formulas
+- `.e` - Error values
+- `.gridlines` - Print gridlines
+- `.navigation` - Sheet navigation
+
+## Advanced Configuration
+
+### Pre-calculate Formulas
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$writer = new Html($spreadsheet);
+$writer->setPreCalculateFormulas(true); // Show calculated values
+$writer->save('output.html');
+```
+
+### Include Charts
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$writer = new Html($spreadsheet);
+$writer->setIncludeCharts(true); // Render charts as images
+$writer->save('with-charts.html');
+```
+
+## Related
+
+- [Pdf Writers](/api/writers/pdf) - For print-ready output
+- [Csv Writer](/api/writers/csv) - For plain text data
+- [Writers Overview](/api/writers/overview) - Common writer patterns

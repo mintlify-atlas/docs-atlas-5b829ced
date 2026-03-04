@@ -1,0 +1,408 @@
+---
+title: Document Themes
+description: Work with Excel document themes for consistent styling
+---
+
+## Overview
+
+Excel themes provide a consistent color scheme and font set across your spreadsheet. PhpSpreadsheet supports reading, modifying, and writing theme information, allowing you to create professionally styled documents that match corporate branding or design guidelines.
+
+## Understanding Themes
+
+A theme consists of:
+- **Color scheme**: A set of 12 predefined colors (2 background, 2 text, 6 accent, 2 hyperlink colors)
+- **Font scheme**: Major (heading) and minor (body) fonts with language-specific variants
+- **Font substitutions**: Alternative fonts for different scripts/languages
+
+## Accessing Theme Information
+
+```php
+$theme = $spreadsheet->getTheme();
+
+// Get theme names
+$colorTheme = $theme->getThemeColorName();    // e.g., 'Office'
+$fontTheme = $theme->getThemeFontName();      // e.g., 'Office'
+```
+
+## Predefined Color Schemes
+
+PhpSpreadsheet provides several built-in Office color schemes:
+
+### Office 2007-2010
+
+```php
+use PhpOffice\PhpSpreadsheet\Theme;
+
+$theme->setColorByName(Theme::COLOR_SCHEME_2007_2010_NAME);
+
+// Or set colors directly
+$colors = Theme::COLOR_SCHEME_2007_2010;
+/*
+[
+    'dk1'      => '000000',  // Dark 1 (text/lines)
+    'lt1'      => 'FFFFFF',  // Light 1 (background)
+    'dk2'      => '1F497D',  // Dark 2
+    'lt2'      => 'EEECE1',  // Light 2
+    'accent1'  => '4F81BD',  // Accent 1
+    'accent2'  => 'C0504D',  // Accent 2
+    'accent3'  => '9BBB59',  // Accent 3
+    'accent4'  => '8064A2',  // Accent 4
+    'accent5'  => '4BACC6',  // Accent 5
+    'accent6'  => 'F79646',  // Accent 6
+    'hlink'    => '0000FF',  // Hyperlink
+    'folHlink' => '800080',  // Followed hyperlink
+]
+*/
+```
+
+### Office 2013-2022
+
+```php
+use PhpOffice\PhpSpreadsheet\Theme;
+
+$theme->setColorByName(Theme::COLOR_SCHEME_2013_2022_NAME);
+
+// Colors
+$colors = Theme::COLOR_SCHEME_2013_2022;
+/*
+[
+    'dk1'      => '000000',
+    'lt1'      => 'FFFFFF',
+    'dk2'      => '44546A',
+    'lt2'      => 'E7E6E6',
+    'accent1'  => '4472C4',
+    'accent2'  => 'ED7D31',
+    'accent3'  => 'A5A5A5',
+    'accent4'  => 'FFC000',
+    'accent5'  => '5B9BD5',
+    'accent6'  => '70AD47',
+    'hlink'    => '0563C1',
+    'folHlink' => '954F72',
+]
+*/
+```
+
+### Office 2023+
+
+```php
+use PhpOffice\PhpSpreadsheet\Theme;
+
+$theme->setColorByName(Theme::COLOR_SCHEME_2023_PLUS_NAME);
+
+// Colors
+$colors = Theme::COLOR_SCHEME_2023_PLUS;
+/*
+[
+    'dk1'      => '000000',
+    'lt1'      => 'FFFFFF',
+    'dk2'      => '0E2841',
+    'lt2'      => 'E8E8E8',
+    'accent1'  => '156082',
+    'accent2'  => 'E97132',
+    'accent3'  => '196B24',
+    'accent4'  => '0F9ED5',
+    'accent5'  => 'A02B93',
+    'accent6'  => '4EA72E',
+    'hlink'    => '467886',
+    'folHlink' => '96607D',
+]
+*/
+```
+
+## Working with Theme Colors
+
+### Setting Theme Colors
+
+```php
+// Set entire color scheme by name
+$theme->setColorByName('Office 2013-2022');
+
+// Or set individual colors
+$theme->setColorByIndex(0, '000000');  // Dark 1
+$theme->setColorByIndex(1, 'FFFFFF');  // Light 1
+// ... up to index 11
+
+// Set with array
+$colorScheme = [
+    'dk1' => '000000',
+    'lt1' => 'FFFFFF',
+    'dk2' => '44546A',
+    'lt2' => 'E7E6E6',
+    'accent1' => '5B9BD5',
+    'accent2' => 'ED7D31',
+    'accent3' => 'A5A5A5',
+    'accent4' => 'FFC000',
+    'accent5' => '4472C4',
+    'accent6' => '70AD47',
+    'hlink' => '0563C1',
+    'folHlink' => '954F72',
+];
+
+$theme->setCompleteColorScheme($colorScheme);
+```
+
+### Reading Theme Colors
+
+```php
+// Get all theme colors
+$colors = $theme->getThemeColors();
+
+// Get specific color by index (0-11)
+$accentColor = $theme->getThemeColor(4);  // Accent 1
+
+// Get hyperlink color
+$hyperlinkColor = $theme->getThemeColor(Theme::HYPERLINK_THEME);  // Index 10
+```
+
+### Color Index Reference
+
+| Index | Name | Purpose |
+|-------|------|----------|
+| 0 | dk1 | Dark 1 (Text/Lines) |
+| 1 | lt1 | Light 1 (Background) |
+| 2 | dk2 | Dark 2 |
+| 3 | lt2 | Light 2 |
+| 4 | accent1 | Accent 1 |
+| 5 | accent2 | Accent 2 |
+| 6 | accent3 | Accent 3 |
+| 7 | accent4 | Accent 4 |
+| 8 | accent5 | Accent 5 |
+| 9 | accent6 | Accent 6 |
+| 10 | hlink | Hyperlink |
+| 11 | folHlink | Followed Hyperlink |
+
+## Working with Theme Fonts
+
+### Setting Theme Fonts
+
+```php
+// Set theme font name
+$theme->setThemeFontName('Custom Theme');
+
+// Set major (heading) fonts
+$theme->setMajorFontValues(
+    'Cambria',           // Latin script
+    'ＭＳ Ｐゴシック',      // East Asian script
+    'Times New Roman',   // Complex script (Arabic, Hebrew)
+    []                   // Font substitutions (optional)
+);
+
+// Set minor (body) fonts
+$theme->setMinorFontValues(
+    'Calibri',
+    'ＭＳ Ｐゴシック',
+    'Arial',
+    []
+);
+
+// Or set individual components
+$theme->setMajorFontLatin('Cambria');
+$theme->setMajorFontEastAsian('ＭＳ Ｐゴシック');
+$theme->setMajorFontComplexScript('Times New Roman');
+
+$theme->setMinorFontLatin('Calibri');
+$theme->setMinorFontEastAsian('ＭＳ Ｐゴシック');
+$theme->setMinorFontComplexScript('Arial');
+```
+
+### Reading Theme Fonts
+
+```php
+// Get major fonts
+$majorLatin = $theme->getMajorFontLatin();
+$majorEastAsian = $theme->getMajorFontEastAsian();
+$majorComplex = $theme->getMajorFontComplexScript();
+
+// Get minor fonts
+$minorLatin = $theme->getMinorFontLatin();
+$minorEastAsian = $theme->getMinorFontEastAsian();
+$minorComplex = $theme->getMinorFontComplexScript();
+```
+
+### Font Substitutions
+
+Font substitutions define alternative fonts for different language scripts:
+
+```php
+use PhpOffice\PhpSpreadsheet\Theme;
+
+// Times-based substitutions (for major/heading fonts)
+$theme->setMajorFontSubstitutions(Theme::FONTS_TIMES_SUBSTITUTIONS);
+
+// Arial-based substitutions (for minor/body fonts)
+$theme->setMinorFontSubstitutions(Theme::FONTS_ARIAL_SUBSTITUTIONS);
+
+// Custom substitutions
+$customSubstitutions = [
+    'Jpan' => 'Yu Gothic',          // Japanese
+    'Hang' => 'Malgun Gothic',      // Korean
+    'Hans' => 'SimSun',             // Simplified Chinese
+    'Hant' => 'PMingLiU',           // Traditional Chinese
+    'Arab' => 'Times New Roman',    // Arabic
+    'Hebr' => 'Times New Roman',    // Hebrew
+    'Thai' => 'Tahoma',             // Thai
+    // ... more scripts
+];
+$theme->setMajorFontSubstitutions($customSubstitutions);
+```
+
+## Applying Theme Fonts to Cells
+
+### Using Theme Fonts
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Font;
+
+// Bind font to theme (major or minor)
+$spreadsheet->getActiveSheet()->getStyle('A1')->getFont()
+    ->setScheme('major');  // or 'minor'
+
+// Apply theme fonts to cell
+$spreadsheet->getActiveSheet()->getStyle('A1')->getFont()
+    ->applyThemeFonts($theme);
+```
+
+### Setting Hyperlink Theme Color
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Font;
+
+// Set hyperlink using theme color
+$spreadsheet->getActiveSheet()->getStyle('E26')->getFont()
+    ->setHyperlinkTheme();
+```
+
+This applies underline and the theme's hyperlink color (theme index 10).
+
+## Aligning Default Font with Theme
+
+Make the default workbook font match the theme's minor font:
+
+```php
+// Set default font to match theme
+$spreadsheet->getTheme()
+    ->setThemeFontName('custom')
+    ->setMinorFontValues('Arial', 'Arial', 'Arial', []);
+
+$spreadsheet->getDefaultStyle()->getFont()->setScheme('minor');
+
+// Apply theme fonts across all cells bound to theme
+$spreadsheet->resetThemeFonts();
+```
+
+## Creating a Custom Theme
+
+Here's a complete example of creating a custom theme:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Theme;
+
+$spreadsheet = new Spreadsheet();
+$theme = $spreadsheet->getTheme();
+
+// Set theme names
+$theme->setThemeFontName('Corporate Theme');
+$theme->setThemeColorName('Corporate Colors');
+
+// Define custom color scheme
+$customColors = [
+    'dk1'      => '000000',
+    'lt1'      => 'FFFFFF',
+    'dk2'      => '2E5090',  // Corporate blue
+    'lt2'      => 'F0F0F0',
+    'accent1'  => '0066CC',  // Primary brand color
+    'accent2'  => 'FF6600',  // Secondary brand color
+    'accent3'  => '009966',
+    'accent4'  => 'FFB300',
+    'accent5'  => '6666CC',
+    'accent6'  => 'CC0066',
+    'hlink'    => '0066CC',
+    'folHlink' => '003366',
+];
+$theme->setCompleteColorScheme($customColors);
+
+// Set fonts
+$theme->setMajorFontValues('Georgia', '', '', []);
+$theme->setMinorFontValues('Arial', '', '', []);
+
+// Apply theme font to default style
+$spreadsheet->getDefaultStyle()->getFont()->setScheme('minor');
+$spreadsheet->resetThemeFonts();
+```
+
+## Reading Theme from Existing File
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$spreadsheet = IOFactory::load('template.xlsx');
+$theme = $spreadsheet->getTheme();
+
+// Inspect theme
+echo "Color Theme: " . $theme->getThemeColorName() . "\n";
+echo "Font Theme: " . $theme->getThemeFontName() . "\n";
+
+// Get colors
+$colors = $theme->getThemeColors();
+foreach ($colors as $name => $color) {
+    echo "$name: $color\n";
+}
+
+// Get fonts
+echo "Major Font (Latin): " . $theme->getMajorFontLatin() . "\n";
+echo "Minor Font (Latin): " . $theme->getMinorFontLatin() . "\n";
+```
+
+## Theme Color Methods Summary
+
+```php
+// Setters
+$theme->setThemeColorName(string $name);
+$theme->setColorByName(string $schemeName);
+$theme->setColorByIndex(int $index, string $color);
+$theme->setCompleteColorScheme(array $colors);
+
+// Getters
+$theme->getThemeColorName(): string;
+$theme->getThemeColors(): array;
+$theme->getThemeColor(int $index): string;
+```
+
+## Theme Font Methods Summary
+
+```php
+// Setters
+$theme->setThemeFontName(string $name);
+$theme->setMajorFontValues(string $latin, string $eastAsian, string $complex, array $substitutions);
+$theme->setMinorFontValues(string $latin, string $eastAsian, string $complex, array $substitutions);
+$theme->setMajorFontLatin(string $font);
+$theme->setMinorFontLatin(string $font);
+$theme->setMajorFontSubstitutions(array $substitutions);
+$theme->setMinorFontSubstitutions(array $substitutions);
+
+// Getters
+$theme->getThemeFontName(): string;
+$theme->getMajorFontLatin(): string;
+$theme->getMinorFontLatin(): string;
+$theme->getMajorFontEastAsian(): string;
+$theme->getMinorFontEastAsian(): string;
+$theme->getMajorFontComplexScript(): string;
+$theme->getMinorFontComplexScript(): string;
+$theme->getMajorFontSubstitutions(): array;
+$theme->getMinorFontSubstitutions(): array;
+```
+
+## Best Practices
+
+<Tip>
+- Use theme colors for consistent branding across documents
+- Bind fonts to the theme using `setScheme()` for easier theme switching
+- Call `resetThemeFonts()` after changing theme fonts to update all bound cells
+- Use predefined Office color schemes for compatibility
+- Test theme appearance in Excel to verify correct rendering
+</Tip>
+
+<Note>
+Theme support varies across file formats. Xlsx provides the most complete theme support. When saving to other formats, theme information may be lost, and colors/fonts will be converted to their explicit values.
+</Note>

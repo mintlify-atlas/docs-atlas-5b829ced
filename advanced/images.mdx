@@ -1,0 +1,386 @@
+---
+title: 'Images and Drawings'
+description: 'Add images, drawings, and graphics to Excel worksheets with PhpSpreadsheet'
+---
+
+## Introduction
+
+PhpSpreadsheet allows you to add images and drawings to worksheets. You can insert images from files, URLs, or create in-memory images using GD.
+
+## Adding Images from Files
+
+### Basic Image Insertion
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+
+$drawing = new Drawing();
+$drawing->setName('Logo');
+$drawing->setDescription('Company Logo');
+$drawing->setPath('./images/logo.jpg');
+$drawing->setHeight(36);
+$drawing->setWorksheet($spreadsheet->getActiveSheet());
+```
+
+### Positioning Images
+
+#### Cell Coordinates
+
+Position an image at a specific cell:
+
+```php
+$drawing->setCoordinates('B15');
+```
+
+#### Offsets
+
+Add pixel offsets to fine-tune positioning:
+
+```php
+$drawing->setCoordinates('B15');
+$drawing->setOffsetX(110);  // Horizontal offset in pixels
+$drawing->setOffsetY(20);   // Vertical offset in pixels
+```
+
+### Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+
+$drawing = new Drawing();
+$drawing->setName('Paid Stamp');
+$drawing->setDescription('Paid stamp image');
+$drawing->setPath('./images/paid.png');
+$drawing->setCoordinates('B15');
+$drawing->setOffsetX(110);
+$drawing->setOffsetY(10);
+$drawing->setHeight(50);
+$drawing->setWorksheet($spreadsheet->getActiveSheet());
+```
+
+## Image Properties
+
+### Size and Dimensions
+
+```php
+// Set height (width adjusts proportionally)
+$drawing->setHeight(100);
+
+// Set width (height adjusts proportionally)
+$drawing->setWidth(200);
+
+// Set both dimensions (may distort image)
+$drawing->setWidth(200);
+$drawing->setHeight(100);
+```
+
+### Rotation
+
+```php
+// Rotate image (degrees)
+$drawing->setRotation(25);
+```
+
+### Shadow Effects
+
+```php
+$drawing->getShadow()->setVisible(true);
+$drawing->getShadow()->setDirection(45);
+$drawing->getShadow()->setDistance(10);
+```
+
+## In-Memory Images (GD)
+
+### Creating Images with GD
+
+Create images dynamically without saving to disk:
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
+
+// Create an image using GD
+$gdImage = @imagecreatetruecolor(120, 20) or die('Cannot initialize GD image');
+$textColor = imagecolorallocate($gdImage, 255, 255, 255);
+imagestring($gdImage, 1, 5, 5, 'Created with PhpSpreadsheet', $textColor);
+
+// Add the in-memory image to worksheet
+$drawing = new MemoryDrawing();
+$drawing->setName('In-Memory Image');
+$drawing->setDescription('Dynamically created image');
+$drawing->setCoordinates('A1');
+$drawing->setImageResource($gdImage);
+$drawing->setRenderingFunction(
+    MemoryDrawing::RENDERING_JPEG
+);
+$drawing->setMimeType(MemoryDrawing::MIMETYPE_DEFAULT);
+$drawing->setHeight(36);
+$drawing->setWorksheet($spreadsheet->getActiveSheet());
+```
+
+<Warning>
+GD images are memory-intensive. Use them sparingly in production environments.
+</Warning>
+
+### Rendering Functions
+
+Available rendering functions for MemoryDrawing:
+
+```php
+MemoryDrawing::RENDERING_DEFAULT  // PNG
+MemoryDrawing::RENDERING_PNG      // PNG
+MemoryDrawing::RENDERING_GIF      // GIF
+MemoryDrawing::RENDERING_JPEG     // JPEG
+```
+
+## Creating Images from Strings or Streams
+
+### From String Data
+
+Create a drawing from binary image data:
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
+
+$imageString = file_get_contents('path/to/image.png');
+$drawing = MemoryDrawing::fromString($imageString);
+$drawing->setWorksheet($spreadsheet->getActiveSheet());
+```
+
+### From Stream
+
+Create a drawing from a stream (e.g., S3 bucket):
+
+```php
+$imageStream = fopen('s3://bucket/image.png', 'r');
+$drawing = MemoryDrawing::fromStream($imageStream);
+$drawing->setWorksheet($spreadsheet->getActiveSheet());
+```
+
+<Note>
+Both methods create temporary files and are memory-intensive processes.
+</Note>
+
+## Reading Images from Worksheets
+
+### Extracting Images
+
+Extract all images from a worksheet and save them:
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
+
+$i = 0;
+
+foreach ($spreadsheet->getActiveSheet()->getDrawingCollection() as $drawing) {
+    if ($drawing instanceof MemoryDrawing) {
+        // Handle in-memory images
+        ob_start();
+        call_user_func(
+            $drawing->getRenderingFunction(),
+            $drawing->getImageResource()
+        );
+        $imageContents = ob_get_contents();
+        ob_end_clean();
+        
+        switch ($drawing->getMimeType()) {
+            case MemoryDrawing::MIMETYPE_PNG:
+                $extension = 'png';
+                break;
+            case MemoryDrawing::MIMETYPE_GIF:
+                $extension = 'gif';
+                break;
+            case MemoryDrawing::MIMETYPE_JPEG:
+                $extension = 'jpg';
+                break;
+        }
+    } else {
+        // Handle file-based images
+        if ($drawing->getPath()) {
+            $zipReader = fopen($drawing->getPath(), 'r');
+            $imageContents = '';
+            while (!feof($zipReader)) {
+                $imageContents .= fread($zipReader, 1024);
+            }
+            fclose($zipReader);
+            $extension = $drawing->getExtension();
+        }
+    }
+    
+    $filename = '00_Image_' . ++$i . '.' . $extension;
+    file_put_contents($filename, $imageContents);
+}
+```
+
+## Image Anchoring
+
+### Move and Size with Cells
+
+Control how images behave when rows/columns are resized:
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+
+$drawing = new Drawing();
+$drawing->setPath('./images/logo.png');
+$drawing->setCoordinates('B2');
+
+// Options:
+// 1. Move and size with cells
+$drawing->setResizeProportional(true);
+
+// 2. Move but don't size with cells (default)
+$drawing->setResizeProportional(false);
+
+// 3. Don't move or size with cells
+$drawing->setEditAs(Drawing::EDIT_AS_ABSOLUTE);
+
+$drawing->setWorksheet($spreadsheet->getActiveSheet());
+```
+
+## Header/Footer Images
+
+### Adding Images to Headers/Footers
+
+Images can be added to worksheet headers and footers (Xlsx only):
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\HeaderFooterDrawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\HeaderFooter;
+
+$drawing = new HeaderFooterDrawing();
+$drawing->setName('Logo');
+$drawing->setPath('./images/logo.png');
+$drawing->setHeight(36);
+
+$spreadsheet->getActiveSheet()
+    ->getHeaderFooter()
+    ->addImage(
+        $drawing,
+        HeaderFooter::IMAGE_HEADER_LEFT
+    );
+```
+
+### Header/Footer Positions
+
+Available positions:
+
+```php
+HeaderFooter::IMAGE_HEADER_LEFT
+HeaderFooter::IMAGE_HEADER_CENTER
+HeaderFooter::IMAGE_HEADER_RIGHT
+HeaderFooter::IMAGE_FOOTER_LEFT
+HeaderFooter::IMAGE_FOOTER_CENTER
+HeaderFooter::IMAGE_FOOTER_RIGHT
+```
+
+<Tip>
+To use different images on first or even pages, call `setDifferentFirst(true)` or `setDifferentOddEven(true)` on the HeaderFooter object.
+</Tip>
+
+## Image Formats
+
+### Supported Formats
+
+PhpSpreadsheet supports these image formats:
+
+- **JPEG/JPG** - Joint Photographic Experts Group
+- **PNG** - Portable Network Graphics
+- **GIF** - Graphics Interchange Format
+- **BMP** - Bitmap
+
+### Format Recommendations
+
+| Format | Best For |
+|--------|----------|
+| PNG | Logos, icons, images with transparency |
+| JPEG | Photographs, complex images |
+| GIF | Simple graphics, animations |
+| BMP | Uncompressed images (larger file size) |
+
+## Hyperlinks on Images
+
+Add clickable hyperlinks to images (Xlsx only):
+
+```php
+$drawing = new Drawing();
+$drawing->setPath('./images/logo.png');
+$drawing->setCoordinates('A1');
+$drawing->setHyperlink(
+    new \PhpOffice\PhpSpreadsheet\Cell\Hyperlink(
+        'https://www.example.com',
+        'Visit our website'
+    )
+);
+$drawing->setWorksheet($spreadsheet->getActiveSheet());
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Optimize Image Sizes">
+    Resize images before adding them to reduce file size and improve performance.
+  </Accordion>
+  
+  <Accordion title="Use Appropriate Formats">
+    Choose the right format: PNG for logos, JPEG for photos, to balance quality and file size.
+  </Accordion>
+  
+  <Accordion title="Set Descriptive Names">
+    Use meaningful names and descriptions for accessibility and debugging.
+  </Accordion>
+  
+  <Accordion title="Limit GD Usage">
+    In-memory images using GD are memory-intensive. Use sparingly in production.
+  </Accordion>
+  
+  <Accordion title="Position Carefully">
+    Position images to avoid overlapping with data or other objects.
+  </Accordion>
+</AccordionGroup>
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Add file-based image
+$logo = new Drawing();
+$logo->setName('Company Logo');
+$logo->setDescription('Logo');
+$logo->setPath('./images/logo.png');
+$logo->setCoordinates('A1');
+$logo->setHeight(50);
+$logo->setWorksheet($worksheet);
+
+// Add GD-based image
+$gdImage = imagecreatetruecolor(200, 50);
+$bgColor = imagecolorallocate($gdImage, 255, 255, 255);
+$textColor = imagecolorallocate($gdImage, 0, 0, 0);
+imagefill($gdImage, 0, 0, $bgColor);
+imagestring($gdImage, 5, 10, 15, 'Generated Image', $textColor);
+
+$generated = new MemoryDrawing();
+$generated->setName('Generated');
+$generated->setDescription('Generated image');
+$generated->setCoordinates('A3');
+$generated->setImageResource($gdImage);
+$generated->setRenderingFunction(MemoryDrawing::RENDERING_PNG);
+$generated->setMimeType(MemoryDrawing::MIMETYPE_DEFAULT);
+$generated->setHeight(50);
+$generated->setWorksheet($worksheet);
+
+// Save
+$writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->save('images.xlsx');
+```
+
+## Related Topics
+
+- [Charts](/advanced/charts)
+- [Cell Comments](/advanced/comments)
+- [Worksheets](/essentials/worksheets)

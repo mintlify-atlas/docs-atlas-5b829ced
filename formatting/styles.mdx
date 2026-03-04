@@ -1,0 +1,526 @@
+---
+title: Cell Styles
+description: Apply fonts, colors, fills, borders, and alignment to cells
+---
+
+## Overview
+
+PhpSpreadsheet provides comprehensive styling capabilities through the `Style` class. Styles can be applied to individual cells or ranges of cells.
+
+## The Style Class
+
+The `Style` class is the main container for all style components:
+
+```php
+$style = $spreadsheet->getActiveSheet()->getStyle('A1');
+
+// Access style components
+$font = $style->getFont();
+$fill = $style->getFill();
+$borders = $style->getBorders();
+$alignment = $style->getAlignment();
+$numberFormat = $style->getNumberFormat();
+$protection = $style->getProtection();
+```
+
+## Applying Styles with Arrays
+
+The most efficient way to apply multiple style properties is using `applyFromArray()`:
+
+```php
+$styleArray = [
+    'font' => [
+        'name' => 'Arial',
+        'bold' => true,
+        'italic' => false,
+        'underline' => \PhpOffice\PhpSpreadsheet\Style\Font::UNDERLINE_DOUBLE,
+        'strikethrough' => false,
+        'color' => ['rgb' => '808080']
+    ],
+    'borders' => [
+        'bottom' => [
+            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_DASHDOT,
+            'color' => ['rgb' => '808080']
+        ],
+        'top' => [
+            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_DASHDOT,
+            'color' => ['rgb' => '808080']
+        ]
+    ],
+    'alignment' => [
+        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+        'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+        'wrapText' => true,
+    ],
+    'fill' => [
+        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+        'startColor' => ['rgb' => 'FFFF00']
+    ]
+];
+
+$spreadsheet->getActiveSheet()->getStyle('B2')->applyFromArray($styleArray);
+```
+
+## Font Styling
+
+### Font Properties
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Font;
+
+$font = $spreadsheet->getActiveSheet()->getStyle('A1')->getFont();
+
+// Font name and size
+$font->setName('Arial');
+$font->setSize(14);
+
+// Font styles
+$font->setBold(true);
+$font->setItalic(true);
+$font->setStrikethrough(true);
+
+// Underline
+$font->setUnderline(Font::UNDERLINE_SINGLE);
+// Options: UNDERLINE_NONE, UNDERLINE_SINGLE, UNDERLINE_DOUBLE,
+//          UNDERLINE_SINGLEACCOUNTING, UNDERLINE_DOUBLEACCOUNTING
+
+// Superscript and subscript
+$font->setSuperscript(true);
+// OR
+$font->setSubscript(true);
+
+// Font color
+$font->getColor()->setRGB('FF0000');
+// OR
+$font->getColor()->setARGB('FFFF0000');
+```
+
+### Font Constants
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Font;
+
+Font::UNDERLINE_NONE
+Font::UNDERLINE_SINGLE
+Font::UNDERLINE_DOUBLE
+Font::UNDERLINE_SINGLEACCOUNTING
+Font::UNDERLINE_DOUBLEACCOUNTING
+Font::DEFAULT_FONT_NAME  // 'Calibri'
+```
+
+### Using Array Format
+
+```php
+$spreadsheet->getActiveSheet()->getStyle('A1')->getFont()->applyFromArray([
+    'name' => 'Arial',
+    'bold' => true,
+    'italic' => false,
+    'underline' => Font::UNDERLINE_DOUBLE,
+    'strikethrough' => false,
+    'color' => ['rgb' => '808080']
+]);
+```
+
+## Colors
+
+Colors can be specified in multiple ways:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+// RGB (without alpha)
+$color->setRGB('FF0000');
+
+// ARGB (with alpha/transparency)
+$color->setARGB('FFFF0000');
+
+// Predefined colors
+$color->setARGB(Color::COLOR_RED);
+$color->setARGB(Color::COLOR_BLUE);
+$color->setARGB(Color::COLOR_GREEN);
+$color->setARGB(Color::COLOR_BLACK);
+$color->setARGB(Color::COLOR_WHITE);
+$color->setARGB(Color::COLOR_YELLOW);
+$color->setARGB(Color::COLOR_DARKRED);
+$color->setARGB(Color::COLOR_DARKBLUE);
+$color->setARGB(Color::COLOR_DARKGREEN);
+$color->setARGB(Color::COLOR_DARKYELLOW);
+
+// Array format
+['color' => ['rgb' => 'FF0000']]
+['color' => ['argb' => 'FFFF0000']]
+```
+
+## Fill Patterns
+
+### Solid Fill
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+
+$fill = $spreadsheet->getActiveSheet()->getStyle('A1')->getFill();
+$fill->setFillType(Fill::FILL_SOLID);
+$fill->getStartColor()->setARGB('FFCCFFCC');
+```
+
+### Gradient Fill
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+
+$fill->setFillType(Fill::FILL_GRADIENT_LINEAR);
+$fill->setRotation(90);
+$fill->getStartColor()->setRGB('000000');
+$fill->getEndColor()->setARGB('FFFFFFFF');
+```
+
+### Pattern Fills
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+
+// Available pattern types
+Fill::FILL_NONE
+Fill::FILL_SOLID
+Fill::FILL_GRADIENT_LINEAR
+Fill::FILL_GRADIENT_PATH
+Fill::FILL_PATTERN_DARKDOWN
+Fill::FILL_PATTERN_DARKGRAY
+Fill::FILL_PATTERN_DARKGRID
+Fill::FILL_PATTERN_DARKHORIZONTAL
+Fill::FILL_PATTERN_DARKTRELLIS
+Fill::FILL_PATTERN_DARKUP
+Fill::FILL_PATTERN_DARKVERTICAL
+Fill::FILL_PATTERN_GRAY0625
+Fill::FILL_PATTERN_GRAY125
+Fill::FILL_PATTERN_LIGHTDOWN
+Fill::FILL_PATTERN_LIGHTGRAY
+Fill::FILL_PATTERN_LIGHTGRID
+Fill::FILL_PATTERN_LIGHTHORIZONTAL
+Fill::FILL_PATTERN_LIGHTTRELLIS
+Fill::FILL_PATTERN_LIGHTUP
+Fill::FILL_PATTERN_LIGHTVERTICAL
+Fill::FILL_PATTERN_MEDIUMGRAY
+```
+
+### Using Array Format
+
+```php
+$spreadsheet->getActiveSheet()->getStyle('A1')->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['argb' => 'FFCCFFCC']
+    ]
+]);
+
+// Gradient fill
+$spreadsheet->getActiveSheet()->getStyle('A1')->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_GRADIENT_LINEAR,
+        'rotation' => 0.0,
+        'startColor' => ['rgb' => '000000'],
+        'endColor' => ['argb' => 'FFFFFFFF']
+    ]
+]);
+```
+
+## Borders
+
+### Basic Borders
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Border;
+
+$borders = $spreadsheet->getActiveSheet()->getStyle('A1')->getBorders();
+
+// Individual borders
+$borders->getTop()->setBorderStyle(Border::BORDER_THIN);
+$borders->getBottom()->setBorderStyle(Border::BORDER_THIN);
+$borders->getLeft()->setBorderStyle(Border::BORDER_THIN);
+$borders->getRight()->setBorderStyle(Border::BORDER_THIN);
+
+// Border colors
+$borders->getTop()->getColor()->setRGB('FF0000');
+
+// Diagonal borders
+$borders->getDiagonal()->setBorderStyle(Border::BORDER_THIN);
+$borders->setDiagonalDirection(Border::DIAGONAL_UP);
+// Options: DIAGONAL_NONE, DIAGONAL_UP, DIAGONAL_DOWN, DIAGONAL_BOTH
+```
+
+### Border Styles
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Border;
+
+Border::BORDER_NONE
+Border::BORDER_DASHDOT
+Border::BORDER_DASHDOTDOT
+Border::BORDER_DASHED
+Border::BORDER_DOTTED
+Border::BORDER_DOUBLE
+Border::BORDER_HAIR
+Border::BORDER_MEDIUM
+Border::BORDER_MEDIUMDASHDOT
+Border::BORDER_MEDIUMDASHDOTDOT
+Border::BORDER_MEDIUMDASHED
+Border::BORDER_SLANTDASHDOT
+Border::BORDER_THICK
+Border::BORDER_THIN
+```
+
+### Border Shortcuts
+
+Apply borders to ranges efficiently:
+
+```php
+// Apply outline border
+$styleArray = [
+    'borders' => [
+        'outline' => [
+            'borderStyle' => Border::BORDER_THICK,
+            'color' => ['argb' => 'FFFF0000'],
+        ],
+    ],
+];
+
+$spreadsheet->getActiveSheet()->getStyle('B2:G8')->applyFromArray($styleArray);
+
+// All borders
+$styleArray = [
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['argb' => 'FF000000'],
+        ],
+    ],
+];
+
+// Inside borders (vertical and horizontal)
+$styleArray = [
+    'borders' => [
+        'inside' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['argb' => 'FF000000'],
+        ],
+    ],
+];
+
+// Vertical borders only
+$styleArray = [
+    'borders' => [
+        'vertical' => [
+            'borderStyle' => Border::BORDER_THIN,
+        ],
+    ],
+];
+
+// Horizontal borders only
+$styleArray = [
+    'borders' => [
+        'horizontal' => [
+            'borderStyle' => Border::BORDER_THIN,
+        ],
+    ],
+];
+```
+
+<Note>
+Border hierarchy (weakest to strongest): `allBorders`, `outline`/`inside`, `vertical`/`horizontal`, `left`/`right`/`top`/`bottom`/`diagonal`
+</Note>
+
+### Advanced Border Mode
+
+The second parameter `$advancedBorders` controls how borders are applied:
+
+```php
+// Advanced mode (default: true) - applies to range as a whole
+$sheet->getStyle('B2:C3')->applyFromArray($styleArray, true);
+
+// Simple mode (false) - applies to each cell individually
+$sheet->getStyle('B5:C6')->applyFromArray($styleArray, false);
+```
+
+## Alignment
+
+### Horizontal Alignment
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
+$alignment = $spreadsheet->getActiveSheet()->getStyle('A1')->getAlignment();
+
+$alignment->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+// Options:
+Alignment::HORIZONTAL_GENERAL
+Alignment::HORIZONTAL_LEFT
+Alignment::HORIZONTAL_RIGHT
+Alignment::HORIZONTAL_CENTER
+Alignment::HORIZONTAL_CENTER_CONTINUOUS
+Alignment::HORIZONTAL_JUSTIFY
+Alignment::HORIZONTAL_FILL
+Alignment::HORIZONTAL_DISTRIBUTED
+```
+
+### Vertical Alignment
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
+$alignment->setVertical(Alignment::VERTICAL_CENTER);
+
+// Options:
+Alignment::VERTICAL_TOP
+Alignment::VERTICAL_CENTER
+Alignment::VERTICAL_BOTTOM
+Alignment::VERTICAL_JUSTIFY
+Alignment::VERTICAL_DISTRIBUTED
+```
+
+### Text Control
+
+```php
+// Wrap text
+$alignment->setWrapText(true);
+
+// Shrink to fit
+$alignment->setShrinkToFit(true);
+
+// Text rotation (0 to 180, or -1 to -90)
+$alignment->setTextRotation(45);
+// Use -165 (or TEXTROTATION_STACK_PHPSPREADSHEET) for stacked text
+
+// Indent (only with left/right alignment)
+$alignment->setIndent(2);
+
+// Read order
+$alignment->setReadOrder(Alignment::READORDER_LTR);
+// Options: READORDER_CONTEXT, READORDER_LTR, READORDER_RTL
+```
+
+### Using Array Format
+
+```php
+$spreadsheet->getActiveSheet()->getStyle('A1')->applyFromArray([
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER,
+        'textRotation' => 0,
+        'wrapText' => true,
+        'shrinkToFit' => false,
+        'indent' => 0,
+    ]
+]);
+```
+
+## Applying Styles to Ranges
+
+Styles can be applied to cell ranges efficiently:
+
+```php
+// Apply to single cell
+$spreadsheet->getActiveSheet()->getStyle('A1')->applyFromArray($styleArray);
+
+// Apply to range
+$spreadsheet->getActiveSheet()->getStyle('A1:D4')->applyFromArray($styleArray);
+
+// Apply to entire row
+$spreadsheet->getActiveSheet()->getStyle('5:5')->applyFromArray($styleArray);
+
+// Apply to entire column
+$spreadsheet->getActiveSheet()->getStyle('C:C')->applyFromArray($styleArray);
+
+// Apply to multiple ranges (using duplicateStyle)
+$spreadsheet->getActiveSheet()->duplicateStyle(
+    $spreadsheet->getActiveSheet()->getStyle('A1'),
+    'B1:B10'
+);
+```
+
+## Default Workbook Style
+
+Set default styles for the entire workbook:
+
+```php
+// Set default font
+$spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
+$spreadsheet->getDefaultStyle()->getFont()->setSize(10);
+
+// Set default alignment
+$spreadsheet->getDefaultStyle()->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+```
+
+## Protection
+
+Control cell locking and visibility:
+
+```php
+$protection = $spreadsheet->getActiveSheet()->getStyle('A1')->getProtection();
+
+// Lock cell (prevents editing when sheet is protected)
+$protection->setLocked(Protection::PROTECTION_PROTECTED);
+
+// Hide formula (formula bar is empty when cell is selected)
+$protection->setHidden(Protection::PROTECTION_PROTECTED);
+
+// Unlock cells
+$protection->setLocked(Protection::PROTECTION_UNPROTECTED);
+```
+
+<Warning>
+Cell protection only takes effect when worksheet protection is enabled:
+```php
+$spreadsheet->getActiveSheet()->getProtection()->setSheet(true);
+```
+</Warning>
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Set values
+$sheet->setCellValue('A1', 'Header');
+$sheet->setCellValue('A2', 1234.56);
+
+// Apply comprehensive styling
+$sheet->getStyle('A1:E1')->applyFromArray([
+    'font' => [
+        'bold' => true,
+        'color' => ['rgb' => 'FFFFFF'],
+        'size' => 14,
+        'name' => 'Arial'
+    ],
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '4472C4']
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER,
+    ],
+    'borders' => [
+        'outline' => [
+            'borderStyle' => Border::BORDER_THICK,
+            'color' => ['rgb' => '000000']
+        ]
+    ]
+]);
+```
+
+## Best Practices
+
+<Tip>
+- Use `applyFromArray()` for better performance when setting multiple properties
+- Apply styles to ranges rather than individual cells when possible
+- PhpSpreadsheet minimizes memory by reusing identical styles
+- Set default styles at the workbook level for consistency
+</Tip>

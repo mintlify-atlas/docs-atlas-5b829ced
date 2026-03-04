@@ -1,0 +1,443 @@
+---
+title: 'Chart'
+description: 'API reference for creating and managing charts in PhpSpreadsheet'
+---
+
+## Overview
+
+The `Chart` class represents a visual chart that can be embedded in a worksheet. Charts transform worksheet data into visual representations like bar charts, line charts, pie charts, and more.
+
+**Namespace**: `PhpOffice\PhpSpreadsheet\Chart`
+
+## Creating a Chart
+
+A chart requires several components:
+- **DataSeriesValues**: Define the data labels, categories, and values
+- **DataSeries**: Configure the chart type, grouping, and data
+- **PlotArea**: Container for the data series
+- **Legend**: Optional legend for the chart
+- **Title**: Chart title and axis labels
+
+### Basic Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Legend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
+
+// Prepare data in worksheet
+$worksheet->fromArray([
+    ['', 2010, 2011, 2012],
+    ['Q1', 12, 15, 21],
+    ['Q2', 56, 73, 86],
+    ['Q3', 52, 61, 69],
+    ['Q4', 30, 32, 0],
+]);
+
+// Define data series labels
+$dataSeriesLabels = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$B$1', null, 1),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$C$1', null, 1),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$D$1', null, 1),
+];
+
+// Define X-axis labels
+$xAxisTickValues = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$A$2:$A$5', null, 4),
+];
+
+// Define data values
+$dataSeriesValues = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$B$2:$B$5', null, 4),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$C$2:$C$5', null, 4),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$D$2:$D$5', null, 4),
+];
+
+// Build the data series
+$series = new DataSeries(
+    DataSeries::TYPE_BARCHART,
+    DataSeries::GROUPING_STANDARD,
+    range(0, count($dataSeriesValues) - 1),
+    $dataSeriesLabels,
+    $xAxisTickValues,
+    $dataSeriesValues
+);
+
+// Make it a vertical column chart
+$series->setPlotDirection(DataSeries::DIRECTION_COL);
+
+// Create plot area and legend
+$plotArea = new PlotArea(null, [$series]);
+$legend = new Legend(Legend::POSITION_RIGHT, null, false);
+$title = new Title('Quarterly Sales');
+$yAxisLabel = new Title('Value ($k)');
+
+// Create the chart
+$chart = new Chart(
+    'chart1',
+    $title,
+    $legend,
+    $plotArea,
+    true,
+    DataSeries::EMPTY_AS_GAP,
+    null,
+    $yAxisLabel
+);
+
+// Position the chart
+$chart->setTopLeftPosition('A7');
+$chart->setBottomRightPosition('H20');
+
+// Add to worksheet
+$worksheet->addChart($chart);
+```
+
+## Constructor
+
+```php
+public function __construct(
+    string $name,
+    ?Title $title = null,
+    ?Legend $legend = null,
+    ?PlotArea $plotArea = null,
+    bool $plotVisibleOnly = true,
+    string $displayBlanksAs = DataSeries::DEFAULT_EMPTY_AS,
+    ?Title $xAxisLabel = null,
+    ?Title $yAxisLabel = null,
+    ?Axis $xAxis = null,
+    ?Axis $yAxis = null
+)
+```
+
+<ParamField path="name" type="string" required>
+  Unique name identifier for the chart
+</ParamField>
+
+<ParamField path="title" type="Title|null">
+  Chart title object
+</ParamField>
+
+<ParamField path="legend" type="Legend|null">
+  Chart legend configuration
+</ParamField>
+
+<ParamField path="plotArea" type="PlotArea|null">
+  Plot area containing data series
+</ParamField>
+
+<ParamField path="plotVisibleOnly" type="bool" default="true">
+  Whether to plot only visible cells
+</ParamField>
+
+<ParamField path="displayBlanksAs" type="string" default="gap">
+  How to handle blank cells: `gap`, `zero`, or `span`
+</ParamField>
+
+<ParamField path="xAxisLabel" type="Title|null">
+  X-axis label
+</ParamField>
+
+<ParamField path="yAxisLabel" type="Title|null">
+  Y-axis label
+</ParamField>
+
+<ParamField path="xAxis" type="Axis|null">
+  X-axis configuration object
+</ParamField>
+
+<ParamField path="yAxis" type="Axis|null">
+  Y-axis configuration object
+</ParamField>
+
+## Key Methods
+
+### getName()
+
+Get the chart name.
+
+```php
+public function getName(): string
+```
+
+### setName()
+
+Set the chart name.
+
+```php
+public function setName(string $name): self
+```
+
+### getTitle() / setTitle()
+
+Get or set the chart title.
+
+```php
+public function getTitle(): ?Title
+public function setTitle(Title $title): static
+```
+
+### getLegend() / setLegend()
+
+Get or set the chart legend.
+
+```php
+public function getLegend(): ?Legend
+public function setLegend(Legend $legend): static
+```
+
+### getPlotArea() / setPlotArea()
+
+Get or set the plot area.
+
+```php
+public function getPlotArea(): ?PlotArea
+public function setPlotArea(PlotArea $plotArea): self
+```
+
+### setTopLeftPosition()
+
+Set the top-left anchor position for the chart.
+
+```php
+public function setTopLeftPosition(
+    string $cellAddress,
+    ?int $xOffset = null,
+    ?int $yOffset = null
+): static
+```
+
+<ParamField path="cellAddress" type="string" required>
+  Cell address (e.g., 'A7')
+</ParamField>
+
+<ParamField path="xOffset" type="int|null">
+  Horizontal offset in pixels
+</ParamField>
+
+<ParamField path="yOffset" type="int|null">
+  Vertical offset in pixels
+</ParamField>
+
+**Example**:
+```php
+$chart->setTopLeftPosition('A7');
+// or with offsets
+$chart->setTopLeftPosition('A7', 10, 10);
+```
+
+### setBottomRightPosition()
+
+Set the bottom-right anchor position for the chart.
+
+```php
+public function setBottomRightPosition(
+    string $cellAddress = '',
+    ?int $xOffset = null,
+    ?int $yOffset = null
+): static
+```
+
+**Example**:
+```php
+$chart->setBottomRightPosition('H20');
+```
+
+### getTopLeftPosition()
+
+Get the top-left position.
+
+```php
+public function getTopLeftPosition(): array
+```
+
+**Returns**: Array with keys `cell`, `xOffset`, `yOffset`
+
+### getBottomRightPosition()
+
+Get the bottom-right position.
+
+```php
+public function getBottomRightPosition(): array
+```
+
+**Returns**: Array with keys `cell`, `xOffset`, `yOffset`
+
+### render()
+
+Render the chart to a file or stream.
+
+```php
+public function render(?string $outputDestination = null): bool
+```
+
+<ParamField path="outputDestination" type="string|null">
+  File path to save the rendered chart, or null for default output
+</ParamField>
+
+### refresh()
+
+Refresh chart data from the worksheet.
+
+```php
+public function refresh(): void
+```
+
+### getChartAxisX() / setChartAxisX()
+
+Get or set the X-axis configuration.
+
+```php
+public function getChartAxisX(): Axis
+public function setChartAxisX(?Axis $axis): self
+```
+
+### getChartAxisY() / setChartAxisY()
+
+Get or set the Y-axis configuration.
+
+```php
+public function getChartAxisY(): Axis
+public function setChartAxisY(?Axis $axis): self
+```
+
+## Chart Types
+
+The chart type is defined in the `DataSeries` object. Available types include:
+
+- `DataSeries::TYPE_BARCHART` - Bar/Column chart
+- `DataSeries::TYPE_LINECHART` - Line chart
+- `DataSeries::TYPE_AREACHART` - Area chart
+- `DataSeries::TYPE_PIECHART` - Pie chart
+- `DataSeries::TYPE_DOUGHNUTCHART` - Doughnut chart
+- `DataSeries::TYPE_SCATTERCHART` - Scatter chart
+- `DataSeries::TYPE_RADARCHART` - Radar chart
+- `DataSeries::TYPE_BUBBLECHART` - Bubble chart
+- `DataSeries::TYPE_STOCKCHART` - Stock/Candle chart
+- `DataSeries::TYPE_SURFACECHART` - Surface chart
+
+## 3D Charts
+
+For 3D chart rendering, use methods to control perspective:
+
+### setRotX() / getRotX()
+
+Set/get X-axis rotation (0-360 degrees).
+
+```php
+public function setRotX(?int $rotX): self
+public function getRotX(): ?int
+```
+
+### setRotY() / getRotY()
+
+Set/get Y-axis rotation (0-360 degrees).
+
+```php
+public function setRotY(?int $rotY): self
+public function getRotY(): ?int
+```
+
+### setPerspective() / getPerspective()
+
+Set/get perspective value (0-100).
+
+```php
+public function setPerspective(?int $perspective): self
+public function getPerspective(): ?int
+```
+
+## Styling Methods
+
+### setRoundedCorners()
+
+Enable/disable rounded corners for the chart border.
+
+```php
+public function setRoundedCorners(?bool $roundedCorners): self
+```
+
+### setNoFill() / getNoFill()
+
+Set/get whether the chart has no fill.
+
+```php
+public function setNoFill(bool $noFill): self
+public function getNoFill(): bool
+```
+
+### setNoBorder() / getNoBorder()
+
+Set/get whether the chart has no border.
+
+```php
+public function setNoBorder(bool $noBorder): self
+public function getNoBorder(): bool
+```
+
+### getFillColor()
+
+Get the chart fill color object.
+
+```php
+public function getFillColor(): ChartColor
+```
+
+### getBorderLines() / setBorderLines()
+
+Get or set chart border line styling.
+
+```php
+public function getBorderLines(): GridLines
+public function setBorderLines(GridLines $borderLines): self
+```
+
+## Multiple Charts Example
+
+```php
+// Create first chart
+$chart1 = new Chart(
+    'chart1',
+    new Title('Area Chart'),
+    new Legend(Legend::POSITION_TOPRIGHT),
+    $plotArea1,
+    true,
+    DataSeries::EMPTY_AS_GAP,
+    null,
+    new Title('Value ($k)')
+);
+$chart1->setTopLeftPosition('A7');
+$chart1->setBottomRightPosition('H20');
+$worksheet->addChart($chart1);
+
+// Create second chart
+$chart2 = new Chart(
+    'chart2',
+    new Title('Column Chart'),
+    new Legend(Legend::POSITION_RIGHT),
+    $plotArea2,
+    true,
+    DataSeries::EMPTY_AS_GAP,
+    null,
+    new Title('Value ($k)')
+);
+$chart2->setTopLeftPosition('I7');
+$chart2->setBottomRightPosition('P20');
+$worksheet->addChart($chart2);
+```
+
+## Related Classes
+
+- [DataSeries](/api/chart#dataseries) - Define chart data and type
+- [DataSeriesValues](/api/chart#dataseriesvalues) - Data values, labels, and categories
+- [Title](/api/chart#title) - Chart and axis titles
+- [Legend](/api/chart#legend) - Chart legend configuration
+- [PlotArea](/api/chart#plotarea) - Container for data series
+- [Axis](/api/chart#axis) - Axis configuration
+
+## See Also
+
+- [Chart Examples](https://github.com/PHPOffice/PhpSpreadsheet/tree/master/samples/Chart)
+- [Working with Charts](/guides/charts)

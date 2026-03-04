@@ -1,0 +1,600 @@
+---
+title: 'Alignment Class'
+description: 'Complete API reference for the PhpSpreadsheet Alignment styling class'
+---
+
+## Overview
+
+The `Alignment` class controls text alignment, rotation, wrapping, and indentation within cells.
+
+## Namespace
+
+```php
+PhpOffice\PhpSpreadsheet\Style\Alignment
+```
+
+## Getting an Alignment Object
+
+```php
+// Via Style object
+$alignment = $spreadsheet->getActiveSheet()->getStyle('A1')->getAlignment();
+
+// Via chaining
+$spreadsheet->getActiveSheet()->getStyle('A1')
+    ->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+    ->setVertical(Alignment::VERTICAL_CENTER);
+```
+
+## Constants
+
+### Horizontal Alignment
+
+<ParamField path="HORIZONTAL_GENERAL" type="string" default="'general'">
+  General alignment (default)
+</ParamField>
+
+<ParamField path="HORIZONTAL_LEFT" type="string" default="'left'">
+  Left-aligned
+</ParamField>
+
+<ParamField path="HORIZONTAL_CENTER" type="string" default="'center'">
+  Center-aligned
+</ParamField>
+
+<ParamField path="HORIZONTAL_RIGHT" type="string" default="'right'">
+  Right-aligned
+</ParamField>
+
+<ParamField path="HORIZONTAL_JUSTIFY" type="string" default="'justify'">
+  Justified alignment
+</ParamField>
+
+<ParamField path="HORIZONTAL_FILL" type="string" default="'fill'">
+  Fill alignment (repeats content to fill cell width)
+</ParamField>
+
+<ParamField path="HORIZONTAL_CENTER_CONTINUOUS" type="string" default="'centerContinuous'">
+  Center across selection
+</ParamField>
+
+<ParamField path="HORIZONTAL_DISTRIBUTED" type="string" default="'distributed'">
+  Distributed alignment (Excel 2007+)
+</ParamField>
+
+### Vertical Alignment
+
+<ParamField path="VERTICAL_TOP" type="string" default="'top'">
+  Top-aligned
+</ParamField>
+
+<ParamField path="VERTICAL_CENTER" type="string" default="'center'">
+  Center-aligned
+</ParamField>
+
+<ParamField path="VERTICAL_BOTTOM" type="string" default="'bottom'">
+  Bottom-aligned (default)
+</ParamField>
+
+<ParamField path="VERTICAL_JUSTIFY" type="string" default="'justify'">
+  Justified alignment
+</ParamField>
+
+<ParamField path="VERTICAL_DISTRIBUTED" type="string" default="'distributed'">
+  Distributed alignment (Excel 2007+)
+</ParamField>
+
+### Read Order
+
+<ParamField path="READORDER_CONTEXT" type="int" default="0">
+  Context-dependent reading order
+</ParamField>
+
+<ParamField path="READORDER_LTR" type="int" default="1">
+  Left-to-right reading order
+</ParamField>
+
+<ParamField path="READORDER_RTL" type="int" default="2">
+  Right-to-left reading order
+</ParamField>
+
+### Text Rotation
+
+<ParamField path="TEXTROTATION_STACK_PHPSPREADSHEET" type="int" default="-165">
+  Stack text vertically (special value for PhpSpreadsheet)
+</ParamField>
+
+<ParamField path="TEXTROTATION_STACK_EXCEL" type="int" default="255">
+  Stack text vertically (Excel format value)
+</ParamField>
+
+## Properties
+
+<ParamField path="horizontal" type="string" default="'general'">
+  Horizontal alignment
+</ParamField>
+
+<ParamField path="vertical" type="string" default="'bottom'">
+  Vertical alignment
+</ParamField>
+
+<ParamField path="textRotation" type="int" default="0">
+  Text rotation angle (-90 to 90 degrees, or -165 for vertical stacking)
+</ParamField>
+
+<ParamField path="wrapText" type="bool" default="false">
+  Whether to wrap text in cell
+</ParamField>
+
+<ParamField path="shrinkToFit" type="bool" default="false">
+  Whether to shrink text to fit cell
+</ParamField>
+
+<ParamField path="indent" type="int" default="0">
+  Indentation level (only works with left/right/distributed horizontal alignment)
+</ParamField>
+
+<ParamField path="readOrder" type="int" default="0">
+  Reading order (0=context, 1=LTR, 2=RTL)
+</ParamField>
+
+<ParamField path="justifyLastLine" type="bool" default="null">
+  Whether to justify the last line (used with justify alignment)
+</ParamField>
+
+## Methods
+
+### getHorizontal()
+
+Get horizontal alignment.
+
+```php
+public function getHorizontal(): ?string
+```
+
+### setHorizontal()
+
+Set horizontal alignment.
+
+```php
+public function setHorizontal(string $horizontalAlignment): static
+```
+
+<ParamField path="horizontalAlignment" type="string" required>
+  Horizontal alignment (use HORIZONTAL_* constants)
+</ParamField>
+
+**Example:**
+```php
+$alignment->setHorizontal(Alignment::HORIZONTAL_CENTER);
+$alignment->setHorizontal(Alignment::HORIZONTAL_LEFT);
+$alignment->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+```
+
+### getVertical()
+
+Get vertical alignment.
+
+```php
+public function getVertical(): ?string
+```
+
+### setVertical()
+
+Set vertical alignment.
+
+```php
+public function setVertical(string $verticalAlignment): static
+```
+
+<ParamField path="verticalAlignment" type="string" required>
+  Vertical alignment (use VERTICAL_* constants)
+</ParamField>
+
+**Example:**
+```php
+$alignment->setVertical(Alignment::VERTICAL_CENTER);
+$alignment->setVertical(Alignment::VERTICAL_TOP);
+$alignment->setVertical(Alignment::VERTICAL_BOTTOM);
+```
+
+### getTextRotation()
+
+Get text rotation angle.
+
+```php
+public function getTextRotation(): ?int
+```
+
+### setTextRotation()
+
+Set text rotation angle.
+
+```php
+public function setTextRotation(int $angleInDegrees): static
+```
+
+<ParamField path="angleInDegrees" type="int" required>
+  Rotation angle in degrees (-90 to 90, or -165 for vertical stacking)
+</ParamField>
+
+**Example:**
+```php
+$alignment->setTextRotation(45);   // 45 degrees
+$alignment->setTextRotation(-45);  // -45 degrees
+$alignment->setTextRotation(90);   // 90 degrees
+$alignment->setTextRotation(-165); // Vertical stacking
+```
+
+### getWrapText()
+
+Get wrap text setting.
+
+```php
+public function getWrapText(): bool
+```
+
+### setWrapText()
+
+Set wrap text.
+
+```php
+public function setWrapText(bool $wrapped): static
+```
+
+<ParamField path="wrapped" type="bool" required>
+  Whether to wrap text
+</ParamField>
+
+**Example:**
+```php
+$alignment->setWrapText(true);
+```
+
+### getShrinkToFit()
+
+Get shrink to fit setting.
+
+```php
+public function getShrinkToFit(): bool
+```
+
+### setShrinkToFit()
+
+Set shrink to fit.
+
+```php
+public function setShrinkToFit(bool $shrink): static
+```
+
+<ParamField path="shrink" type="bool" required>
+  Whether to shrink text to fit cell
+</ParamField>
+
+**Example:**
+```php
+$alignment->setShrinkToFit(true);
+```
+
+### getIndent()
+
+Get indentation level.
+
+```php
+public function getIndent(): int
+```
+
+### setIndent()
+
+Set indentation level.
+
+```php
+public function setIndent(int $indent): static
+```
+
+<ParamField path="indent" type="int" required>
+  Indentation level (only works with left, right, or distributed alignment)
+</ParamField>
+
+**Example:**
+```php
+$alignment->setHorizontal(Alignment::HORIZONTAL_LEFT)
+          ->setIndent(2);
+```
+
+### getReadOrder()
+
+Get reading order.
+
+```php
+public function getReadOrder(): int
+```
+
+### setReadOrder()
+
+Set reading order.
+
+```php
+public function setReadOrder(int $readOrder): static
+```
+
+<ParamField path="readOrder" type="int" required>
+  Reading order (use READORDER_* constants)
+</ParamField>
+
+**Example:**
+```php
+$alignment->setReadOrder(Alignment::READORDER_RTL); // Right-to-left
+$alignment->setReadOrder(Alignment::READORDER_LTR); // Left-to-right
+```
+
+### getJustifyLastLine()
+
+Get justify last line setting.
+
+```php
+public function getJustifyLastLine(): ?bool
+```
+
+### setJustifyLastLine()
+
+Set justify last line.
+
+```php
+public function setJustifyLastLine(bool $justifyLastLine): static
+```
+
+<ParamField path="justifyLastLine" type="bool" required>
+  Whether to justify the last line
+</ParamField>
+
+### applyFromArray()
+
+Apply multiple alignment settings at once.
+
+```php
+public function applyFromArray(array $styleArray): static
+```
+
+<ParamField path="styleArray" type="array" required>
+  Array containing alignment style information
+</ParamField>
+
+**Example:**
+```php
+$alignment->applyFromArray([
+    'horizontal' => Alignment::HORIZONTAL_CENTER,
+    'vertical' => Alignment::VERTICAL_CENTER,
+    'textRotation' => 0,
+    'wrapText' => true
+]);
+```
+
+## Complete Examples
+
+### Basic Alignment
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Center alignment (both horizontal and vertical)
+$sheet->getStyle('A1')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+    ->setVertical(Alignment::VERTICAL_CENTER);
+
+// Left-aligned
+$sheet->getStyle('A2')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+// Right-aligned
+$sheet->getStyle('A3')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+```
+
+### Text Wrapping
+
+```php
+// Enable text wrapping for long text
+$sheet->setCellValue('A1', 'This is a very long text that should wrap within the cell');
+$sheet->getStyle('A1')->getAlignment()->setWrapText(true);
+
+// Or using applyFromArray
+$sheet->getStyle('A2')->applyFromArray([
+    'alignment' => [
+        'wrapText' => true
+    ]
+]);
+```
+
+### Text Rotation
+
+```php
+// 45 degree rotation
+$sheet->getStyle('A1')->getAlignment()->setTextRotation(45);
+
+// 90 degree rotation (vertical text)
+$sheet->getStyle('A2')->getAlignment()->setTextRotation(90);
+
+// -90 degree rotation
+$sheet->getStyle('A3')->getAlignment()->setTextRotation(-90);
+
+// Vertical stacking
+$sheet->getStyle('A4')->getAlignment()->setTextRotation(-165);
+```
+
+### Shrink to Fit
+
+```php
+// Text will automatically shrink to fit cell width
+$sheet->setCellValue('A1', 'Very long text that needs to fit');
+$sheet->getStyle('A1')->getAlignment()->setShrinkToFit(true);
+```
+
+### Indentation
+
+```php
+// Indent text (only works with left/right alignment)
+$sheet->getStyle('A1')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_LEFT)
+    ->setIndent(2);
+
+$sheet->getStyle('A2')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_LEFT)
+    ->setIndent(4);
+```
+
+### Header Row Styling
+
+```php
+// Center-aligned, bold header
+$sheet->getStyle('A1:E1')->applyFromArray([
+    'font' => [
+        'bold' => true
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER
+    ]
+]);
+```
+
+### Table with Mixed Alignment
+
+```php
+// Headers - centered
+$sheet->getStyle('A1:D1')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+// Text columns - left aligned
+$sheet->getStyle('A2:B100')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+// Number columns - right aligned
+$sheet->getStyle('C2:D100')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+```
+
+### Multi-line Text
+
+```php
+// Text with line breaks
+$sheet->setCellValue('A1', "Line 1\nLine 2\nLine 3");
+$sheet->getStyle('A1')->getAlignment()
+    ->setWrapText(true)
+    ->setVertical(Alignment::VERTICAL_TOP);
+```
+
+### Justified Text
+
+```php
+$sheet->setCellValue('A1', 'This is a long paragraph that will be justified across the cell width.');
+$sheet->getStyle('A1')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_JUSTIFY)
+    ->setWrapText(true);
+```
+
+### Center Across Selection
+
+```php
+// Center text across multiple cells without merging
+$sheet->setCellValue('A1', 'Centered Across');
+$sheet->getStyle('A1:E1')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_CENTER_CONTINUOUS);
+```
+
+### Vertical Header
+
+```php
+// Create vertical column headers
+$headers = ['Jan', 'Feb', 'Mar', 'Apr', 'May'];
+foreach ($headers as $col => $header) {
+    $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1);
+    $sheet->setCellValue($columnLetter . '1', $header);
+    $sheet->getStyle($columnLetter . '1')->getAlignment()
+        ->setTextRotation(90)
+        ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+}
+```
+
+### Right-to-Left Text
+
+```php
+// For RTL languages (Arabic, Hebrew, etc.)
+$sheet->getStyle('A1')->getAlignment()
+    ->setReadOrder(Alignment::READORDER_RTL)
+    ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+```
+
+### Complete Table Example
+
+```php
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Headers
+$sheet->setCellValue('A1', 'Name');
+$sheet->setCellValue('B1', 'Age');
+$sheet->setCellValue('C1', 'Salary');
+$sheet->setCellValue('D1', 'Notes');
+
+// Header styling
+$sheet->getStyle('A1:D1')->applyFromArray([
+    'font' => ['bold' => true],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER
+    ]
+]);
+
+// Data alignment
+$sheet->getStyle('A2:A100')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_LEFT);  // Names
+
+$sheet->getStyle('B2:C100')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_RIGHT); // Numbers
+
+$sheet->getStyle('D2:D100')->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_LEFT)
+    ->setWrapText(true);                          // Notes with wrapping
+```
+
+## Common Use Cases
+
+### Table Header
+```php
+$sheet->getStyle('A1:E1')->applyFromArray([
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER
+    ]
+]);
+```
+
+### Number Column
+```php
+$sheet->getStyle('C:C')->applyFromArray([
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_RIGHT
+    ]
+]);
+```
+
+### Text Column
+```php
+$sheet->getStyle('A:A')->applyFromArray([
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_LEFT,
+        'wrapText' => true
+    ]
+]);
+```
+
+## See Also
+
+- [Style Class](/api/style) - Main style container
+- [Font Class](/api/font) - Font styling
+- [Fill Class](/api/fill) - Background fills

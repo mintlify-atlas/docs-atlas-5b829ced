@@ -1,0 +1,567 @@
+---
+title: 'NumberFormat Class'
+description: 'Complete API reference for the PhpSpreadsheet NumberFormat styling class'
+---
+
+## Overview
+
+The `NumberFormat` class controls how numbers, dates, times, currencies, and percentages are displayed in cells. It provides pre-defined format codes and supports custom format strings.
+
+## Namespace
+
+```php
+PhpOffice\PhpSpreadsheet\Style\NumberFormat
+```
+
+## Getting a NumberFormat Object
+
+```php
+// Via Style object
+$numberFormat = $spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat();
+
+// Via chaining
+$spreadsheet->getActiveSheet()->getStyle('A1')
+    ->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_CURRENCY_USD);
+```
+
+## Pre-defined Format Constants
+
+### General and Text
+
+<ParamField path="FORMAT_GENERAL" type="string" default="'General'">
+  General number format (default)
+</ParamField>
+
+<ParamField path="FORMAT_TEXT" type="string" default="'@'">
+  Text format (displays values as-is)
+</ParamField>
+
+### Number Formats
+
+<ParamField path="FORMAT_NUMBER" type="string" default="'0'">
+  Integer format
+</ParamField>
+
+<ParamField path="FORMAT_NUMBER_0" type="string" default="'0.0'">
+  Number with 1 decimal place
+</ParamField>
+
+<ParamField path="FORMAT_NUMBER_00" type="string" default="'0.00'">
+  Number with 2 decimal places
+</ParamField>
+
+<ParamField path="FORMAT_NUMBER_COMMA_SEPARATED1" type="string" default="'#,##0.00'">
+  Number with thousand separators and 2 decimals
+</ParamField>
+
+<ParamField path="FORMAT_NUMBER_COMMA_SEPARATED2" type="string" default="'#,##0.00_-'">
+  Number with thousand separators, 2 decimals, and trailing space
+</ParamField>
+
+### Percentage Formats
+
+<ParamField path="FORMAT_PERCENTAGE" type="string" default="'0%'">
+  Percentage (no decimals)
+</ParamField>
+
+<ParamField path="FORMAT_PERCENTAGE_0" type="string" default="'0.0%'">
+  Percentage with 1 decimal place
+</ParamField>
+
+<ParamField path="FORMAT_PERCENTAGE_00" type="string" default="'0.00%'">
+  Percentage with 2 decimal places
+</ParamField>
+
+### Date Formats
+
+<ParamField path="FORMAT_DATE_YYYYMMDD" type="string" default="'yyyy-mm-dd'">
+  Date format: 2024-03-04
+</ParamField>
+
+<ParamField path="FORMAT_DATE_DDMMYYYY" type="string" default="'dd/mm/yyyy'">
+  Date format: 04/03/2024
+</ParamField>
+
+<ParamField path="FORMAT_DATE_DMYSLASH" type="string" default="'d/m/yy'">
+  Date format: 4/3/24
+</ParamField>
+
+<ParamField path="FORMAT_DATE_DMYMINUS" type="string" default="'d-m-yy'">
+  Date format: 4-3-24
+</ParamField>
+
+<ParamField path="FORMAT_DATE_DMMINUS" type="string" default="'d-m'">
+  Date format: 4-3
+</ParamField>
+
+<ParamField path="FORMAT_DATE_MYMINUS" type="string" default="'m-yy'">
+  Date format: 3-24
+</ParamField>
+
+<ParamField path="FORMAT_DATE_XLSX14" type="string" default="'mm-dd-yy'">
+  Date format: 03-04-24
+</ParamField>
+
+<ParamField path="FORMAT_DATE_XLSX15" type="string" default="'d-mmm-yy'">
+  Date format: 4-Mar-24
+</ParamField>
+
+<ParamField path="FORMAT_DATE_XLSX16" type="string" default="'d-mmm'">
+  Date format: 4-Mar
+</ParamField>
+
+<ParamField path="FORMAT_DATE_XLSX17" type="string" default="'mmm-yy'">
+  Date format: Mar-24
+</ParamField>
+
+<ParamField path="FORMAT_DATE_LONG_DATE" type="string" default="'dddd, mmmm d, yyyy'">
+  Long date format: Monday, March 4, 2024
+</ParamField>
+
+### Time Formats
+
+<ParamField path="FORMAT_DATE_TIME1" type="string" default="'h:mm AM/PM'">
+  Time format: 2:30 PM
+</ParamField>
+
+<ParamField path="FORMAT_DATE_TIME2" type="string" default="'h:mm:ss AM/PM'">
+  Time format: 2:30:45 PM
+</ParamField>
+
+<ParamField path="FORMAT_DATE_TIME3" type="string" default="'h:mm'">
+  Time format: 14:30
+</ParamField>
+
+<ParamField path="FORMAT_DATE_TIME4" type="string" default="'h:mm:ss'">
+  Time format: 14:30:45
+</ParamField>
+
+<ParamField path="FORMAT_DATE_TIME5" type="string" default="'mm:ss'">
+  Time format: 30:45
+</ParamField>
+
+<ParamField path="FORMAT_DATE_TIME6" type="string" default="'h:mm:ss'">
+  Time format: 14:30:45
+</ParamField>
+
+<ParamField path="FORMAT_DATE_TIME_INTERVAL_HMS" type="string" default="'[hh]:mm:ss'">
+  Time interval format: [25]:30:45
+</ParamField>
+
+### DateTime Formats
+
+<ParamField path="FORMAT_DATE_DATETIME" type="string" default="'d/m/yy h:mm'">
+  DateTime format: 4/3/24 14:30
+</ParamField>
+
+<ParamField path="FORMAT_DATE_DATETIME_BETTER" type="string" default="'yyyy-mm-dd hh:mm'">
+  DateTime format: 2024-03-04 14:30
+</ParamField>
+
+<ParamField path="FORMAT_DATE_XLSX22" type="string" default="'m/d/yy h:mm'">
+  DateTime format: 3/4/24 14:30
+</ParamField>
+
+### Currency Formats
+
+<ParamField path="FORMAT_CURRENCY_USD" type="string" default="'$#,##0.00_-'">
+  US Dollar with 2 decimals: $1,234.56
+</ParamField>
+
+<ParamField path="FORMAT_CURRENCY_USD_INTEGER" type="string" default="'$#,##0_-'">
+  US Dollar integer: $1,235
+</ParamField>
+
+<ParamField path="FORMAT_CURRENCY_EUR" type="string" default="'#,##0.00_-[$€]'">
+  Euro with 2 decimals: 1,234.56€
+</ParamField>
+
+<ParamField path="FORMAT_CURRENCY_EUR_INTEGER" type="string" default="'#,##0_-[$€]'">
+  Euro integer: 1,235€
+</ParamField>
+
+<ParamField path="FORMAT_CURRENCY_GBP" type="string" default="'£#,##0.00_-'">
+  British Pound: £1,234.56
+</ParamField>
+
+<ParamField path="FORMAT_CURRENCY_YEN_YUAN" type="string" default="'￥#,##0.00_-'">
+  Yen/Yuan: ￥1,234.56
+</ParamField>
+
+<ParamField path="FORMAT_ACCOUNTING_USD" type="string">
+  US Dollar accounting format
+</ParamField>
+
+<ParamField path="FORMAT_ACCOUNTING_EUR" type="string">
+  Euro accounting format
+</ParamField>
+
+## Methods
+
+### getFormatCode()
+
+Get the format code.
+
+```php
+public function getFormatCode(bool $extended = false): ?string
+```
+
+<ParamField path="extended" type="bool" default="false">
+  Whether to return extended format (converts system formats)
+</ParamField>
+
+### setFormatCode()
+
+Set the format code.
+
+```php
+public function setFormatCode(string $formatCode): static
+```
+
+<ParamField path="formatCode" type="string" required>
+  Format code string (use FORMAT_* constants or custom format)
+</ParamField>
+
+**Example:**
+```php
+$numberFormat->setFormatCode(NumberFormat::FORMAT_CURRENCY_USD);
+$numberFormat->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
+$numberFormat->setFormatCode('0.000'); // Custom format
+```
+
+### getBuiltInFormatCode()
+
+Get the built-in format code index.
+
+```php
+public function getBuiltInFormatCode(): false|int
+```
+
+**Returns:** Built-in format index or `false` if not a built-in format
+
+### setBuiltInFormatCode()
+
+Set format using a built-in format code index.
+
+```php
+public function setBuiltInFormatCode(int $formatCodeIndex): static
+```
+
+<ParamField path="formatCodeIndex" type="int" required>
+  Built-in format code index (0-49)
+</ParamField>
+
+### applyFromArray()
+
+Apply number format from array.
+
+```php
+public function applyFromArray(array $styleArray): static
+```
+
+<ParamField path="styleArray" type="array" required>
+  Array with 'formatCode' key
+</ParamField>
+
+**Example:**
+```php
+$numberFormat->applyFromArray([
+    'formatCode' => NumberFormat::FORMAT_CURRENCY_EUR
+]);
+```
+
+### Static Methods
+
+### builtInFormatCode()
+
+Get a built-in format code by index.
+
+```php
+public static function builtInFormatCode(int $index): string
+```
+
+### builtInFormatCodeIndex()
+
+Get the index of a built-in format code.
+
+```php
+public static function builtInFormatCodeIndex(string $formatCodeIndex): false|int
+```
+
+### toFormattedString()
+
+Convert a value to a formatted string.
+
+```php
+public static function toFormattedString(
+    mixed $value,
+    string $format,
+    ?array $callBack = null,
+    bool $lessFloatPrecision = false
+): string
+```
+
+<ParamField path="value" type="mixed" required>
+  Value to format
+</ParamField>
+
+<ParamField path="format" type="string" required>
+  Format code
+</ParamField>
+
+<ParamField path="callBack" type="array" default="null">
+  Optional callback function for additional formatting
+</ParamField>
+
+<ParamField path="lessFloatPrecision" type="bool" default="false">
+  Use less precise float conversion
+</ParamField>
+
+## Complete Examples
+
+### Number Formatting
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Integer
+$sheet->setCellValue('A1', 1234);
+$sheet->getStyle('A1')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_NUMBER);
+
+// 2 decimal places
+$sheet->setCellValue('A2', 1234.5678);
+$sheet->getStyle('A2')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_NUMBER_00);
+
+// Thousands separator
+$sheet->setCellValue('A3', 1234567.89);
+$sheet->getStyle('A3')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+
+// Custom: 3 decimal places
+$sheet->setCellValue('A4', 123.456789);
+$sheet->getStyle('A4')->getNumberFormat()
+    ->setFormatCode('0.000');
+```
+
+### Percentage Formatting
+
+```php
+// No decimals
+$sheet->setCellValue('B1', 0.75); // Stored as 0.75
+$sheet->getStyle('B1')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE); // Displays as 75%
+
+// 2 decimal places
+$sheet->setCellValue('B2', 0.7545);
+$sheet->getStyle('B2')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00); // Displays as 75.45%
+```
+
+### Currency Formatting
+
+```php
+// US Dollars
+$sheet->setCellValue('C1', 1234.56);
+$sheet->getStyle('C1')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_CURRENCY_USD);
+
+// Euros
+$sheet->setCellValue('C2', 1234.56);
+$sheet->getStyle('C2')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_CURRENCY_EUR);
+
+// British Pounds
+$sheet->setCellValue('C3', 1234.56);
+$sheet->getStyle('C3')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_CURRENCY_GBP);
+
+// Custom currency
+$sheet->setCellValue('C4', 1234.56);
+$sheet->getStyle('C4')->getNumberFormat()
+    ->setFormatCode('"¥"#,##0.00'); // Japanese Yen
+```
+
+### Date Formatting
+
+```php
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+
+// Excel date values are days since 1900-01-01
+$dateValue = Date::PHPToExcel('2024-03-04');
+
+// yyyy-mm-dd format
+$sheet->setCellValue('D1', $dateValue);
+$sheet->getStyle('D1')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDD);
+
+// dd/mm/yyyy format
+$sheet->setCellValue('D2', $dateValue);
+$sheet->getStyle('D2')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+
+// Long date format
+$sheet->setCellValue('D3', $dateValue);
+$sheet->getStyle('D3')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_LONG_DATE);
+
+// Custom date format
+$sheet->setCellValue('D4', $dateValue);
+$sheet->getStyle('D4')->getNumberFormat()
+    ->setFormatCode('mmm d, yyyy'); // Mar 4, 2024
+```
+
+### Time Formatting
+
+```php
+$timeValue = Date::PHPToExcel('2024-03-04 14:30:45');
+
+// 12-hour format with AM/PM
+$sheet->setCellValue('E1', $timeValue);
+$sheet->getStyle('E1')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_TIME1);
+
+// 24-hour format
+$sheet->setCellValue('E2', $timeValue);
+$sheet->getStyle('E2')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_TIME4);
+
+// Time with seconds
+$sheet->setCellValue('E3', $timeValue);
+$sheet->getStyle('E3')->getNumberFormat()
+    ->setFormatCode('h:mm:ss AM/PM');
+```
+
+### DateTime Formatting
+
+```php
+$dateTimeValue = Date::PHPToExcel('2024-03-04 14:30:45');
+
+// Standard datetime
+$sheet->setCellValue('F1', $dateTimeValue);
+$sheet->getStyle('F1')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_DATETIME);
+
+// ISO datetime
+$sheet->setCellValue('F2', $dateTimeValue);
+$sheet->getStyle('F2')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_DATETIME_BETTER);
+
+// Custom datetime
+$sheet->setCellValue('F3', $dateTimeValue);
+$sheet->getStyle('F3')->getNumberFormat()
+    ->setFormatCode('yyyy-mm-dd hh:mm:ss');
+```
+
+### Text Format
+
+```php
+// Force text format (preserves leading zeros, etc.)
+$sheet->setCellValue('G1', '00123');
+$sheet->getStyle('G1')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_TEXT);
+
+// ZIP codes
+$sheet->setCellValue('G2', '02134');
+$sheet->getStyle('G2')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_TEXT);
+```
+
+### Custom Number Formats
+
+```php
+// Positive/Negative/Zero/Text format
+$sheet->setCellValue('H1', 1234.56);
+$sheet->getStyle('H1')->getNumberFormat()
+    ->setFormatCode('#,##0.00_);[Red](#,##0.00);0.00;@');
+
+// Phone number format
+$sheet->setCellValue('H2', '5551234567');
+$sheet->getStyle('H2')->getNumberFormat()
+    ->setFormatCode('(000) 000-0000');
+
+// Fractions
+$sheet->setCellValue('H3', 0.75);
+$sheet->getStyle('H3')->getNumberFormat()
+    ->setFormatCode('# ?/?'); // Displays as 3/4
+
+// Scientific notation
+$sheet->setCellValue('H4', 12345678);
+$sheet->getStyle('H4')->getNumberFormat()
+    ->setFormatCode('0.00E+00');
+```
+
+### Conditional Formatting
+
+```php
+// Different colors for positive/negative
+$sheet->getStyle('I1')->getNumberFormat()
+    ->setFormatCode('[Green]#,##0.00;[Red](#,##0.00)');
+
+// Show different text for different ranges
+$sheet->getStyle('I2')->getNumberFormat()
+    ->setFormatCode('[>=1000]"High: "#,##0;[>=100]"Medium: "#,##0;"Low: "#,##0');
+```
+
+### Apply to Range
+
+```php
+// Apply currency format to entire column
+$sheet->getStyle('C:C')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_CURRENCY_USD);
+
+// Apply date format to range
+$sheet->getStyle('D1:D100')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDD);
+
+// Using applyFromArray
+$sheet->getStyle('E1:E100')->applyFromArray([
+    'numberFormat' => [
+        'formatCode' => NumberFormat::FORMAT_PERCENTAGE_00
+    ]
+]);
+```
+
+## Custom Format Syntax
+
+Number formats can have up to 4 sections separated by semicolons:
+```
+Positive;Negative;Zero;Text
+```
+
+**Format codes:**
+- `0` - Digit placeholder (shows 0 if no digit)
+- `#` - Digit placeholder (shows nothing if no digit)
+- `.` - Decimal point
+- `,` - Thousands separator
+- `%` - Percentage
+- `@` - Text placeholder
+- `[Color]` - Color (Red, Blue, Green, etc.)
+- `"text"` - Literal text
+- `[$currency]` - Currency symbol
+
+**Examples:**
+```php
+// Custom formats
+'0.00'                              // 2 decimal places
+'#,##0.00'                          // Thousands separator
+'$#,##0.00'                         // Currency
+'0.00%;-0.00%;0.00%;@'             // Percentage with all sections
+'[Green]#,##0;[Red](#,##0);0'      // Colored positive/negative
+'"Qty: "#,##0'                     // With prefix text
+'#,##0.00" units"'                 // With suffix text
+'0.00E+00'                          // Scientific notation
+'# ?/?'                             // Fraction
+'[h]:mm:ss'                         // Time interval
+```
+
+## See Also
+
+- [Style Class](/api/style) - Main style container
+- [Date Handling](/essentials/working-with-dates) - Working with dates and times

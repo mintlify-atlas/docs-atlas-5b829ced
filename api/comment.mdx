@@ -1,0 +1,451 @@
+---
+title: 'Comment'
+description: 'API reference for adding cell comments in PhpSpreadsheet'
+---
+
+## Overview
+
+The `Comment` class allows you to add notes and annotations to worksheet cells. Comments can include rich text formatting, custom dimensions, positioning, background colors, and even background images.
+
+**Namespace**: `PhpOffice\PhpSpreadsheet`
+
+**Implements**: `IComparable`, `Stringable`
+
+## Creating a Comment
+
+Comments are accessed through worksheet cells using the `getComment()` method.
+
+### Basic Example
+
+```php
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
+
+// Add a simple comment
+$comment = $worksheet->getComment('E11');
+$comment->setAuthor('PhpSpreadsheet');
+$comment->getText()->createTextRun('This is a comment');
+```
+
+### Rich Text Comment
+
+```php
+// Add a comment with formatted text
+$comment = $worksheet->getComment('E11');
+$comment->setAuthor('PhpSpreadsheet');
+
+// Add bold header
+$textRun = $comment->getText()->createTextRun('PhpSpreadsheet:');
+$textRun->getFontOrThrow()->setBold(true);
+
+// Add line break
+$comment->getText()->createTextRun("\r\n");
+
+// Add regular text
+$comment->getText()->createTextRun('Total amount on the current invoice, excluding VAT.');
+```
+
+## Constructor
+
+```php
+public function __construct()
+```
+
+Creates a new Comment instance with default values:
+- Author: 'Author'
+- Fill color: Light yellow (#FFFFFFE1)
+- Width: 96pt
+- Height: 55.5pt
+- Visible: false
+
+## Text Methods
+
+### getText()
+
+Get the RichText object for the comment.
+
+```php
+public function getText(): RichText
+```
+
+**Example**:
+```php
+$richText = $comment->getText();
+$richText->createTextRun('First line');
+$richText->createTextRun("\r\n");
+$richText->createTextRun('Second line');
+```
+
+### setText()
+
+Replace the entire text content.
+
+```php
+public function setText(RichText $text): self
+```
+
+<ParamField path="text" type="RichText" required>
+  RichText object with the comment content
+</ParamField>
+
+### __toString()
+
+Get plain text content of the comment.
+
+```php
+public function __toString(): string
+```
+
+**Example**:
+```php
+$plainText = (string) $comment;
+```
+
+## Author Methods
+
+### getAuthor()
+
+Get the comment author.
+
+```php
+public function getAuthor(): string
+```
+
+### setAuthor()
+
+Set the comment author.
+
+```php
+public function setAuthor(string $author): self
+```
+
+<ParamField path="author" type="string" required>
+  The name of the comment author
+</ParamField>
+
+**Example**:
+```php
+$comment->setAuthor('John Doe');
+```
+
+## Size Methods
+
+### getWidth() / setWidth()
+
+Get or set the comment width.
+
+```php
+public function getWidth(): string
+public function setWidth(string $width): self
+```
+
+<ParamField path="width" type="string" required>
+  Width in CSS style (e.g., '100pt', '150px'). Default unit is pt.
+</ParamField>
+
+**Example**:
+```php
+$comment->setWidth('100pt');
+$width = $comment->getWidth();
+```
+
+### getHeight() / setHeight()
+
+Get or set the comment height.
+
+```php
+public function getHeight(): string
+public function setHeight(string $height): self
+```
+
+<ParamField path="height" type="string" required>
+  Height in CSS style (e.g., '100pt', '150px'). Default unit is pt.
+</ParamField>
+
+**Example**:
+```php
+$comment->setHeight('100pt');
+$height = $comment->getHeight();
+```
+
+## Position Methods
+
+### getMarginLeft() / setMarginLeft()
+
+Get or set the left margin (distance from the cell).
+
+```php
+public function getMarginLeft(): string
+public function setMarginLeft(string $margin): self
+```
+
+<ParamField path="margin" type="string" required>
+  Left margin in CSS style (e.g., '150pt'). Default unit is pt.
+</ParamField>
+
+**Example**:
+```php
+$comment->setMarginLeft('150pt');
+```
+
+### getMarginTop() / setMarginTop()
+
+Get or set the top margin.
+
+```php
+public function getMarginTop(): string
+public function setMarginTop(string $margin): self
+```
+
+<ParamField path="margin" type="string" required>
+  Top margin in CSS style. Default unit is pt.
+</ParamField>
+
+## Visibility Methods
+
+### getVisible() / setVisible()
+
+Get or set whether the comment is visible by default.
+
+```php
+public function getVisible(): bool
+public function setVisible(bool $visibility): self
+```
+
+<ParamField path="visibility" type="bool" required>
+  True to show the comment by default, false to show only on hover
+</ParamField>
+
+**Example**:
+```php
+// Make comment always visible
+$comment->setVisible(true);
+```
+
+## Styling Methods
+
+### getFillColor() / setFillColor()
+
+Get or set the comment background color.
+
+```php
+public function getFillColor(): Color
+public function setFillColor(Color $color): self
+```
+
+<ParamField path="color" type="Color" required>
+  Color object for the background
+</ParamField>
+
+**Example**:
+```php
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+$comment->getFillColor()->setRGB('EEEEEE');
+// or
+$color = new Color('FF0000');
+$comment->setFillColor($color);
+```
+
+### getAlignment() / setAlignment()
+
+Get or set the text alignment.
+
+```php
+public function getAlignment(): string
+public function setAlignment(string $alignment): self
+```
+
+<ParamField path="alignment" type="string" required>
+  One of the Alignment constants (e.g., `Alignment::HORIZONTAL_CENTER`)
+</ParamField>
+
+**Example**:
+```php
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
+$comment->setAlignment(Alignment::HORIZONTAL_CENTER);
+```
+
+### getTextboxDirection() / setTextboxDirection()
+
+Get or set the text direction for the comment.
+
+```php
+public function getTextboxDirection(): string
+public function setTextboxDirection(string $textboxDirection): self
+```
+
+<ParamField path="textboxDirection" type="string" required>
+  Text direction: `Comment::TEXTBOX_DIRECTION_LTR`, `Comment::TEXTBOX_DIRECTION_RTL`, or `Comment::TEXTBOX_DIRECTION_AUTO`
+</ParamField>
+
+**Constants**:
+- `Comment::TEXTBOX_DIRECTION_LTR` - Left to right
+- `Comment::TEXTBOX_DIRECTION_RTL` - Right to left
+- `Comment::TEXTBOX_DIRECTION_AUTO` - Automatic (context-based)
+- `Comment::TEXTBOX_DIRECTION_CONTEXT` - Alias for AUTO
+
+**Example**:
+```php
+$comment->setTextboxDirection(Comment::TEXTBOX_DIRECTION_RTL);
+```
+
+## Background Image Methods
+
+### hasBackgroundImage()
+
+Check if the comment has a background image.
+
+```php
+public function hasBackgroundImage(): bool
+```
+
+### getBackgroundImage()
+
+Get the background image Drawing object.
+
+```php
+public function getBackgroundImage(): Drawing
+```
+
+### setBackgroundImage()
+
+Set a background image for the comment.
+
+```php
+public function setBackgroundImage(Drawing $objDrawing): self
+```
+
+<ParamField path="objDrawing" type="Drawing" required>
+  Drawing object with the image. Supported types: PNG, JPEG, BMP, GIF
+</ParamField>
+
+**Example**:
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+
+$drawing = new Drawing();
+$drawing->setPath('/path/to/background.png');
+$comment->setBackgroundImage($drawing);
+```
+
+### setSizeAsBackgroundImage()
+
+Automatically resize the comment to match the background image size.
+
+```php
+public function setSizeAsBackgroundImage(): self
+```
+
+**Example**:
+```php
+$drawing = new Drawing();
+$drawing->setPath('/path/to/image.png');
+$comment->setBackgroundImage($drawing);
+$comment->setSizeAsBackgroundImage();
+```
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
+// Get the comment for cell E13
+$comment = $worksheet->getComment('E13');
+
+// Set author
+$comment->setAuthor('PhpSpreadsheet');
+
+// Add formatted text
+$textRun = $comment->getText()->createTextRun('Important:');
+$textRun->getFontOrThrow()->setBold(true);
+$textRun->getFontOrThrow()->setSize(12);
+
+$comment->getText()->createTextRun("\r\n");
+$comment->getText()->createTextRun('Total amount on the current invoice, including VAT.');
+
+// Set dimensions
+$comment->setWidth('100pt');
+$comment->setHeight('100pt');
+
+// Position relative to cell
+$comment->setMarginLeft('150pt');
+$comment->setMarginTop('10pt');
+
+// Style the comment
+$comment->getFillColor()->setRGB('EEEEEE');
+$comment->setAlignment(Alignment::HORIZONTAL_LEFT);
+
+// Make it visible by default
+$comment->setVisible(true);
+```
+
+## Multi-line Comments Example
+
+```php
+$comment = $worksheet->getComment('A1');
+$comment->setAuthor('System');
+
+// Line 1 - Bold header
+$run1 = $comment->getText()->createTextRun('Note:');
+$run1->getFontOrThrow()->setBold(true);
+$run1->getFontOrThrow()->setColor(new Color('FF0000'));
+
+// Line break
+$comment->getText()->createTextRun("\r\n");
+
+// Line 2 - Regular text
+$comment->getText()->createTextRun('This field is required.');
+
+// Line break
+$comment->getText()->createTextRun("\r\n");
+
+// Line 3 - Italic text
+$run3 = $comment->getText()->createTextRun('Please enter a valid value.');
+$run3->getFontOrThrow()->setItalic(true);
+```
+
+## Comment with Background Image
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Shared\Drawing as SharedDrawing;
+
+$comment = $worksheet->getComment('C5');
+$comment->setAuthor('Designer');
+$comment->getText()->createTextRun('Reference image');
+
+// Add background image
+$drawing = new Drawing();
+$drawing->setPath('/path/to/reference.png');
+$comment->setBackgroundImage($drawing);
+
+// Resize comment to match image
+$comment->setSizeAsBackgroundImage();
+```
+
+## Accessing Multiple Comments
+
+```php
+// Get all comments in a worksheet
+foreach ($worksheet->getComments() as $cellCoordinate => $comment) {
+    echo "Cell: {$cellCoordinate}\n";
+    echo "Author: {$comment->getAuthor()}\n";
+    echo "Text: {$comment}\n";
+    echo "---\n";
+}
+```
+
+## Related Classes
+
+- `RichText\RichText` - For formatted text content
+- `Style\Color` - For background colors
+- `Style\Alignment` - For text alignment constants
+- `Worksheet\Drawing` - For background images
+
+## See Also
+
+- [Sample Files](https://github.com/PHPOffice/PhpSpreadsheet/tree/master/samples/templates)
+- [Working with Rich Text](/guides/rich-text)
+- [Cell Formatting](/guides/formatting)

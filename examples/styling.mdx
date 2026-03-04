@@ -1,0 +1,355 @@
+---
+title: 'Styling Examples'
+description: 'Learn how to apply styles, colors, borders, and fonts to cells in PhpSpreadsheet'
+icon: 'palette'
+---
+
+## Overview
+
+PhpSpreadsheet provides extensive styling capabilities including colors, borders, fonts, alignment, and more. You can apply styles to individual cells or ranges of cells.
+
+## Basic Cell Styling
+
+Here's a simple example that applies background colors and borders to a range:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Apply a green background with borders to cells A1:T100
+$sheet->getStyle('A1:T100')->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['argb' => 'FFCCFFCC'], // Light green
+    ],
+    'borders' => [
+        'bottom' => ['borderStyle' => Border::BORDER_THIN],
+        'right' => ['borderStyle' => Border::BORDER_MEDIUM],
+    ],
+]);
+
+// Apply a yellow background to cells C5:R95 (overlays the green)
+$sheet->getStyle('C5:R95')->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['argb' => 'FFFFFF00'], // Yellow
+    ],
+]);
+```
+
+## Using Shared Styles
+
+For better performance when applying the same style to multiple ranges, use shared styles:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Style;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Create shared style objects
+$sharedStyle1 = new Style();
+$sharedStyle2 = new Style();
+
+// Configure first shared style (green with borders)
+$sharedStyle1->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['argb' => 'FFCCFFCC'],
+    ],
+    'borders' => [
+        'bottom' => ['borderStyle' => Border::BORDER_THIN],
+        'right' => ['borderStyle' => Border::BORDER_MEDIUM],
+    ],
+]);
+
+// Configure second shared style (yellow with borders)
+$sharedStyle2->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['argb' => 'FFFFFF00'],
+    ],
+    'borders' => [
+        'bottom' => ['borderStyle' => Border::BORDER_THIN],
+        'right' => ['borderStyle' => Border::BORDER_MEDIUM],
+    ],
+]);
+
+// Apply shared styles to ranges (more efficient)
+$sheet->duplicateStyle($sharedStyle1, 'A1:T100');
+$sheet->duplicateStyle($sharedStyle2, 'C5:R95');
+```
+
+<Info>
+  Using `duplicateStyle()` with shared `Style` objects is more memory-efficient than applying styles individually, especially when styling large ranges.
+</Info>
+
+## Font Styling
+
+Apply various font properties to cells:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Font;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+$sheet->setCellValue('A1', 'Year')
+    ->setCellValue('B1', 'Period')
+    ->setCellValue('C1', 'Country')
+    ->setCellValue('D1', 'Sales');
+
+// Make the title row bold
+$sheet->getStyle('A1:D1')->getFont()->setBold(true);
+
+// Or use applyFromArray for multiple properties
+$sheet->getStyle('A1:D1')->applyFromArray([
+    'font' => [
+        'bold' => true,
+        'color' => ['argb' => 'FFFFFFFF'], // White text
+        'size' => 14,
+        'name' => 'Arial',
+    ],
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['argb' => 'FF4472C4'], // Blue background
+    ],
+]);
+```
+
+## Border Styles
+
+PhpSpreadsheet supports various border styles:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Border;
+
+// Apply borders to a range
+$sheet->getStyle('A1:D10')->applyFromArray([
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['argb' => 'FF000000'],
+        ],
+    ],
+]);
+
+// Or apply different borders to different sides
+$sheet->getStyle('A1:D1')->applyFromArray([
+    'borders' => [
+        'top' => ['borderStyle' => Border::BORDER_THICK],
+        'bottom' => ['borderStyle' => Border::BORDER_DOUBLE],
+        'left' => ['borderStyle' => Border::BORDER_THIN],
+        'right' => ['borderStyle' => Border::BORDER_THIN],
+    ],
+]);
+```
+
+### Available Border Styles
+
+- `BORDER_NONE`
+- `BORDER_THIN`
+- `BORDER_MEDIUM`
+- `BORDER_THICK`
+- `BORDER_DOUBLE`
+- `BORDER_DASHED`
+- `BORDER_DOTTED`
+- `BORDER_DASHDOT`
+- `BORDER_DASHDOTDOT`
+- `BORDER_HAIR`
+- `BORDER_MEDIUMDASHED`
+- `BORDER_MEDIUMDASHDOT`
+- `BORDER_MEDIUMDASHDOTDOT`
+- `BORDER_SLANTDASHDOT`
+
+## Alignment
+
+Control text alignment within cells:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
+// Enable text wrapping
+$sheet->getStyle('A1:F1')->getAlignment()->setWrapText(true);
+
+// Horizontal and vertical alignment
+$sheet->getStyle('A1:D1')->applyFromArray([
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER,
+    ],
+]);
+
+// Text rotation
+$sheet->getStyle('A1')->getAlignment()->setTextRotation(45);
+```
+
+## Number Formats
+
+Apply number formatting to cells:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+// Currency format
+$sheet->getStyle('E2:E100')
+    ->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_CURRENCY_USD_INTEGER);
+
+// Date format
+$sheet->getStyle('D2:D100')
+    ->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDD);
+
+// Percentage format
+$sheet->getStyle('F2:F100')
+    ->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
+
+// Custom format
+$sheet->getStyle('G2:G100')
+    ->getNumberFormat()
+    ->setFormatCode('#,##0.00_);[Red](#,##0.00)');
+```
+
+## Column Width and Row Height
+
+```php
+// Set specific column width
+$sheet->getColumnDimension('C')->setWidth(12.5);
+$sheet->getColumnDimension('D')->setWidth(10.5);
+
+// Auto-size column to fit content
+$sheet->getColumnDimension('A')->setAutoSize(true);
+
+// Set row height
+$sheet->getRowDimension(1)->setRowHeight(20);
+
+// Auto-fit row height
+$sheet->getRowDimension(2)->setRowHeight(-1);
+```
+
+## Fill Patterns
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+
+// Solid fill
+$sheet->getStyle('A1')->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['argb' => 'FFFF0000'],
+    ],
+]);
+
+// Gradient fill
+$sheet->getStyle('A2')->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_GRADIENT_LINEAR,
+        'rotation' => 90,
+        'startColor' => ['argb' => 'FF4472C4'],
+        'endColor' => ['argb' => 'FFFFFFFF'],
+    ],
+]);
+
+// Pattern fill
+$sheet->getStyle('A3')->applyFromArray([
+    'fill' => [
+        'fillType' => Fill::FILL_PATTERN_DARKGRID,
+        'color' => ['argb' => 'FFFFFF00'],
+    ],
+]);
+```
+
+## Complete Styled Example
+
+Here's a complete example creating a styled report:
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add headers
+$headers = ['Product', 'Quantity', 'Price', 'Total'];
+$sheet->fromArray($headers, null, 'A1');
+
+// Style the header row
+$sheet->getStyle('A1:D1')->applyFromArray([
+    'font' => [
+        'bold' => true,
+        'color' => ['argb' => 'FFFFFFFF'],
+        'size' => 12,
+    ],
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'color' => ['argb' => 'FF4472C4'],
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER,
+    ],
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+        ],
+    ],
+]);
+
+// Add some data
+$data = [
+    ['Widget A', 10, 25.50, '=B2*C2'],
+    ['Widget B', 5, 42.00, '=B3*C3'],
+    ['Widget C', 15, 18.75, '=B4*C4'],
+];
+$sheet->fromArray($data, null, 'A2');
+
+// Format currency columns
+$sheet->getStyle('C2:D4')
+    ->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_CURRENCY_USD);
+
+// Add borders to data
+$sheet->getStyle('A2:D4')->applyFromArray([
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['argb' => 'FFD0D0D0'],
+        ],
+    ],
+]);
+
+// Freeze the header row
+$sheet->freezePane('A2');
+
+// Auto-size columns
+foreach (range('A', 'D') as $col) {
+    $sheet->getColumnDimension($col)->setAutoSize(true);
+}
+```
+
+## Performance Tips
+
+1. Use `duplicateStyle()` with shared `Style` objects for large ranges
+2. Apply styles to ranges instead of individual cells
+3. Use `applyFromArray()` to set multiple properties at once
+4. Avoid unnecessary style recalculations in loops
+
+## Related Topics
+
+- [Conditional Formatting](/examples/conditional-formatting)
+- [Number Formats](/topics/number-formats)
+- [Themes and Colors](/topics/themes)

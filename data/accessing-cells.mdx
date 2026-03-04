@@ -1,0 +1,394 @@
+---
+title: 'Accessing Cells'
+description: 'Getting and setting cell values, coordinate systems, and cell iterators in PhpSpreadsheet'
+---
+
+## Overview
+
+Accessing cells in PhpSpreadsheet is straightforward and flexible. You can reference cells using coordinate notation (e.g., `B3`), array notation with column and row indices (e.g., `[2, 3]`), or CellAddress objects.
+
+<Note>
+Column indices and rows are **1-based**, not 0-based. This matches Excel's behavior where column A is 1 and the first row is 1.
+</Note>
+
+## Setting Cell Values
+
+### Basic setValue Methods
+
+You can set cell values using the worksheet's `setCellValue()` method:
+
+```php
+// Set cell A1 with a string value
+$spreadsheet->getActiveSheet()->setCellValue('A1', 'PhpSpreadsheet');
+
+// Set cell A2 with a numeric value using array notation
+$spreadsheet->getActiveSheet()->setCellValue([1, 2], 12345.6789);
+
+// Set cell A3 with a boolean value using CellAddress object
+$spreadsheet->getActiveSheet()->setCellValue(new CellAddress('A3'), true);
+
+// Set cell A4 with a formula
+$spreadsheet->getActiveSheet()->setCellValue(
+    'A4',
+    '=IF(A3, CONCATENATE(A1, " ", A2), CONCATENATE(A2, " ", A1))'
+);
+```
+
+Alternatively, retrieve the cell object and call `setValue()` directly:
+
+```php
+$spreadsheet->getActiveSheet()
+    ->getCell('B8')
+    ->setValue('Some value');
+```
+
+### Setting Values from Arrays
+
+Set a range of cell values in a single call using `fromArray()`:
+
+```php
+$arrayData = [
+    [null, 2010, 2011, 2012],
+    ['Q1',   12,   15,   21],
+    ['Q2',   56,   73,   86],
+    ['Q3',   52,   61,   69],
+    ['Q4',   30,   32,    0],
+];
+
+$spreadsheet->getActiveSheet()->fromArray(
+    $arrayData,  // The data to set
+    null,        // Array values with this value will not be set
+    'C3'         // Top left coordinate (default is A1)
+);
+```
+
+For a 1-D array as a column:
+
+```php
+$rowArray = ['Value1', 'Value2', 'Value3', 'Value4'];
+$columnArray = array_chunk($rowArray, 1);
+
+$spreadsheet->getActiveSheet()->fromArray(
+    $columnArray,
+    null,
+    'C3'
+);
+```
+
+### Copying Cell Values and Formulas
+
+As of version 5.1.0, you can copy formulas with automatic reference adjustment:
+
+```php
+// Copy formula from B1 to B2 with adjusted references
+$worksheet->copyFormula($fromCell, $toCell);
+
+// Copy cell style as well
+$worksheet->duplicateStyle($fromCell->getStyle(), $toCell);
+```
+
+## Data Types
+
+### Supported Data Types
+
+PhpSpreadsheet supports 7 Excel data types:
+
+<CodeGroup>
+
+```php String
+$sheet->setCellValue('A1', 'Hello World');
+```
+
+```php Number
+$sheet->setCellValue('A2', 42.5);
+```
+
+```php Boolean
+$sheet->setCellValue('A3', true);
+```
+
+```php Null
+$sheet->setCellValue('A4', null);
+```
+
+```php Formula
+$sheet->setCellValue('A5', '=SUM(A1:A10)');
+```
+
+```php Error
+$sheet->setCellValueExplicit(
+    'A6',
+    '#DIV/0!',
+    \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_ERROR
+);
+```
+
+```php Rich Text
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
+
+$richText = new RichText();
+$richText->createText('Hello ');
+$richText->createTextRun('Bold')->getFont()->setBold(true);
+
+$sheet->setCellValue('A7', $richText);
+```
+
+</CodeGroup>
+
+### Explicit Data Types
+
+To set a value with an explicit data type (bypassing the value binder):
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+
+// Set cell A8 as string to preserve leading zeros
+$spreadsheet->getActiveSheet()->setCellValueExplicit(
+    'A8',
+    '01513789642',
+    DataType::TYPE_STRING
+);
+```
+
+<Info>
+Available type constants: `TYPE_STRING`, `TYPE_NUMERIC`, `TYPE_BOOL`, `TYPE_NULL`, `TYPE_FORMULA`, `TYPE_ERROR`, `TYPE_INLINE`
+</Info>
+
+### Setting Dates and Times
+
+Date and time values are stored as Excel timestamps (floating-point numbers):
+
+```php
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+// Get current date/time and convert to Excel date/time
+$dateTimeNow = time();
+$excelDateValue = Date::PHPToExcel($dateTimeNow);
+
+// Set cell A6 with the Excel date/time value
+$spreadsheet->getActiveSheet()->setCellValue('A6', $excelDateValue);
+
+// Set the number format to display as human-readable date/time
+$spreadsheet->getActiveSheet()->getStyle('A6')
+    ->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_DATETIME);
+```
+
+### Numbers with Leading Zeros
+
+Two approaches to preserve leading zeros:
+
+<Tabs>
+  <Tab title="Explicit String Type">
+    ```php
+    $spreadsheet->getActiveSheet()->setCellValueExplicit(
+        'A8',
+        '01513789642',
+        \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING
+    );
+    ```
+  </Tab>
+  <Tab title="Number Format Mask">
+    ```php
+    // Set cell A9 with a numeric value
+    $spreadsheet->getActiveSheet()->setCellValue('A9', 1513789642);
+    
+    // Set a number format mask to display with leading zeroes
+    $spreadsheet->getActiveSheet()->getStyle('A9')
+        ->getNumberFormat()
+        ->setFormatCode('00000000000');
+    
+    // Or with formatting for readability
+    $spreadsheet->getActiveSheet()->getStyle('A10')
+        ->getNumberFormat()
+        ->setFormatCode('0000-000-0000');
+    ```
+  </Tab>
+</Tabs>
+
+## Retrieving Cell Values
+
+### Basic getValue Methods
+
+```php
+// Get the raw, unformatted value
+$cellValue = $spreadsheet->getActiveSheet()
+    ->getCell('A1')
+    ->getValue();
+
+// Get calculated value for formulas
+$cellValue = $spreadsheet->getActiveSheet()
+    ->getCell('A4')
+    ->getCalculatedValue();
+
+// Get formatted value (with number format applied)
+$cellValue = $spreadsheet->getActiveSheet()
+    ->getCell('A6')
+    ->getFormattedValue();
+```
+
+### Retrieving Ranges to Arrays
+
+Retrieve multiple cell values as an array:
+
+```php
+$dataArray = $spreadsheet->getActiveSheet()->rangeToArray(
+    'C3:E5',  // The worksheet range to retrieve
+    null,     // Value returned for empty cells
+    true,     // Calculate formulas
+    true,     // Format values
+    true      // Index by cell row and column
+);
+
+// Get entire worksheet
+$allData = $spreadsheet->getActiveSheet()->toArray();
+
+// Get named range
+$namedData = $spreadsheet->getActiveSheet()->namedRangeToArray('MyRange');
+```
+
+## Looping Through Cells
+
+### Using Iterators
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$reader = IOFactory::createReader('Xlsx');
+$reader->setReadDataOnly(true);
+$spreadsheet = $reader->load('test.xlsx');
+
+$worksheet = $spreadsheet->getActiveSheet();
+
+foreach ($worksheet->getRowIterator() as $row) {
+    $cellIterator = $row->getCellIterator();
+    // Loop through all cells, even if not set
+    $cellIterator->setIterateOnlyExistingCells(false);
+    
+    foreach ($cellIterator as $cell) {
+        echo $cell->getValue();
+    }
+}
+```
+
+<Warning>
+Setting `setIterateOnlyExistingCells(false)` will create empty cells if they don't exist, increasing memory usage.
+</Warning>
+
+### Using Index Loops
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+
+$worksheet = $spreadsheet->getActiveSheet();
+$highestRow = $worksheet->getHighestDataRow(); // e.g. 10
+$highestColumn = $worksheet->getHighestDataColumn(); // e.g. 'F'
+$highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
+
+for ($row = 1; $row <= $highestRow; ++$row) {
+    for ($col = 1; $col <= $highestColumnIndex; ++$col) {
+        $value = $worksheet->getCell([$col, $row])->getValue();
+        // Process value
+    }
+}
+```
+
+Or using string coordinates:
+
+```php
+$highestRow = $worksheet->getHighestDataRow();
+$highestColumn = $worksheet->getHighestDataColumn();
+++$highestColumn; // Increment to use in loop condition
+
+for ($row = 1; $row <= $highestRow; ++$row) {
+    for ($col = 'A'; $col != $highestColumn; ++$col) {
+        $value = $worksheet->getCell($col . $row)->getValue();
+        // Process value
+    }
+}
+```
+
+<Note>
+Use `!=` instead of `<=` when comparing column letters because `'AA' <= 'B'` would match.
+</Note>
+
+## Cell References and Coordinates
+
+### Coordinate System
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+
+// Convert column letter to index (A=1, B=2, etc.)
+$columnIndex = Coordinate::columnIndexFromString('A'); // Returns 1
+
+// Convert index to column letter
+$columnLetter = Coordinate::stringFromColumnIndex(1); // Returns 'A'
+
+// Split coordinate into parts
+[$column, $row] = Coordinate::coordinateFromString('A1');
+
+// Get coordinate boundaries for a range
+$boundaries = Coordinate::rangeBoundaries('A1:C5');
+// Returns [[1, 1], [3, 5]] - [[minCol, minRow], [maxCol, maxRow]]
+```
+
+### Cell Address Objects
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\CellAddress;
+
+// Create a cell address
+$address = new CellAddress('B3', $worksheet);
+
+// Use in cell operations
+$spreadsheet->getActiveSheet()->setCellValue($address, 'Value');
+```
+
+## Important Notes
+
+### Detached Cell References
+
+<Warning>
+Be careful when assigning cell objects to variables. PhpSpreadsheet uses cell caching, and subsequent calls to `getCell()` will detach previous cell references from the collection.
+</Warning>
+
+```php
+$cellC1 = $workSheet->getCell('C1');
+echo $cellC1->getValue(); // Works fine
+
+$cellA1 = $workSheet->getCell('A1'); // This detaches $cellC1
+
+// $cellC1 still has its value, but coordinate access will fail
+echo $cellC1->getValue(); // Still works
+echo $cellC1->getCoordinate(); // Throws exception!
+```
+
+### Escaping Formula Values
+
+To store a value beginning with `=` as a string (not a formula):
+
+```php
+$spreadsheet->getActiveSheet()->setCellValue('A4', '=This is not a formula');
+$spreadsheet->getActiveSheet()->getCell('A4')
+    ->getStyle()
+    ->setQuotePrefix(true);
+```
+
+## Related Topics
+
+<CardGroup cols={2}>
+  <Card title="Cell Values" icon="database" href="/data/cell-values">
+    Learn about data types and value binders
+  </Card>
+  <Card title="Formulas" icon="function" href="/data/formulas">
+    Working with Excel formulas
+  </Card>
+  <Card title="Data Validation" icon="shield-check" href="/data/data-validation">
+    Setting up cell validation rules
+  </Card>
+  <Card title="Defined Names" icon="tag" href="/data/defined-names">
+    Using named ranges and formulas
+  </Card>
+</CardGroup>

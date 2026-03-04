@@ -1,0 +1,219 @@
+---
+title: Xls Writer
+description: Excel 97-2003 (BIFF) writer class reference
+---
+
+The `Xls` writer exports spreadsheets to Excel 97-2003 format (.xls), also known as BIFF (Binary Interchange File Format).
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Writer\Xls`
+
+**Extends:** `BaseWriter`
+
+## Class Overview
+
+The Xls writer creates binary files in the Excel 5.0/95 and Excel 97-2003 formats. This format uses the BIFF structure within an OLE (Object Linking and Embedding) container.
+
+<Note>
+The Xls format has limitations compared to newer formats. Consider using Xlsx for new projects unless backward compatibility is required.
+</Note>
+
+## Constructor
+
+```php
+public function __construct(Spreadsheet $spreadsheet)
+```
+
+Creates a new Xls writer instance.
+
+<ParamField path="spreadsheet" type="Spreadsheet" required>
+  The spreadsheet object to write
+</ParamField>
+
+## Key Methods
+
+### save()
+
+```php
+public function save($filename, int $flags = 0): void
+```
+
+Saves the spreadsheet as a .xls file.
+
+<ParamField path="filename" type="string|resource" required>
+  File path or resource to write to
+</ParamField>
+
+<ParamField path="flags" type="int" default="0">
+  Optional flags (see [IWriter constants](/api/writers/overview#save))
+</ParamField>
+
+## Usage Examples
+
+### Basic Export
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setCellValue('A1', 'Hello World!');
+
+$writer = new Xls($spreadsheet);
+$writer->save('hello.xls');
+```
+
+### Disable Formula Calculation
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+
+$writer = new Xls($spreadsheet);
+$writer->setPreCalculateFormulas(false);
+$writer->save('output.xls');
+```
+
+### Download to Browser
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+
+// Set headers for download
+header('Content-Type: application/vnd.ms-excel');
+header('Content-Disposition: attachment;filename="report.xls"');
+header('Cache-Control: max-age=0');
+
+$writer = new Xls($spreadsheet);
+$writer->save('php://output');
+exit;
+```
+
+### Write to String
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+
+// Create memory stream
+$stream = fopen('php://temp', 'r+');
+
+$writer = new Xls($spreadsheet);
+$writer->save($stream);
+
+// Get contents
+rewind($stream);
+$xlsContent = stream_get_contents($stream);
+fclose($stream);
+
+// Use $xlsContent as needed (save to database, send via email, etc.)
+```
+
+## Format Limitations
+
+The Xls format has several limitations compared to Xlsx:
+
+### Row and Column Limits
+
+- Maximum rows: 65,536 (2^16)
+- Maximum columns: 256 (A-IV)
+- Maximum cell content: 32,767 characters
+
+### Feature Support
+
+The Xls writer supports:
+
+- ✅ Multiple worksheets (limited to 255)
+- ✅ Cell formatting (fonts, colors, borders, fills)
+- ✅ Number formats
+- ✅ Formulas (with some limitations)
+- ❌ Charts (not supported)
+- ✅ Images (JPEG, PNG, BMP - converted to PNG/JPEG)
+- ⚠️ Rich text (limited support)
+- ✅ Merged cells
+- ✅ Data validation
+- ⚠️ Conditional formatting (limited)
+- ✅ Page setup
+- ✅ Headers and footers
+- ✅ Document properties
+- ✅ Named ranges
+- ✅ Autofilters
+- ❌ Tables (not supported)
+- ✅ Comments
+- ✅ Hyperlinks
+
+### Image Handling
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Add image
+$drawing = new Drawing();
+$drawing->setPath('logo.png');
+$drawing->setCoordinates('B2');
+$drawing->setWorksheet($sheet);
+
+// GIF and BMP images are automatically converted to PNG
+$writer = new Xls($spreadsheet);
+$writer->save('with-image.xls');
+```
+
+## Technical Details
+
+### File Structure
+
+The Xls file format consists of:
+
+1. **OLE Container** - Provides compound file structure
+2. **Workbook Stream** - Contains global workbook data
+3. **Worksheet Streams** - One per worksheet
+4. **Summary Information** - Document metadata
+5. **Document Summary Information** - Extended properties
+
+### String Table
+
+The writer maintains a shared string table to optimize storage:
+
+```php
+// Strings are automatically deduplicated
+$sheet->setCellValue('A1', 'Text');
+$sheet->setCellValue('A2', 'Text'); // Reuses same string table entry
+```
+
+### Color Mapping
+
+The Xls format uses an indexed color palette. PhpSpreadsheet automatically maps RGB colors to the nearest palette color:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\Color;
+
+$sheet->getStyle('A1')
+    ->getFont()
+    ->setColor(new Color('FF0000')); // Mapped to palette
+```
+
+## When to Use Xls
+
+Use the Xls writer when:
+
+- ✅ Compatibility with Excel 97-2003 is required
+- ✅ Users have older versions of Excel
+- ✅ File format is mandated by legacy systems
+- ✅ Your data fits within the format's limitations
+
+Consider Xlsx instead when:
+
+- ❌ You need more than 65,536 rows
+- ❌ You need more than 256 columns
+- ❌ You need charts
+- ❌ You need advanced conditional formatting
+- ❌ File size is a concern (Xlsx is typically smaller)
+
+## Related
+
+- [Xlsx Writer](/api/writers/xlsx) - Modern Excel format
+- [Ods Writer](/api/writers/ods) - OpenDocument format
+- [Writers Overview](/api/writers/overview) - Common writer patterns

@@ -1,0 +1,261 @@
+---
+title: "Version Upgrade Guide"
+description: "Breaking changes and upgrade instructions for PhpSpreadsheet major versions"
+---
+
+This guide covers breaking changes between major versions and provides instructions for upgrading your code.
+
+## Version 5.0 (2025-08-10)
+
+### Breaking Changes
+
+<Warning>
+  **External Images**: Images will be loaded from external sources (e.g., `http://example.com/img.png`) only if the reader is explicitly set to allow it via `$reader->setAllowExternalImages(true)`. This feature is not widely used, so most users won't be affected.
+</Warning>
+
+#### Removed Deprecated Items
+
+The following items deprecated in Release 4 have been removed:
+
+- **Theme public constants**: `COLOR_SCHEME_2013_PLUS_NAME` (use `COLOR_SCHEME_2013_2022_NAME`) and `COLOR_SCHEME_2013_PLUS` (use `COLOR_SCHEME_2013_2022`)
+
+#### Reader Property Changes
+
+Some properties have been moved from Base Reader to Html Reader. See [PR #4551](https://github.com/PHPOffice/PhpSpreadsheet/pull/4551).
+
+#### DefaultValueBinder Behavior
+
+<Note>
+  `DefaultValueBinder` will now treat integers with more than 15 digits as strings to prevent precision loss. [Issue #4522](https://github.com/PHPOffice/PhpSpreadsheet/issues/4522)
+</Note>
+
+### Key Fixes
+
+- Additional floating-point precision improvements [Issue #1324](https://github.com/PHPOffice/PhpSpreadsheet/issues/1324)
+- Header/Footer images path expansion [Issue #484](https://github.com/PHPOffice/PhpSpreadsheet/issues/484)
+- Create uninitialized cells when used in calculations [Issue #4558](https://github.com/PHPOffice/PhpSpreadsheet/issues/4558)
+- Fixed `Shared/Date::isDateTime` to handle cells with array results [Issue #4557](https://github.com/PHPOffice/PhpSpreadsheet/issues/4557)
+
+## Version 4.0 (2025-02-08)
+
+### Breaking Changes
+
+#### Data Validations Storage
+
+<Warning>
+  Data Validations are now stored by worksheet, not by cell. The index can be one or more cells or cell ranges. [Issue #797](https://github.com/PHPOffice/PhpSpreadsheet/issues/797)
+</Warning>
+
+#### Conditional Formatting Changes
+
+Conditional Formatting now includes a Priority property and handles overlapping ranges better. [Issue #4312](https://github.com/PHPOffice/PhpSpreadsheet/issues/4312)
+
+#### CSV Reader Mac Line Endings
+
+<Warning>
+  CSV Reader will no longer auto-detect Mac line endings by default. Enable via `setTestAutoDetect(true)`. This feature will not be available in PHP 9+.
+</Warning>
+
+#### Html Writer Boolean Output
+
+Html Writer now uses "better boolean" logic by default. Booleans will be output as `TRUE`/`FALSE` instead of `1`/null-string. Restore old behavior with `setBetterBoolean(false)`.
+
+#### Xlsx Writer Force Full Calc
+
+Xlsx Writer now defaults to `false` for `forceFullCalc`. This affects writes with `preCalculateFormulas` set to false. Restore old behavior with `setForceFullCalc(null)`.
+
+### Removed Items
+
+The following items deprecated in Release 3 have been removed:
+
+- `Worksheet::getStyles` - no replacement
+- `Drawing::setIsUrl` - no replacement
+- `Settings::setLibXmlLoaderOptions()` and `Settings::getLibXmlLoaderOptions()` - no replacement
+- `Worksheet::getHashCode` - no replacement
+- `IReader::SKIP_EMPTY_CELLS` - use `IGNORE_EMPTY_CELLS` instead
+- `Worksheet::getProtectedCells` - use `getProtectedCellRanges` instead
+- `Writer/Html::isMpdf` property - use `instanceof Mpdf` instead
+
+### Added Features
+
+- **PDF Charts and Drawings**: Charts and drawings are now supported in PDF output [Discussion #4129](https://github.com/PHPOffice/PhpSpreadsheet/discussions/4129)
+- **Spreadsheet Serialization**: Spreadsheets can now be serialized [Discussion #4324](https://github.com/PHPOffice/PhpSpreadsheet/discussions/4324)
+
+## Version 3.0 (2024-09-29)
+
+### Dynamic Arrays Support
+
+<Note>
+  Support for Excel dynamic arrays has been added as an opt-in feature. Full support is available for Xlsx format. It's emulated as Ctrl-Shift-Enter arrays for Ods, Excel2003, and Gnumeric. No support for Xls or Slk formats.
+</Note>
+
+### Breaking Changes
+
+#### Xlsx Reader Default Datatype
+
+Default datatype when none is specified in XML changed from string to numeric, matching Excel's behavior. Most users won't be affected as `DefaultValueBinder` and `AdvancedValueBinder` correct the mis-identification.
+
+#### Currency and Accounting Wizards
+
+Currency and Accounting Wizards now match Excel behavior. A new `CurrencyBase` Wizard has been added for non-Excel formats. [Issue #4125](https://github.com/PHPOffice/PhpSpreadsheet/issues/4125)
+
+#### Image Validation
+
+<Warning>
+  Images will not be added to spreadsheet if they cannot be validated as images.
+</Warning>
+
+### Removed Items
+
+The following items deprecated in Release 2 have been removed:
+
+- `Writer\Xls\Style\ColorMap` - no longer needed
+- `Reader\Xml::trySimpleXMLLoadString` - should not have been public
+- `Calculation\Calculation::_translateFormulaToLocale` - use `translateFormulaToLocale` (without underscore)
+- `Calculation\Calculation::_translateFormulaToEnglish` - use `translateFormulaToEnglish` (without underscore)
+
+## Version 2.0 Key Features
+
+### Minor Breaking Change (2.2.0)
+
+<Warning>
+  Writing cell comments to HTML will now sanitize all HTML tags within the comment. Tags will be rendered as plaintext with no effects. Use the Font property of TextRuns for styling, as with Xlsx.
+</Warning>
+
+### Key Additions
+
+- **Conditional Formatting with IconSet** (Xlsx only) [Issue #4560](https://github.com/PHPOffice/PhpSpreadsheet/issues/4560)
+- **Copy cells with formula adjustment** [Issue #1203](https://github.com/PHPOffice/PhpSpreadsheet/issues/1203)
+- **splitRange and ProtectedRange support** [Issue #1457](https://github.com/PHPOffice/PhpSpreadsheet/issues/1457)
+- **Xlsx Reader option to ignore empty rows** [Issue #3982](https://github.com/PHPOffice/PhpSpreadsheet/issues/3982)
+- **CSV writer with varying column counts** [Issue #1415](https://github.com/PHPOffice/PhpSpreadsheet/issues/1415)
+
+### Important Changes
+
+#### Range Preservation
+
+Xlsx Reader now tries to preserve union ranges as they were read in, instead of breaking them into separate ranges. [PR #4042](https://github.com/PHPOffice/PhpSpreadsheet/pull/4042)
+
+#### Date Calculations
+
+Xlsx/Xls spreadsheet calculations and date formatting now use the base date of the spreadsheet, even when spreadsheets with different base dates are simultaneously open. [Issue #1036](https://github.com/PHPOffice/PhpSpreadsheet/issues/1036)
+
+## PHP Version Support
+
+<Note>
+  For maintained branches, support for PHP versions will only be maintained for six months beyond the [end of life](https://www.php.net/supported-versions) of that PHP version.
+</Note>
+
+### Current Requirements
+
+- **Minimum PHP Version**: 8.1
+- **Support Period**: Until June 30, 2026
+
+See the `composer.json` for other requirements.
+
+## Common Upgrade Tasks
+
+### Updating External Image Loading (5.0+)
+
+If you need to load external images:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$reader = IOFactory::createReader('Xlsx');
+$reader->setAllowExternalImages(true);
+$spreadsheet = $reader->load('file.xlsx');
+```
+
+### Updating Boolean Output in HTML (4.0+)
+
+To restore old boolean output behavior:
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$writer = new Html($spreadsheet);
+$writer->setBetterBoolean(false);
+$writer->save('output.html');
+```
+
+### Updating CSV Mac Line Ending Detection (4.0+)
+
+To enable Mac line ending auto-detection:
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+
+$reader = new Csv();
+$reader->setTestAutoDetect(true);
+$spreadsheet = $reader->load('file.csv');
+```
+
+### Migrating to Dynamic Arrays (3.0+)
+
+Dynamic arrays are opt-in. To enable:
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+$calculation = Calculation::getInstance($spreadsheet);
+$calculation->setDynamicArrays(true);
+```
+
+### Replacing Deprecated Methods
+
+Replace deprecated methods before upgrading:
+
+```php
+// Data Validations (4.0)
+// Before
+$validation = $worksheet->getCell('A1')->getDataValidation();
+
+// After
+$validations = $worksheet->getDataValidations();
+$validation = $validations['A1'] ?? null;
+
+// Protected Cells (4.0)
+// Before
+$protectedCells = $worksheet->getProtectedCells();
+
+// After
+$protectedCells = $worksheet->getProtectedCellRanges();
+
+// Skip Empty Cells (4.0)
+// Before
+$reader->setReadDataOnly(true);
+$reader->setReadEmptyCells(IReader::SKIP_EMPTY_CELLS);
+
+// After
+$reader->setReadDataOnly(true);
+$reader->setReadEmptyCells(IReader::IGNORE_EMPTY_CELLS);
+```
+
+## Testing Your Upgrade
+
+<Note>
+  After upgrading, thoroughly test your application, especially:
+  - External image loading (if used)
+  - Boolean value rendering in HTML output
+  - CSV file reading with Mac line endings
+  - Data validation and conditional formatting logic
+  - Large integer handling (15+ digits)
+</Note>
+
+### Recommended Testing Steps
+
+1. **Run your test suite** to catch any immediate breaking changes
+2. **Test file reading** with various formats (Xlsx, Csv, Ods, etc.)
+3. **Verify calculations** especially if using dynamic arrays
+4. **Check rendered output** for HTML and PDF exports
+5. **Validate data integrity** for cells with large numbers or specific datatypes
+
+## Getting Help
+
+If you encounter issues during migration:
+
+- Check the [GitHub Issues](https://github.com/PHPOffice/PhpSpreadsheet/issues) for known problems
+- Review the complete [CHANGELOG](https://github.com/PHPOffice/PhpSpreadsheet/blob/master/CHANGELOG.md)
+- Ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/phpspreadsheet) with the `phpspreadsheet` tag
+- Join the [Gitter chat](https://gitter.im/PHPOffice/PhpSpreadsheet) for community support

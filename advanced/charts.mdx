@@ -1,0 +1,381 @@
+---
+title: 'Charts'
+description: 'Create and embed charts in Excel worksheets using PhpSpreadsheet'
+---
+
+## Introduction
+
+PhpSpreadsheet allows you to create and embed various types of charts in Excel worksheets. Charts are visual representations of worksheet data that can be added programmatically.
+
+<Note>
+Chart support is primarily for Xlsx files. Chart rendering capabilities vary by writer format.
+</Note>
+
+## Chart Components
+
+Every chart consists of these key components:
+
+- **DataSeries**: Defines the chart type and data
+- **DataSeriesValues**: Specifies the data ranges
+- **PlotArea**: Contains the data series
+- **Legend**: Displays series labels
+- **Title**: Chart and axis titles
+- **Chart**: The main chart object
+
+## Creating a Basic Chart
+
+### Column Chart Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Legend as ChartLegend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Add data
+$worksheet->fromArray([
+    ['', 2010, 2011, 2012],
+    ['Q1', 12, 15, 21],
+    ['Q2', 56, 73, 86],
+    ['Q3', 52, 61, 69],
+    ['Q4', 30, 32, 0],
+]);
+
+// Set the labels for each data series
+$dataSeriesLabels = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$B$1', null, 1),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$C$1', null, 1),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$D$1', null, 1),
+];
+
+// Set the X-Axis labels
+$xAxisTickValues = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, 'Worksheet!$A$2:$A$5', null, 4),
+];
+
+// Set the data values for each series
+$dataSeriesValues = [
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$B$2:$B$5', null, 4),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$C$2:$C$5', null, 4),
+    new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, 'Worksheet!$D$2:$D$5', null, 4),
+];
+
+// Build the dataseries
+$series = new DataSeries(
+    DataSeries::TYPE_BARCHART,          // Plot type
+    DataSeries::GROUPING_STANDARD,      // Plot grouping
+    range(0, count($dataSeriesValues) - 1), // Plot order
+    $dataSeriesLabels,                  // Plot label
+    $xAxisTickValues,                   // Plot category
+    $dataSeriesValues                   // Plot values
+);
+
+// Make it a vertical column chart
+$series->setPlotDirection(DataSeries::DIRECTION_COL);
+
+// Set the series in the plot area
+$plotArea = new PlotArea(null, [$series]);
+
+// Set the chart legend
+$legend = new ChartLegend(ChartLegend::POSITION_RIGHT, null, false);
+
+// Create titles
+$title = new Title('Test Column Chart');
+$yAxisLabel = new Title('Value ($k)');
+
+// Create the chart
+$chart = new Chart(
+    'chart1',                           // Name
+    $title,                             // Title
+    $legend,                            // Legend
+    $plotArea,                          // Plot area
+    true,                               // Plot visible only
+    DataSeries::EMPTY_AS_GAP,          // Display blanks as
+    null,                               // X-axis label
+    $yAxisLabel                         // Y-axis label
+);
+
+// Set the position where the chart should appear
+$chart->setTopLeftPosition('A7');
+$chart->setBottomRightPosition('H20');
+
+// Add the chart to the worksheet
+$worksheet->addChart($chart);
+```
+
+## Chart Types
+
+### Available Chart Types
+
+PhpSpreadsheet supports these chart types:
+
+| Type | Constant |
+|------|----------|
+| Area | `DataSeries::TYPE_AREACHART` |
+| Bar | `DataSeries::TYPE_BARCHART` |
+| Line | `DataSeries::TYPE_LINECHART` |
+| Pie | `DataSeries::TYPE_PIECHART` |
+| Doughnut | `DataSeries::TYPE_DOUGHNUTCHART` |
+| Scatter | `DataSeries::TYPE_SCATTERCHART` |
+| Bubble | `DataSeries::TYPE_BUBBLECHART` |
+| Radar | `DataSeries::TYPE_RADARCHART` |
+| Surface | `DataSeries::TYPE_SURFACECHART` |
+| Stock | `DataSeries::TYPE_STOCKCHART` |
+
+### Bar Chart Example
+
+```php
+// Create a horizontal bar chart by setting the plot direction
+$series = new DataSeries(
+    DataSeries::TYPE_BARCHART,
+    DataSeries::GROUPING_STANDARD,
+    range(0, count($dataSeriesValues) - 1),
+    $dataSeriesLabels,
+    $xAxisTickValues,
+    $dataSeriesValues
+);
+
+$series->setPlotDirection(DataSeries::DIRECTION_BAR);
+```
+
+### Pie Chart Example
+
+```php
+$series = new DataSeries(
+    DataSeries::TYPE_PIECHART,
+    null,                               // No grouping for pie charts
+    range(0, count($dataSeriesValues) - 1),
+    $dataSeriesLabels,
+    $xAxisTickValues,
+    $dataSeriesValues
+);
+```
+
+### Scatter Chart Example
+
+```php
+$series = new DataSeries(
+    DataSeries::TYPE_SCATTERCHART,
+    DataSeries::GROUPING_STANDARD,
+    range(0, count($dataSeriesValues) - 1),
+    $dataSeriesLabels,
+    $xAxisTickValues,
+    $dataSeriesValues
+);
+
+// Set scatter style
+$series->setPlotStyle(DataSeries::STYLE_LINEMARKER);
+```
+
+## Chart Grouping
+
+### Grouping Types
+
+- `DataSeries::GROUPING_STANDARD` - Default grouping
+- `DataSeries::GROUPING_STACKED` - Stacked
+- `DataSeries::GROUPING_PERCENT_STACKED` - 100% stacked
+- `DataSeries::GROUPING_CLUSTERED` - Clustered
+
+### Stacked Bar Chart
+
+```php
+$series = new DataSeries(
+    DataSeries::TYPE_BARCHART,
+    DataSeries::GROUPING_STACKED,      // Stacked bars
+    range(0, count($dataSeriesValues) - 1),
+    $dataSeriesLabels,
+    $xAxisTickValues,
+    $dataSeriesValues
+);
+```
+
+## Customizing Charts
+
+### Legend Position
+
+```php
+use PhpOffice\PhpSpreadsheet\Chart\Legend as ChartLegend;
+
+// Position options:
+$legend = new ChartLegend(ChartLegend::POSITION_TOP, null, false);
+$legend = new ChartLegend(ChartLegend::POSITION_BOTTOM, null, false);
+$legend = new ChartLegend(ChartLegend::POSITION_LEFT, null, false);
+$legend = new ChartLegend(ChartLegend::POSITION_RIGHT, null, false);
+$legend = new ChartLegend(ChartLegend::POSITION_TOPRIGHT, null, false);
+```
+
+### Chart Titles
+
+```php
+use PhpOffice\PhpSpreadsheet\Chart\Title;
+
+// Main chart title
+$title = new Title('Sales Report 2023');
+
+// Axis titles
+$xAxisLabel = new Title('Quarter');
+$yAxisLabel = new Title('Revenue ($)');
+
+$chart = new Chart(
+    'chart1',
+    $title,
+    $legend,
+    $plotArea,
+    true,
+    DataSeries::EMPTY_AS_GAP,
+    $xAxisLabel,
+    $yAxisLabel
+);
+```
+
+### Empty Cell Handling
+
+```php
+// Options for handling empty cells
+DataSeries::EMPTY_AS_GAP      // Show as gap (default)
+DataSeries::EMPTY_AS_ZERO     // Treat as zero
+DataSeries::EMPTY_AS_SPAN     // Connect with line
+```
+
+## DataSeriesValues
+
+### Data Types
+
+```php
+// String data (labels)
+DataSeriesValues::DATASERIES_TYPE_STRING
+
+// Numeric data (values)
+DataSeriesValues::DATASERIES_TYPE_NUMBER
+```
+
+### Creating DataSeriesValues
+
+```php
+new DataSeriesValues(
+    $dataType,        // DATASERIES_TYPE_STRING or DATASERIES_TYPE_NUMBER
+    $dataSource,      // Cell reference (e.g., 'Worksheet!$B$1:$B$5')
+    $formatCode,      // Number format (optional, usually null)
+    $pointCount       // Number of data points
+);
+```
+
+## Chart Positioning
+
+### Setting Chart Position
+
+```php
+// Position using cell references
+$chart->setTopLeftPosition('A7');
+$chart->setBottomRightPosition('H20');
+
+// Position with offsets (in pixels)
+$chart->setTopLeftPosition('A7');
+$chart->setTopLeftOffset(10, 10);
+$chart->setBottomRightPosition('H20');
+$chart->setBottomRightOffset(10, 10);
+```
+
+## Multiple Series
+
+### Creating a Chart with Multiple Series
+
+```php
+// Create multiple data series
+$series1 = new DataSeries(
+    DataSeries::TYPE_LINECHART,
+    DataSeries::GROUPING_STANDARD,
+    [0],
+    [$label1],
+    $xAxisTickValues,
+    [$dataValues1]
+);
+
+$series2 = new DataSeries(
+    DataSeries::TYPE_BARCHART,
+    DataSeries::GROUPING_STANDARD,
+    [0],
+    [$label2],
+    $xAxisTickValues,
+    [$dataValues2]
+);
+
+// Combine in plot area
+$plotArea = new PlotArea(null, [$series1, $series2]);
+```
+
+## Reading Charts
+
+### Reading Charts from Files
+
+```php
+$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load('chart.xlsx');
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Get all charts in the worksheet
+$charts = $worksheet->getChartCollection();
+
+foreach ($charts as $chart) {
+    echo 'Chart: ' . $chart->getName() . PHP_EOL;
+    echo 'Title: ' . $chart->getTitle()->getCaption() . PHP_EOL;
+    
+    // Get chart position
+    echo 'Top Left: ' . $chart->getTopLeftPosition() . PHP_EOL;
+    echo 'Bottom Right: ' . $chart->getBottomRightPosition() . PHP_EOL;
+}
+```
+
+## Chart Rendering
+
+### Rendering to Image
+
+Charts can be rendered to images using chart renderers:
+
+```php
+// Requires jpgraph library
+$chart = $worksheet->getChartByName('chart1');
+$chart->render('chart.png');
+```
+
+<Warning>
+Chart rendering requires additional dependencies (jpgraph) and has limited support. Check the documentation for your specific use case.
+</Warning>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Descriptive Chart Names">
+    Give charts meaningful names to easily identify them when reading files or debugging.
+  </Accordion>
+  
+  <Accordion title="Validate Data Ranges">
+    Ensure data ranges are correct and contain valid data before creating charts.
+  </Accordion>
+  
+  <Accordion title="Position Charts Carefully">
+    Position charts to avoid overlapping with data or other charts.
+  </Accordion>
+  
+  <Accordion title="Choose Appropriate Chart Types">
+    Select chart types that best represent your data (e.g., line charts for trends, pie charts for proportions).
+  </Accordion>
+</AccordionGroup>
+
+## Limitations
+
+- Chart support is primarily for Xlsx format
+- Not all Excel chart features are supported
+- Chart rendering has limited functionality
+- Some advanced chart types may not be fully supported
+
+## Related Topics
+
+- [Images and Drawings](/advanced/images)
+- [Worksheets](/essentials/worksheets)
+- [Cell Formatting](/essentials/cell-formatting)

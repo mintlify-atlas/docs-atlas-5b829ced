@@ -1,0 +1,344 @@
+---
+title: Number Formats
+description: Apply number format masks, date formats, and custom formats to cells
+---
+
+## Overview
+
+PhpSpreadsheet provides extensive support for number formatting, allowing you to control how values are displayed in cells. Number formats only affect the display of values - the underlying data remains unchanged.
+
+## Predefined Number Formats
+
+The `NumberFormat` class provides many predefined format constants:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+// Apply a predefined format
+$spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+```
+
+### Available Format Constants
+
+<CodeGroup>
+```php General
+// General number format
+NumberFormat::FORMAT_GENERAL
+NumberFormat::FORMAT_TEXT  // '@'
+```
+
+```php Numbers
+// Basic number formats
+NumberFormat::FORMAT_NUMBER                    // '0'
+NumberFormat::FORMAT_NUMBER_0                  // '0.0'
+NumberFormat::FORMAT_NUMBER_00                 // '0.00'
+NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1   // '#,##0.00'
+NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2   // '#,##0.00_-'
+```
+
+```php Percentages
+// Percentage formats
+NumberFormat::FORMAT_PERCENTAGE       // '0%'
+NumberFormat::FORMAT_PERCENTAGE_0     // '0.0%'
+NumberFormat::FORMAT_PERCENTAGE_00    // '0.00%'
+```
+
+```php Currency
+// Currency formats
+NumberFormat::FORMAT_CURRENCY_USD_INTEGER      // '$#,##0_-'
+NumberFormat::FORMAT_CURRENCY_USD              // '$#,##0.00_-'
+NumberFormat::FORMAT_CURRENCY_EUR_INTEGER      // '#,##0_-[$€]'
+NumberFormat::FORMAT_CURRENCY_EUR              // '#,##0.00_-[$€]'
+NumberFormat::FORMAT_CURRENCY_GBP_INTEGER      // '£#,##0_-'
+NumberFormat::FORMAT_CURRENCY_GBP              // '£#,##0.00_-'
+NumberFormat::FORMAT_ACCOUNTING_USD
+NumberFormat::FORMAT_ACCOUNTING_EUR
+```
+</CodeGroup>
+
+## Date and Time Formats
+
+Dates and times in Excel are stored as numeric values counting days since 1900-01-01.
+
+### Date Format Constants
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+// Date formats
+NumberFormat::FORMAT_DATE_YYYYMMDD           // 'yyyy-mm-dd'
+NumberFormat::FORMAT_DATE_DDMMYYYY           // 'dd/mm/yyyy'
+NumberFormat::FORMAT_DATE_DMYSLASH           // 'd"/"m"/"yy'
+NumberFormat::FORMAT_DATE_DMYMINUS           // 'd-m-yy'
+NumberFormat::FORMAT_DATE_DMMINUS            // 'd-m'
+NumberFormat::FORMAT_DATE_MYMINUS            // 'm-yy'
+NumberFormat::FORMAT_DATE_XLSX14_ACTUAL      // 'm/d/yyyy'
+NumberFormat::FORMAT_DATE_XLSX15             // 'd-mmm-yy'
+NumberFormat::FORMAT_DATE_XLSX15_YYYY        // 'd-mmm-yyyy'
+NumberFormat::FORMAT_DATE_LONG_DATE          // 'dddd, mmmm d, yyyy'
+
+// Time formats
+NumberFormat::FORMAT_DATE_TIME1              // 'h:mm AM/PM'
+NumberFormat::FORMAT_DATE_TIME2              // 'h:mm:ss AM/PM'
+NumberFormat::FORMAT_DATE_TIME3              // 'h:mm'
+NumberFormat::FORMAT_DATE_TIME4              // 'h:mm:ss'
+NumberFormat::FORMAT_DATE_TIME_INTERVAL_HMS  // '[hh]:mm:ss'
+
+// DateTime formats
+NumberFormat::FORMAT_DATE_DATETIME           // 'd/m/yy h:mm'
+NumberFormat::FORMAT_DATE_DATETIME_BETTER    // 'yyyy-mm-dd hh:mm'
+```
+
+### Writing Dates to Cells
+
+<CodeGroup>
+```php Date String
+use PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+// Use AdvancedValueBinder to automatically recognize dates
+$spreadsheet->setValueBinder(new AdvancedValueBinder());
+
+$spreadsheet->getActiveSheet()->setCellValue('D1', '2008-12-31');
+$spreadsheet->getActiveSheet()->getStyle('D1')
+    ->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDDSLASH);
+```
+
+```php PHP Timestamp
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+// Convert PHP timestamp to Excel date
+$time = gmmktime(0, 0, 0, 12, 31, 2008);
+$spreadsheet->getActiveSheet()
+    ->setCellValue('D1', Date::PHPToExcel($time));
+    
+$spreadsheet->getActiveSheet()->getStyle('D1')
+    ->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDDSLASH);
+```
+
+```php Excel Value
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+// Excel date value (39813 = 2008-12-31)
+$spreadsheet->getActiveSheet()->setCellValue('D1', 39813);
+$spreadsheet->getActiveSheet()->getStyle('D1')
+    ->getNumberFormat()
+    ->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDDSLASH);
+```
+</CodeGroup>
+
+### Date/Time Format Wizards
+
+PhpSpreadsheet provides wizards to help create date and time format masks:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat\Wizard\Date as DateWizard;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat\Wizard\Time as TimeWizard;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat\Wizard\DateTime as DateTimeWizard;
+
+// Create a date format: yyyy-mm-dd
+$dateFormat = new DateWizard(
+    DateWizard::SEPARATOR_DASH,
+    DateWizard::YEAR_FULL,
+    DateWizard::MONTH_NUMBER_LONG,
+    DateWizard::DAY_NUMBER_LONG
+);
+
+$spreadsheet->getActiveSheet()->getStyle('A1')
+    ->getNumberFormat()
+    ->setFormatCode($dateFormat);
+
+// Create a time format: hh:mm
+$timeFormat = new TimeWizard(
+    TimeWizard::SEPARATOR_COLON,
+    TimeWizard::HOURS_LONG,
+    TimeWizard::MINUTES_LONG
+);
+
+$spreadsheet->getActiveSheet()->getStyle('A2')
+    ->getNumberFormat()
+    ->setFormatCode($timeFormat);
+
+// Combine date and time: yyyy-mm-dd hh:mm
+$dateTimeFormat = new DateTimeWizard(' ', $dateFormat, $timeFormat);
+
+$spreadsheet->getActiveSheet()->getStyle('A3')
+    ->getNumberFormat()
+    ->setFormatCode($dateTimeFormat);
+```
+
+## Custom Number Formats
+
+You can create custom number format codes using Excel's format syntax:
+
+### Basic Custom Formats
+
+```php
+// Thousands separator with 2 decimals
+$spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat()
+    ->setFormatCode('#,##0.00');
+
+// Zero-padded numbers
+$spreadsheet->getActiveSheet()->setCellValue('A1', 19);
+$spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat()
+    ->setFormatCode('0000'); // Displays as "0019"
+
+// Scientific notation
+$spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat()
+    ->setFormatCode('0.00E+00');
+
+// Fractions
+$spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat()
+    ->setFormatCode('# ?/?');  // Single-digit fractions
+```
+
+### Conditional Formatting in Number Masks
+
+Number format codes can include conditions and colors:
+
+```php
+// Different formats for positive, negative, and zero
+$spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat()
+    ->setFormatCode('[Blue][>=3000]$#,##0;[Red][<0]$#,##0;$#,##0');
+
+// Positive (green), Negative (red), Zero, Text
+$spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat()
+    ->setFormatCode('[Green]#,##0;[Red]-#,##0;0;@');
+```
+
+### Format Code Structure
+
+Number format codes can have up to 4 sections separated by semicolons:
+
+```
+[Positive];[Negative];[Zero];[Text]
+```
+
+<Note>
+If you only specify one section, it applies to all numbers. Two sections apply to positive/zero and negative. Three sections apply to positive, negative, and zero.
+</Note>
+
+## Built-in Format Codes by Index
+
+You can also use built-in format codes by their index:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+// Get format code by index
+$formatCode = NumberFormat::builtInFormatCode(14); // Returns 'm/d/yyyy'
+
+// Set format by index
+$spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat()
+    ->setBuiltInFormatCode(14);
+
+// Get index of a format code
+$index = NumberFormat::builtInFormatCodeIndex('0.00%'); // Returns 10
+```
+
+## Reading Number Formats
+
+```php
+// Get the format code
+$formatCode = $spreadsheet->getActiveSheet()
+    ->getStyle('A1')
+    ->getNumberFormat()
+    ->getFormatCode();
+
+// Get built-in format code (returns false or int)
+$builtInCode = $spreadsheet->getActiveSheet()
+    ->getStyle('A1')
+    ->getNumberFormat()
+    ->getBuiltInFormatCode();
+```
+
+## Discovering Format Codes
+
+If you're not sure what format code to use, you can:
+
+1. Create the format in Excel
+2. Load the file in PhpSpreadsheet
+3. Inspect the format code:
+
+```php
+$reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xlsx');
+$spreadsheet = $reader->load('template.xlsx');
+
+$formatCode = $spreadsheet->getActiveSheet()
+    ->getStyle('A1')
+    ->getNumberFormat()
+    ->getFormatCode();
+    
+var_dump($formatCode);
+```
+
+<Tip>
+Advanced users can also inspect format codes by renaming `.xlsx` to `.zip`, extracting, and examining `xl/styles.xml`.
+</Tip>
+
+## Common Format Examples
+
+<CodeGroup>
+```php Accounting
+// Accounting format with currency symbol
+$spreadsheet->getActiveSheet()->getStyle('A1:A10')->getNumberFormat()
+    ->setFormatCode('_("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)');
+```
+
+```php Phone Numbers
+// US phone number format
+$spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat()
+    ->setFormatCode('[<=9999999]###-####;(###) ###-####');
+```
+
+```php Leading Zeros
+// ZIP codes with leading zeros
+$spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat()
+    ->setFormatCode('00000');
+```
+
+```php Custom Text
+// Add text to numbers
+$spreadsheet->getActiveSheet()->getStyle('A1')->getNumberFormat()
+    ->setFormatCode('0" kg"');  // "5 kg"
+```
+</CodeGroup>
+
+## System Date Formats
+
+PhpSpreadsheet can convert system date format placeholders:
+
+```php
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
+// These system formats
+NumberFormat::FORMAT_SYSDATE_X    // '[$-x-sysdate]'
+NumberFormat::FORMAT_SYSTIME_X    // '[$-x-systime]'
+
+// Are converted to the configured formats:
+NumberFormat::setLongDateFormat('dddd, mmmm d, yyyy');
+NumberFormat::setTimeFormat('h:mm:ss AM/PM');
+
+// Retrieve configured formats
+$longDate = NumberFormat::getLongDateFormat();
+$shortDate = NumberFormat::getShortDateFormat();
+$dateTime = NumberFormat::getDateTimeFormat();
+$time = NumberFormat::getTimeFormat();
+```
+
+## Best Practices
+
+<Warning>
+Number formats only affect display. The underlying cell value remains unchanged. Use `getCalculatedValue()` to get the formatted display value.
+</Warning>
+
+<Tip>
+- Use predefined constants when possible for consistency
+- Test custom format codes in Excel first
+- Remember that dates are stored as numbers (days since 1900-01-01)
+- Use the AdvancedValueBinder for automatic date/time detection
+</Tip>

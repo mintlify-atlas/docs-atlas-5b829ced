@@ -1,0 +1,537 @@
+---
+title: Csv Reader
+description: API reference for the PhpSpreadsheet Csv reader class for reading comma-separated values (.csv) files
+---
+
+## Overview
+
+The `Csv` reader class loads comma-separated values (.csv) files. CSV is a simple text format for tabular data, widely supported by spreadsheet applications and databases.
+
+## Class Information
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Reader\Csv`
+
+**Extends:** `BaseReader`
+
+**Implements:** `IReader`
+
+**Source:** `src/PhpSpreadsheet/Reader/Csv.php:15`
+
+## Basic Usage
+
+### Simple File Loading
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+
+$reader = new Csv();
+$spreadsheet = $reader->load('data.csv');
+
+// Access worksheet data
+$sheet = $spreadsheet->getActiveSheet();
+$data = $sheet->toArray();
+```
+
+### Using IOFactory
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Auto-detect and load
+$spreadsheet = IOFactory::load('data.csv');
+
+// Or create specific reader
+$reader = IOFactory::createReader('Csv');
+$spreadsheet = $reader->load('data.csv');
+```
+
+## Key Methods
+
+### __construct()
+
+Creates a new Csv reader instance.
+
+```php
+public function __construct();
+```
+
+**Example:**
+
+```php
+$reader = new Csv();
+```
+
+### canRead()
+
+Checks if the file can be read by this reader.
+
+```php
+public function canRead(string $filename): bool;
+```
+
+<ParamField path="filename" type="string" required>
+  Path to the file to check
+</ParamField>
+
+**Returns:** `bool` - True if the file can be read
+
+**Example:**
+
+```php
+$reader = new Csv();
+if ($reader->canRead('data.csv')) {
+    $spreadsheet = $reader->load('data.csv');
+}
+```
+
+### load()
+
+Loads a spreadsheet from a CSV file.
+
+```php
+public function load(string $filename, int $flags = 0): Spreadsheet;
+```
+
+<ParamField path="filename" type="string" required>
+  Path to the CSV file to load
+</ParamField>
+
+<ParamField path="flags" type="int" default="0">
+  Optional flags (limited support for CSV format)
+</ParamField>
+
+**Returns:** `Spreadsheet` object with a single worksheet
+
+**Example:**
+
+```php
+$reader = new Csv();
+$spreadsheet = $reader->load('data.csv');
+```
+
+### loadIntoExisting()
+
+Loads a CSV file into an existing spreadsheet as a new worksheet.
+
+```php
+public function loadIntoExisting(string $filename, Spreadsheet $spreadsheet): Spreadsheet;
+```
+
+<ParamField path="filename" type="string" required>
+  Path to the CSV file to load
+</ParamField>
+
+<ParamField path="spreadsheet" type="Spreadsheet" required>
+  Existing spreadsheet object to load into
+</ParamField>
+
+**Returns:** The modified `Spreadsheet` object
+
+**Example:**
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+
+$reader = new Csv();
+
+// Load first CSV file
+$spreadsheet = $reader->load('data1.csv');
+$spreadsheet->getActiveSheet()->setTitle('Data1');
+
+// Load second CSV file into new sheet
+$reader->setSheetIndex(1);
+$reader->loadIntoExisting('data2.csv', $spreadsheet);
+$spreadsheet->getActiveSheet()->setTitle('Data2');
+
+// Now spreadsheet has 2 worksheets
+```
+
+## CSV-Specific Configuration
+
+### setDelimiter()
+
+Sets the delimiter character for separating fields.
+
+```php
+public function setDelimiter(string $delimiter): self;
+```
+
+<ParamField path="delimiter" type="string" required>
+  The delimiter character (default: auto-detected, typically `,`)
+</ParamField>
+
+**Example:**
+
+```php
+// Tab-separated values
+$reader = new Csv();
+$reader->setDelimiter("\t");
+$spreadsheet = $reader->load('data.tsv');
+
+// Semicolon-separated values
+$reader->setDelimiter(';');
+$spreadsheet = $reader->load('data.csv');
+
+// Pipe-separated values
+$reader->setDelimiter('|');
+$spreadsheet = $reader->load('data.txt');
+```
+
+### setEnclosure()
+
+Sets the enclosure character for field values.
+
+```php
+public function setEnclosure(string $enclosure): self;
+```
+
+<ParamField path="enclosure" type="string" required>
+  The enclosure character (default: `"`)
+</ParamField>
+
+**Example:**
+
+```php
+$reader = new Csv();
+$reader->setEnclosure("'");
+$spreadsheet = $reader->load('data.csv');
+```
+
+### setInputEncoding()
+
+Sets the input character encoding.
+
+```php
+public function setInputEncoding(string $encoding): self;
+```
+
+<ParamField path="encoding" type="string" required>
+  Character encoding (e.g., 'UTF-8', 'CP1252', 'ISO-8859-1', or 'guess')
+</ParamField>
+
+**Example:**
+
+```php
+// Specific encoding
+$reader = new Csv();
+$reader->setInputEncoding('CP1252');
+$spreadsheet = $reader->load('data.csv');
+
+// Auto-detect encoding
+$reader->setInputEncoding(Csv::GUESS_ENCODING);
+$spreadsheet = $reader->load('data.csv');
+```
+
+### setSheetIndex()
+
+Sets the index for the worksheet when loading into existing spreadsheet.
+
+```php
+public function setSheetIndex(int $sheetIndex): self;
+```
+
+<ParamField path="sheetIndex" type="int" required>
+  The 0-based worksheet index
+</ParamField>
+
+**Example:**
+
+```php
+$reader = new Csv();
+$spreadsheet = $reader->load('data1.csv');
+
+// Load into sheet index 1 (second sheet)
+$reader->setSheetIndex(1);
+$reader->loadIntoExisting('data2.csv', $spreadsheet);
+```
+
+### setContiguous()
+
+Sets whether to load rows contiguously.
+
+```php
+public function setContiguous(bool $contiguous): self;
+```
+
+<ParamField path="contiguous" type="bool" required>
+  True to load rows contiguously, false otherwise
+</ParamField>
+
+**Example:**
+
+```php
+$reader = new Csv();
+$reader->setContiguous(true);
+$spreadsheet = $reader->load('data.csv');
+```
+
+## Encoding Support
+
+The CSV reader includes robust encoding detection and conversion:
+
+### Supported Encodings
+
+- UTF-8 (with or without BOM)
+- UTF-16 (BE/LE with BOM)
+- UTF-32 (BE/LE with BOM)
+- CP1252 (Windows-1252)
+- ISO-8859-1 (Latin-1)
+- Other encodings supported by `iconv`
+
+### Automatic Encoding Detection
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+
+$reader = new Csv();
+$reader->setInputEncoding(Csv::GUESS_ENCODING);
+$spreadsheet = $reader->load('data.csv');
+```
+
+### Fallback Encoding
+
+If encoding detection fails, set a fallback encoding:
+
+```php
+$reader = new Csv();
+$reader->setInputEncoding(Csv::GUESS_ENCODING);
+$reader->setFallbackEncoding('CP1252');
+$spreadsheet = $reader->load('data.csv');
+```
+
+## Delimiter Auto-Detection
+
+If no delimiter is specified, the CSV reader automatically detects the most appropriate delimiter:
+
+```php
+$reader = new Csv();
+// Delimiter is automatically detected
+$spreadsheet = $reader->load('data.csv');
+
+// Common delimiters checked: , ; \t | :
+```
+
+The delimiter detection uses the `Csv\Delimiter` class which analyzes the file structure.
+
+## Working with Different CSV Formats
+
+### Standard CSV (Comma-separated)
+
+```php
+$reader = new Csv();
+$spreadsheet = $reader->load('data.csv');
+```
+
+### Tab-separated Values (TSV)
+
+```php
+$reader = new Csv();
+$reader->setDelimiter("\t");
+$spreadsheet = $reader->load('data.tsv');
+```
+
+### Semicolon-separated (European format)
+
+```php
+$reader = new Csv();
+$reader->setDelimiter(';');
+$spreadsheet = $reader->load('data.csv');
+```
+
+### Custom Delimiter and Enclosure
+
+```php
+$reader = new Csv();
+$reader->setDelimiter('|');
+$reader->setEnclosure("'");
+$spreadsheet = $reader->load('data.txt');
+```
+
+## Loading Multiple CSV Files
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+
+$files = ['data1.csv', 'data2.csv', 'data3.csv'];
+
+$reader = new Csv();
+
+// Load first file
+$spreadsheet = $reader->load($files[0]);
+$spreadsheet->getActiveSheet()->setTitle(basename($files[0], '.csv'));
+
+// Load remaining files into separate sheets
+for ($i = 1; $i < count($files); $i++) {
+    $reader->setSheetIndex($i);
+    $reader->loadIntoExisting($files[$i], $spreadsheet);
+    $spreadsheet->getActiveSheet()->setTitle(basename($files[$i], '.csv'));
+}
+
+echo "Loaded {$spreadsheet->getSheetCount()} worksheets\n";
+```
+
+## Value Binding
+
+Control how CSV values are interpreted:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\StringValueBinder;
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+
+$reader = new Csv();
+
+// Use string value binder to keep all values as strings
+$reader->setValueBinder(new StringValueBinder());
+
+$spreadsheet = $reader->load('data.csv');
+```
+
+## CSV-Specific Options
+
+### setEscapeCharacter()
+
+Sets the escape character (deprecated in PHP 8.4).
+
+```php
+public function setEscapeCharacter(?string $escapeCharacter): self;
+```
+
+<ParamField path="escapeCharacter" type="string|null" required>
+  The escape character (default: null)
+</ParamField>
+
+<Warning>
+This method is deprecated and will be removed in a future version as PHP is removing escape character support.
+</Warning>
+
+### Boolean Value Conversion
+
+```php
+$reader = new Csv();
+$reader->setGetTrue('YES');
+$reader->setGetFalse('NO');
+$spreadsheet = $reader->load('data.csv');
+```
+
+### Number Formatting
+
+```php
+$reader = new Csv();
+$reader->setThousandsSeparator(',');
+$reader->setDecimalSeparator('.');
+$reader->setCastFormattedNumberToNumeric(true);
+$spreadsheet = $reader->load('data.csv');
+```
+
+## Performance Considerations
+
+CSV files are read sequentially and are generally memory-efficient:
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+use PhpOffice\PhpSpreadsheet\Reader\IReader;
+
+$reader = new Csv();
+$reader->setInputEncoding('UTF-8');
+
+// Use read filter for large files
+$reader->setReadFilter(new ChunkFilter(1, 1000));
+
+$spreadsheet = $reader->load('large_file.csv');
+```
+
+## Error Handling
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+
+$reader = new Csv();
+
+try {
+    if (!$reader->canRead('data.csv')) {
+        throw new Exception('Cannot read file');
+    }
+    
+    $reader->setInputEncoding(Csv::GUESS_ENCODING);
+    $reader->setFallbackEncoding('CP1252');
+    
+    $spreadsheet = $reader->load('data.csv');
+    
+} catch (ReaderException $e) {
+    echo 'Error loading CSV file: ' . $e->getMessage();
+} catch (\Exception $e) {
+    echo 'General error: ' . $e->getMessage();
+}
+```
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
+
+// Create and configure reader
+$reader = new Csv();
+$reader->setDelimiter(',');
+$reader->setEnclosure('"');
+$reader->setInputEncoding(Csv::GUESS_ENCODING);
+$reader->setFallbackEncoding('CP1252');
+
+try {
+    // Load file
+    $spreadsheet = $reader->load('report.csv');
+    
+    // Access data
+    $sheet = $spreadsheet->getActiveSheet();
+    $highestRow = $sheet->getHighestRow();
+    $highestColumn = $sheet->getHighestColumn();
+    
+    echo "Loaded {$highestRow} rows and {$highestColumn} columns\n";
+    
+    // Process data
+    foreach ($sheet->getRowIterator() as $row) {
+        $cellIterator = $row->getCellIterator();
+        $cellIterator->setIterateOnlyExistingCells(false);
+        
+        foreach ($cellIterator as $cell) {
+            $value = $cell->getValue();
+            // Process value
+        }
+    }
+    
+} catch (ReaderException $e) {
+    echo 'Reader error: ' . $e->getMessage();
+}
+```
+
+## Constructor Callback
+
+Set default options for all CSV reader instances:
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+
+Csv::setConstructorCallback(function(Csv $reader) {
+    $reader->setDelimiter(',');
+    $reader->setEnclosure('"');
+    $reader->setInputEncoding(Csv::GUESS_ENCODING);
+});
+
+// All new readers will use these defaults
+$reader = new Csv();
+```
+
+## Limitations
+
+- CSV files contain no formatting information (fonts, colors, etc.)
+- Only supports a single worksheet per file (use `loadIntoExisting` for multiple files)
+- No support for formulas (formulas are read as text values)
+- No support for charts or images
+- No support for merged cells
+
+## Related Documentation
+
+- [Readers Overview](/api/readers/overview)
+- [Xlsx Reader](/api/readers/xlsx)
+- [IOFactory](/api/io-factory)

@@ -1,0 +1,506 @@
+---
+title: Spreadsheet Readers
+description: Complete reference of available readers and their specific features and options
+---
+
+## Overview
+
+PhpSpreadsheet provides readers for various spreadsheet formats. Each reader implements the `IReader` interface and supports different features and options.
+
+## Reader Comparison
+
+| Format | Class | Read Data Only | Charts | Empty Cells | Filters | Sheets |
+|--------|-------|:---:|:---:|:---:|:---:|:---:|
+| **Xlsx** | `Reader\Xlsx` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **Xls** | `Reader\Xls` | ✓ | - | ✓ | ✓ | ✓ |
+| **Xml** | `Reader\Xml` | - | - | - | ✓ | ✓ |
+| **Ods** | `Reader\Ods` | ✓ | - | - | ✓ | ✓ |
+| **Slk** | `Reader\Slk` | - | - | - | - | - |
+| **Gnumeric** | `Reader\Gnumeric` | ✓ | - | - | ✓ | ✓ |
+| **Html** | `Reader\Html` | - | - | - | - | - |
+| **Csv** | `Reader\Csv` | - | - | - | ✓ | - |
+
+## Xlsx Reader
+
+**Format:** Office Open XML Spreadsheet (.xlsx, .xlsm, .xltx, .xltm)  
+**Class:** `PhpOffice\PhpSpreadsheet\Reader\Xlsx`
+
+The most fully-featured reader supporting modern Excel files.
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+
+$reader = new Xlsx();
+$spreadsheet = $reader->load('document.xlsx');
+```
+
+### Features
+
+- Full formatting support (fonts, colors, borders, fills)
+- Formula preservation
+- Charts (when explicitly enabled)
+- Data validation
+- Conditional formatting
+- Images and drawings
+- Hyperlinks
+- Page setup and print settings
+- Multiple worksheets
+- Named ranges
+- Cell comments
+- Merged cells
+
+### Xlsx Options
+
+```php
+$reader = new Xlsx();
+
+// Read data only, ignore formatting
+$reader->setReadDataOnly(true);
+
+// Load specific sheets
+$reader->setLoadSheetsOnly(['Sheet1', 'Summary']);
+
+// Include charts
+$reader->setIncludeCharts(true);
+
+// Ignore empty cells
+$reader->setReadEmptyCells(false);
+
+// Ignore rows with no cells
+$reader->setIgnoreRowsWithNoCells(true);
+
+// Use read filter for specific ranges
+$reader->setReadFilter($myFilter);
+
+$spreadsheet = $reader->load('document.xlsx');
+```
+
+### Supported Extensions
+
+- `.xlsx` - Excel Workbook
+- `.xlsm` - Excel Macro-Enabled Workbook (macros are discarded)
+- `.xltx` - Excel Template
+- `.xltm` - Excel Macro-Enabled Template (macros are discarded)
+
+## Xls Reader
+
+**Format:** Excel Binary File Format (.xls, .xlt)  
+**Class:** `PhpOffice\PhpSpreadsheet\Reader\Xls`
+
+Reads legacy Excel files (Excel 95 through 2003).
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+
+$reader = new Xls();
+$spreadsheet = $reader->load('legacy.xls');
+```
+
+### Features
+
+- Supports BIFF5 through BIFF8 formats
+- Cell data and formulas
+- Basic formatting (fonts, colors, borders)
+- Multiple worksheets
+- Named ranges
+- Cell comments
+- Merged cells
+
+### Limitations
+
+- No chart support
+- Limited styling compared to Xlsx
+- Cannot read files older than Excel 95 (BIFF4 and earlier)
+
+### Xls Options
+
+```php
+$reader = new Xls();
+$reader->setReadDataOnly(true);
+$reader->setLoadSheetsOnly('DataSheet');
+$reader->setReadFilter($filter);
+$spreadsheet = $reader->load('legacy.xls');
+```
+
+## Xml Reader
+
+**Format:** Excel 2003 XML SpreadsheetML (.xml)  
+**Class:** `PhpOffice\PhpSpreadsheet\Reader\Xml`
+
+Reads Excel 2003 XML format files.
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Xml;
+
+$reader = new Xml();
+$spreadsheet = $reader->load('spreadsheet.xml');
+```
+
+### Features
+
+- Cell data and formulas
+- Basic formatting
+- Multiple worksheets
+- Merged cells
+
+### Limitations
+
+- Limited feature set
+- No data validation support
+- No conditional formatting
+- Not widely used format
+
+## Ods Reader
+
+**Format:** OpenDocument Spreadsheet (.ods, .ots)  
+**Class:** `PhpOffice\PhpSpreadsheet\Reader\Ods`
+
+Reads OpenOffice and LibreOffice Calc files.
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Ods;
+
+$reader = new Ods();
+$spreadsheet = $reader->load('document.ods');
+```
+
+### Features
+
+- Cell data and formulas
+- Text formatting (fonts, colors)
+- Cell styles
+- Multiple worksheets
+- Merged cells
+- Page setup
+
+### Ods Options
+
+```php
+$reader = new Ods();
+$reader->setReadDataOnly(true);
+$reader->setLoadSheetsOnly(['Sheet1']);
+$reader->setReadFilter($filter);
+$spreadsheet = $reader->load('document.ods');
+```
+
+## Slk Reader
+
+**Format:** Symbolic Link (.slk)  
+**Class:** `PhpOffice\PhpSpreadsheet\Reader\Slk`
+
+Reads Microsoft Multiplan SYLK format files.
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Slk;
+
+$reader = new Slk();
+$spreadsheet = $reader->load('data.slk');
+```
+
+### Features
+
+- Basic cell data
+- Simple number formatting
+- Single worksheet only
+
+### Limitations
+
+- Very limited format
+- Single sheet per file
+- Minimal styling support
+- No read filter support
+- Rarely used today
+
+## Gnumeric Reader
+
+**Format:** Gnumeric Spreadsheet (.gnumeric)  
+**Class:** `PhpOffice\PhpSpreadsheet\Reader\Gnumeric`
+
+Reads Gnome Gnumeric spreadsheet files.
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Gnumeric;
+
+$reader = new Gnumeric();
+$spreadsheet = $reader->load('spreadsheet.gnumeric');
+```
+
+### Features
+
+- Cell data and formulas
+- Text formatting
+- Multiple worksheets
+- Merged cells
+- Can identify dates even in data-only mode
+
+### Gnumeric Options
+
+```php
+$reader = new Gnumeric();
+$reader->setReadDataOnly(true);
+$reader->setLoadSheetsOnly(['Sheet1']);
+$reader->setReadFilter($filter);
+$spreadsheet = $reader->load('spreadsheet.gnumeric');
+```
+
+## Html Reader
+
+**Format:** HTML (.html, .htm)  
+**Class:** `PhpOffice\PhpSpreadsheet\Reader\Html`
+
+<Warning>
+  The HTML reader is experimental and has limitations with complex HTML structures.
+</Warning>
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Html;
+
+$reader = new Html();
+$spreadsheet = $reader->load('table.html');
+```
+
+### Load from String
+
+```php
+$htmlString = '<table><tr><td>Hello</td><td>World</td></tr></table>';
+
+$reader = new Html();
+$spreadsheet = $reader->loadFromString($htmlString);
+```
+
+### Load Multiple Tables
+
+```php
+$reader = new Html();
+
+// Load first table
+$spreadsheet = $reader->loadFromString($firstHtmlString);
+
+// Load second table into sheet 2
+$reader->setSheetIndex(1);
+$spreadsheet = $reader->loadFromString($secondHtmlString, $spreadsheet);
+```
+
+### Limitations
+
+- Does not handle merged cells cleanly
+- No support for nested tables
+- Limited CSS parsing
+- Basic HTML only
+- Supported charsets: ASCII, UTF-8/16 with BOM
+
+## Csv Reader
+
+**Format:** Comma Separated Values (.csv)  
+**Class:** `PhpOffice\PhpSpreadsheet\Reader\Csv`
+
+### Basic Usage
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+
+$reader = new Csv();
+$spreadsheet = $reader->load('data.csv');
+```
+
+### CSV Options
+
+```php
+$reader = new Csv();
+
+// Set delimiter (auto-detected by default)
+$reader->setDelimiter(';');
+
+// Set enclosure
+$reader->setEnclosure('"');
+
+// Set input encoding
+$reader->setInputEncoding('UTF-8');
+
+// Or guess encoding
+$reader->setInputEncoding(Csv::GUESS_ENCODING);
+$reader->setFallbackEncoding('ISO-8859-2');
+
+// Set escape character
+$reader->setEscapeCharacter('');
+
+// Preserve null strings
+$reader->setPreserveNullString(true);
+
+$spreadsheet = $reader->load('data.csv');
+```
+
+### Load from String
+
+```php
+$csvData = "Name,Age,City\nJohn,30,NYC\nJane,25,LA";
+
+$reader = new Csv();
+$spreadsheet = $reader->loadSpreadsheetFromString($csvData);
+```
+
+### Guess Encoding
+
+```php
+$encoding = Csv::guessEncoding('data.csv');
+// or
+$encoding = Csv::guessEncoding('data.csv', 'ISO-8859-2');
+
+$reader = new Csv();
+$reader->setInputEncoding($encoding);
+$spreadsheet = $reader->load('data.csv');
+```
+
+### Constructor Callback
+
+Set default options for all CSV readers:
+
+```php
+function csvDefaults(Csv $reader): void
+{
+    $reader->setInputEncoding(Csv::GUESS_ENCODING);
+    $reader->setFallbackEncoding('ISO-8859-2');
+    $reader->setDelimiter(',');
+    $reader->setEnclosure('"');
+    $reader->setEscapeCharacter('');
+}
+
+Csv::setConstructorCallback('csvDefaults');
+
+// All new CSV readers will use these defaults
+$spreadsheet = IOFactory::load('data.csv');
+```
+
+### Formatted Numbers
+
+Cast formatted numbers to numeric values:
+
+```php
+$reader = new Csv();
+
+// Convert formatted numbers like "1,234.56" to numbers
+$reader->castFormattedNumberToNumeric(true);
+
+// Also preserve formatting as number format mask
+$reader->castFormattedNumberToNumeric(true, true);
+
+$spreadsheet = $reader->load('numbers.csv');
+```
+
+### Load into Existing Spreadsheet
+
+```php
+$reader = new Csv();
+$reader->setSheetIndex(2); // Load into sheet 3
+$reader->loadIntoExisting('data.csv', $existingSpreadsheet);
+```
+
+### Contiguous Mode
+
+When using filters, load cells contiguously from A1:
+
+```php
+$reader = new Csv();
+$reader->setReadFilter($filter);
+$reader->setContiguous(true);
+$spreadsheet = $reader->load('data.csv');
+```
+
+## Common Reader Methods
+
+All readers implement these methods from `IReader`:
+
+```php
+// Check if reader can read file
+$canRead = $reader->canRead('file.xlsx');
+
+// Set/get read data only
+$reader->setReadDataOnly(true);
+$isDataOnly = $reader->getReadDataOnly();
+
+// Set/get read empty cells
+$reader->setReadEmptyCells(false);
+$readEmpty = $reader->getReadEmptyCells();
+
+// Set/get include charts
+$reader->setIncludeCharts(true);
+$includeCharts = $reader->getIncludeCharts();
+
+// Load sheets
+$reader->setLoadSheetsOnly(['Sheet1', 'Sheet2']);
+$reader->setLoadAllSheets();
+$sheets = $reader->getLoadSheetsOnly();
+
+// Read filter
+$reader->setReadFilter($filter);
+$filter = $reader->getReadFilter();
+
+// Load file
+$spreadsheet = $reader->load('file.xlsx');
+$spreadsheet = $reader->load('file.xlsx', $flags);
+
+// Helper methods
+$worksheetNames = $reader->listWorksheetNames('file.xlsx');
+$worksheetInfo = $reader->listWorksheetInfo('file.xlsx');
+```
+
+## Using Value Binders
+
+For CSV, HTML, and SYLK files, use the Advanced Value Binder to automatically detect data types:
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder;
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+
+$reader = new Csv();
+$reader->setDelimiter("\t");
+
+// Set value binder to detect dates, booleans, percentages, etc.
+$reader::setValueBinder(new AdvancedValueBinder());
+
+$spreadsheet = $reader->load('data.csv');
+```
+
+The Advanced Value Binder recognizes:
+- Boolean values (true/false)
+- Dates and times
+- Percentages
+- Scientific notation
+- Hyperlinks
+
+## Best Practices
+
+<Card title="Choose the Right Reader">
+  - Use **Xlsx** for modern Excel files with full feature support
+  - Use **Xls** for legacy Excel files (pre-2007)
+  - Use **Csv** for simple data import/export
+  - Use **Ods** for OpenOffice/LibreOffice compatibility
+</Card>
+
+<Card title="Performance">
+  - Always use `setReadDataOnly(true)` if you don't need formatting
+  - Use `setReadEmptyCells(false)` for large files with many empty cells
+  - Implement read filters for very large files
+  - Use `setLoadSheetsOnly()` to load only required sheets
+</Card>
+
+<Card title="Security">
+  - Be cautious with user-uploaded files
+  - XXE protection is automatic for XML-based formats
+  - Validate file types before processing
+  - Consider file size limits
+</Card>

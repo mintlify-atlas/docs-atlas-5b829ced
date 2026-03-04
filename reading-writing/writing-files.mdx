@@ -1,0 +1,410 @@
+---
+title: Writing Spreadsheet Files
+description: Learn how to save and export spreadsheets in various formats using PhpSpreadsheet writers
+---
+
+## Overview
+
+PhpSpreadsheet can write spreadsheets to multiple file formats including Excel (Xlsx, Xls), OpenDocument (Ods), CSV, HTML, and PDF. Writers are created using the `IOFactory` or by directly instantiating writer classes.
+
+## Using IOFactory::createWriter()
+
+The recommended way to create a writer:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->save('output.xlsx');
+```
+
+**Available writer types:**
+- `Xlsx` - Excel 2007+ (.xlsx)
+- `Xls` - Excel 97-2003 (.xls)
+- `Ods` - OpenDocument Spreadsheet (.ods)
+- `Csv` - Comma Separated Values (.csv)
+- `Html` - HTML format (.html)
+- `Mpdf` - PDF using mPDF library
+- `Tcpdf` - PDF using TCPDF library
+- `Dompdf` - PDF using Dompdf library
+
+## Direct Writer Instantiation
+
+You can instantiate writers directly:
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('output.xlsx');
+```
+
+## Saving to Different Outputs
+
+### Save to File
+
+```php
+$writer->save('path/to/file.xlsx');
+```
+
+### Save to PHP Output Stream
+
+Useful for downloads:
+
+```php
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment;filename="export.xlsx"');
+header('Cache-Control: max-age=0');
+
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->save('php://output');
+exit;
+```
+
+### Save to String/Variable
+
+```php
+ob_start();
+$writer->save('php://output');
+$content = ob_get_contents();
+ob_end_clean();
+
+// Now $content contains the file data
+```
+
+## Writer Options
+
+### Formula Pre-calculation
+
+By default, writers pre-calculate all formulas before saving. This can be slow for large files:
+
+```php
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->setPreCalculateFormulas(false);
+$writer->save('output.xlsx');
+
+// Or using flags
+$writer->save('output.xlsx', IWriter::DISABLE_PRECALCULATE_FORMULAE);
+```
+
+<Warning>
+  When pre-calculation is disabled, Excel will recalculate formulas when opening the file, which may cause a delay.
+</Warning>
+
+### Include Charts
+
+By default, charts are not saved. To include them:
+
+```php
+$writer->setIncludeCharts(true);
+$writer->save('output.xlsx');
+
+// Or using flags
+$writer->save('output.xlsx', IWriter::SAVE_WITH_CHARTS);
+```
+
+### Combining Flags
+
+Multiple flags can be combined:
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\IWriter;
+
+$writer->save(
+    'output.xlsx',
+    IWriter::SAVE_WITH_CHARTS | IWriter::DISABLE_PRECALCULATE_FORMULAE
+);
+```
+
+## Format-Specific Options
+
+### Xlsx Writer Options
+
+#### Office 2003 Compatibility
+
+Enable compatibility mode for Office 2003:
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$writer = new Xlsx($spreadsheet);
+$writer->setOffice2003Compatibility(true);
+$writer->save('output.xlsx');
+```
+
+<Note>
+  Office 2003 compatibility mode disables some Office 2007+ features. Only use when necessary.
+</Note>
+
+#### Maximum Column Width
+
+Restrict column widths to Excel's UI limit (255):
+
+```php
+$writer = new Xlsx($spreadsheet);
+$writer->setRestrictMaxColumnWidth(true);
+$writer->save('output.xlsx');
+```
+
+### Xls Writer
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+
+$writer = new Xls($spreadsheet);
+$writer->save('output.xls');
+```
+
+<Warning>
+  The Xls format (BIFF) has limitations compared to Xlsx:
+  - Maximum 65,536 rows
+  - Limited styling options
+  - No charts support
+  - File size limitations
+</Warning>
+
+### CSV Writer
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+
+$writer = new Csv($spreadsheet);
+$writer->save('output.csv');
+```
+
+#### CSV Options
+
+Customize delimiter, enclosure, and line endings:
+
+```php
+$writer = new Csv($spreadsheet);
+$writer->setDelimiter(';');
+$writer->setEnclosure('"');
+$writer->setLineEnding("\r\n");
+$writer->setSheetIndex(0);
+$writer->save('output.csv');
+```
+
+#### Control Enclosures
+
+By default, all fields are enclosed. To enclose only when necessary:
+
+```php
+$writer->setEnclosureRequired(false);
+```
+
+#### UTF-8 BOM
+
+Add BOM for Excel compatibility with special characters:
+
+```php
+$writer->setUseBOM(true);
+$writer->save('output.csv');
+```
+
+#### Output Encoding
+
+Change output encoding:
+
+```php
+$writer->setUseBOM(false);
+$writer->setOutputEncoding('SJIS-WIN');
+$writer->save('output.csv');
+```
+
+#### Variable Columns
+
+Allow different number of columns per row:
+
+```php
+$writer->setVariableColumns(true);
+$writer->save('output.csv');
+```
+
+### HTML Writer
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Html;
+
+$writer = new Html($spreadsheet);
+$writer->save('output.html');
+```
+
+#### Write All Sheets
+
+By default, only the first sheet is written:
+
+```php
+$writer->writeAllSheets();
+$writer->save('output.html');
+```
+
+#### Write Specific Sheet
+
+```php
+$writer->setSheetIndex(1);
+$writer->save('output.html');
+```
+
+#### Set Images Root
+
+Configure image paths:
+
+```php
+$writer->setImagesRoot('https://example.com/images/');
+$writer->save('output.html');
+```
+
+#### Generate HTML Parts
+
+Generate specific HTML components:
+
+```php
+$writer = new Html($spreadsheet);
+
+$header = $writer->generateHTMLHeader();
+$styles = $writer->generateStyles(false); // false = without <style> tags
+$sheetData = $writer->generateSheetData();
+$footer = $writer->generateHTMLFooter();
+
+// Custom HTML assembly
+echo $header;
+echo '<style>' . $styles . '</style>';
+echo $sheetData;
+echo $footer;
+```
+
+#### Edit HTML Callback
+
+Modify HTML before saving:
+
+```php
+function customizeHtml(string $html): string
+{
+    return str_replace(
+        '{border: 1px solid black;}',
+        '{border: 2px dashed blue;}',
+        $html
+    );
+}
+
+$writer->setEditHtmlCallback('customizeHtml');
+$writer->save('output.html');
+```
+
+### ODS Writer
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Ods;
+
+$writer = new Ods($spreadsheet);
+$writer->save('output.ods');
+```
+
+## Working with Templates
+
+Read an existing file, modify it, and save:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Load template
+$spreadsheet = IOFactory::load('template.xlsx');
+
+// Modify data
+$worksheet = $spreadsheet->getActiveSheet();
+$worksheet->setCellValue('A1', 'New Value');
+$worksheet->setCellValue('B2', 'Updated');
+
+// Save as same or different format
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->save('filled-template.xlsx');
+```
+
+<Note>
+  You can load an .xlsx file and save as .xls, or vice versa. PhpSpreadsheet handles format conversion automatically.
+</Note>
+
+## Disk Caching
+
+For very large files, enable disk caching to reduce memory usage:
+
+```php
+$writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+$writer->setUseDiskCaching(true, '/tmp/phpspreadsheet');
+$writer->save('large-file.xlsx');
+```
+
+## Number Formatting for CSV/HTML
+
+Control decimal and thousands separators:
+
+```php
+use PhpOffice\PhpSpreadsheet\Shared\StringHelper;
+
+// English format
+StringHelper::setDecimalSeparator('.');
+StringHelper::setThousandsSeparator(',');
+
+// German format
+StringHelper::setDecimalSeparator(',');
+StringHelper::setThousandsSeparator('.');
+
+$writer = new Csv($spreadsheet);
+$writer->save('output.csv');
+```
+
+<Warning>
+  These are global settings that affect all CSV, HTML, and PDF exports in your application.
+</Warning>
+
+## Registering Custom Writers
+
+Register your own writer implementation:
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+IOFactory::registerWriter('Custom', MyCustomWriter::class);
+
+$writer = IOFactory::createWriter($spreadsheet, 'Custom');
+$writer->save('output.custom');
+```
+
+## Error Handling
+
+Always handle potential errors:
+
+```php
+use PhpOffice\PhpSpreadsheet\Writer\Exception;
+
+try {
+    $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+    $writer->save('output.xlsx');
+} catch (Exception $e) {
+    die('Error saving file: ' . $e->getMessage());
+}
+```
+
+## Best Practices
+
+<Card title="Performance">
+  - Disable formula pre-calculation for large files if not needed
+  - Use disk caching for very large spreadsheets
+  - Only include charts when necessary
+  - Process data in batches for huge datasets
+</Card>
+
+<Card title="Format Selection">
+  - Use **Xlsx** for modern Excel compatibility with full features
+  - Use **Xls** only if compatibility with Excel 97-2003 is required
+  - Use **CSV** for simple data exchange without formatting
+  - Use **HTML** for web display
+  - Use **PDF** for read-only distribution
+</Card>
+
+<Card title="Memory Management">
+  - Clear spreadsheet when done: `$spreadsheet->disconnectWorksheets()`
+  - Unset large variables after saving
+  - Use disk caching for files > 50MB
+</Card>

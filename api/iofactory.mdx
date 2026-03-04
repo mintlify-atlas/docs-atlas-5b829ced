@@ -1,0 +1,420 @@
+---
+title: IOFactory Class
+description: Factory class for reading and writing spreadsheet files
+---
+
+The `IOFactory` class provides static factory methods to easily read and write spreadsheet files. It automatically detects file formats and creates the appropriate reader or writer.
+
+## Class Overview
+
+**Namespace:** `PhpOffice\PhpSpreadsheet`
+
+**Source:** `src/PhpSpreadsheet/IOFactory.php`
+
+IOFactory simplifies file operations by automatically identifying file types and instantiating the correct reader/writer classes.
+
+## Reader Type Constants
+
+```php
+IOFactory::READER_XLSX      // Excel 2007+ (XLSX)
+IOFactory::READER_XLS       // Excel 97-2003 (XLS)
+IOFactory::READER_XML       // Excel 2003 XML
+IOFactory::READER_ODS       // OpenDocument Spreadsheet
+IOFactory::READER_SLK       // Symbolic Link (SYLK)
+IOFactory::READER_GNUMERIC  // Gnumeric
+IOFactory::READER_HTML      // HTML
+IOFactory::READER_CSV       // CSV
+```
+
+## Writer Type Constants
+
+```php
+IOFactory::WRITER_XLSX  // Excel 2007+ (XLSX)
+IOFactory::WRITER_XLS   // Excel 97-2003 (XLS)
+IOFactory::WRITER_ODS   // OpenDocument Spreadsheet
+IOFactory::WRITER_CSV   // CSV
+IOFactory::WRITER_HTML  // HTML
+```
+
+## Loading Files
+
+### `load(string $filename, int $flags = 0, ?array $readers = null)`
+
+Load a spreadsheet from a file with automatic format detection.
+
+<ParamField path="filename" type="string">
+  Path to the spreadsheet file
+</ParamField>
+
+<ParamField path="flags" type="int" default="0">
+  Optional flags for loading behavior:
+  - `IReader::LOAD_WITH_CHARTS` - Include charts
+  - `IReader::READ_DATA_ONLY` - Read only values, not formatting
+  - `IReader::IGNORE_EMPTY_CELLS` - Skip empty cells
+</ParamField>
+
+<ParamField path="readers" type="array|null">
+  Optional array of reader types to try (e.g., [IOFactory::READER_XLSX, IOFactory::READER_XLS])
+</ParamField>
+
+<ParamField path="Return" type="Spreadsheet">
+  Loaded spreadsheet object
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Simple load (auto-detect format)
+$spreadsheet = IOFactory::load('data.xlsx');
+
+// Load with flags
+$spreadsheet = IOFactory::load(
+    'data.xlsx',
+    IReader::LOAD_WITH_CHARTS | IReader::READ_DATA_ONLY
+);
+
+// Load, trying only specific readers
+$spreadsheet = IOFactory::load(
+    'data.file',
+    0,
+    [IOFactory::READER_XLSX, IOFactory::READER_XLS]
+);
+```
+
+## Creating Readers
+
+### `createReader(string $readerType)`
+
+Create a reader instance for a specific format.
+
+<ParamField path="readerType" type="string">
+  Reader type (use IOFactory::READER_* constants)
+</ParamField>
+
+<ParamField path="Return" type="IReader">
+  Reader instance
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Create XLSX reader
+$reader = IOFactory::createReader(IOFactory::READER_XLSX);
+$spreadsheet = $reader->load('data.xlsx');
+
+// Create CSV reader with custom settings
+$reader = IOFactory::createReader(IOFactory::READER_CSV);
+$reader->setDelimiter(',');
+$reader->setEnclosure('"');
+$reader->setSheetIndex(0);
+$spreadsheet = $reader->load('data.csv');
+```
+
+### `createReaderForFile(string $filename, ?array $readers = null)`
+
+Create a reader by automatically detecting the file type.
+
+<ParamField path="filename" type="string">
+  Path to the file
+</ParamField>
+
+<ParamField path="readers" type="array|null">
+  Optional list of reader types to try
+</ParamField>
+
+<ParamField path="Return" type="IReader">
+  Appropriate reader instance
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Auto-detect and create reader
+$reader = IOFactory::createReaderForFile('data.xlsx');
+$spreadsheet = $reader->load('data.xlsx');
+
+// Configure reader before loading
+$reader = IOFactory::createReaderForFile('large-file.xlsx');
+$reader->setReadDataOnly(true);
+$spreadsheet = $reader->load('large-file.xlsx');
+```
+
+## Identifying Files
+
+### `identify(string $filename, ?array $readers = null, bool $fullClassName = false)`
+
+Identify the file type without loading it.
+
+<ParamField path="filename" type="string">
+  Path to the file
+</ParamField>
+
+<ParamField path="readers" type="array|null">
+  Optional list of reader types to try
+</ParamField>
+
+<ParamField path="fullClassName" type="bool" default="false">
+  Return full class name instead of short type
+</ParamField>
+
+<ParamField path="Return" type="string">
+  File type identifier
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Get simple type name
+$type = IOFactory::identify('data.xlsx');
+echo $type; // 'Xlsx'
+
+// Get full class name
+$className = IOFactory::identify('data.xlsx', null, true);
+echo $className; // 'PhpOffice\PhpSpreadsheet\Reader\Xlsx'
+```
+
+## Creating Writers
+
+### `createWriter(Spreadsheet $spreadsheet, string $writerType)`
+
+Create a writer instance for a specific format.
+
+<ParamField path="spreadsheet" type="Spreadsheet">
+  Spreadsheet object to write
+</ParamField>
+
+<ParamField path="writerType" type="string">
+  Writer type (use IOFactory::WRITER_* constants)
+</ParamField>
+
+<ParamField path="Return" type="IWriter">
+  Writer instance
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$spreadsheet = new Spreadsheet();
+// ... populate spreadsheet ...
+
+// Create XLSX writer
+$writer = IOFactory::createWriter($spreadsheet, IOFactory::WRITER_XLSX);
+$writer->save('output.xlsx');
+
+// Create CSV writer
+$writer = IOFactory::createWriter($spreadsheet, IOFactory::WRITER_CSV);
+$writer->setDelimiter(';');
+$writer->setEnclosure('');
+$writer->setSheetIndex(0);
+$writer->save('output.csv');
+```
+
+## Registering Custom Readers/Writers
+
+### `registerReader(string $readerType, string $readerClass)`
+
+Register a custom reader.
+
+<ParamField path="readerType" type="string">
+  Unique identifier for the reader
+</ParamField>
+
+<ParamField path="readerClass" type="string">
+  Fully qualified class name implementing IReader
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+IOFactory::registerReader('MyFormat', 'App\Reader\MyFormatReader');
+$reader = IOFactory::createReader('MyFormat');
+```
+
+### `registerWriter(string $writerType, string $writerClass)`
+
+Register a custom writer.
+
+<ParamField path="writerType" type="string">
+  Unique identifier for the writer
+</ParamField>
+
+<ParamField path="writerClass" type="string">
+  Fully qualified class name implementing IWriter
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+IOFactory::registerWriter('MyFormat', 'App\Writer\MyFormatWriter');
+$writer = IOFactory::createWriter($spreadsheet, 'MyFormat');
+```
+
+## Complete Examples
+
+### Reading Files
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\IReader;
+
+// Example 1: Simple load with auto-detection
+$spreadsheet = IOFactory::load('sales-data.xlsx');
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Example 2: Load with specific options
+$spreadsheet = IOFactory::load(
+    'large-file.xlsx',
+    IReader::READ_DATA_ONLY | IReader::IGNORE_EMPTY_CELLS
+);
+
+// Example 3: Identify file type before loading
+$fileType = IOFactory::identify('unknown-file.bin');
+echo "File type: $fileType";
+
+if ($fileType === 'Xlsx') {
+    $spreadsheet = IOFactory::load('unknown-file.bin');
+}
+
+// Example 4: Create reader with custom settings
+$reader = IOFactory::createReader(IOFactory::READER_CSV);
+$reader->setDelimiter(';');
+$reader->setEnclosure('"');
+$reader->setInputEncoding('UTF-8');
+$reader->setSheetIndex(0);
+$spreadsheet = $reader->load('data.csv');
+
+// Example 5: Load only specific sheets
+$reader = IOFactory::createReaderForFile('workbook.xlsx');
+$reader->setLoadSheetsOnly(['Sheet1', 'Sheet3']);
+$spreadsheet = $reader->load('workbook.xlsx');
+```
+
+### Writing Files
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Add data
+$worksheet->setCellValue('A1', 'Product');
+$worksheet->setCellValue('B1', 'Price');
+$worksheet->setCellValue('A2', 'Widget');
+$worksheet->setCellValue('B2', 19.99);
+
+// Example 1: Save as XLSX
+$writer = IOFactory::createWriter($spreadsheet, IOFactory::WRITER_XLSX);
+$writer->save('output.xlsx');
+
+// Example 2: Save as Excel 97-2003
+$writer = IOFactory::createWriter($spreadsheet, IOFactory::WRITER_XLS);
+$writer->save('output.xls');
+
+// Example 3: Save as CSV
+$writer = IOFactory::createWriter($spreadsheet, IOFactory::WRITER_CSV);
+$writer->setDelimiter(',');
+$writer->setEnclosure('"');
+$writer->setLineEnding("\r\n");
+$writer->setSheetIndex(0);
+$writer->save('output.csv');
+
+// Example 4: Save as HTML
+$writer = IOFactory::createWriter($spreadsheet, IOFactory::WRITER_HTML);
+$writer->setSheetIndex(0);
+$writer->save('output.html');
+
+// Example 5: Save to output stream
+$writer = IOFactory::createWriter($spreadsheet, IOFactory::WRITER_XLSX);
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment;filename="report.xlsx"');
+header('Cache-Control: max-age=0');
+$writer->save('php://output');
+```
+
+### Reading and Converting
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Convert XLS to XLSX
+$spreadsheet = IOFactory::load('old-format.xls');
+$writer = IOFactory::createWriter($spreadsheet, IOFactory::WRITER_XLSX);
+$writer->save('new-format.xlsx');
+
+// Convert Excel to CSV
+$spreadsheet = IOFactory::load('data.xlsx');
+$writer = IOFactory::createWriter($spreadsheet, IOFactory::WRITER_CSV);
+$writer->setDelimiter(',');
+$writer->setEnclosure('"');
+$writer->save('data.csv');
+
+// Convert to HTML
+$spreadsheet = IOFactory::load('report.xlsx');
+$writer = IOFactory::createWriter($spreadsheet, IOFactory::WRITER_HTML);
+$writer->save('report.html');
+```
+
+### Error Handling
+
+```php
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\Exception as ReaderException;
+use PhpOffice\PhpSpreadsheet\Writer\Exception as WriterException;
+
+// Reading with error handling
+try {
+    $spreadsheet = IOFactory::load('file.xlsx');
+    echo "File loaded successfully";
+} catch (ReaderException $e) {
+    echo "Error reading file: " . $e->getMessage();
+} catch (\Exception $e) {
+    echo "General error: " . $e->getMessage();
+}
+
+// Writing with error handling
+try {
+    $writer = IOFactory::createWriter($spreadsheet, IOFactory::WRITER_XLSX);
+    $writer->save('output.xlsx');
+    echo "File saved successfully";
+} catch (WriterException $e) {
+    echo "Error writing file: " . $e->getMessage();
+} catch (\Exception $e) {
+    echo "General error: " . $e->getMessage();
+}
+```
+
+## Reader Flags
+
+When using the `load()` method, you can combine these flags:
+
+```php
+use PhpOffice\PhpSpreadsheet\Reader\IReader;
+
+// Load with charts included
+$spreadsheet = IOFactory::load('file.xlsx', IReader::LOAD_WITH_CHARTS);
+
+// Load only cell values (no formatting)
+$spreadsheet = IOFactory::load('file.xlsx', IReader::READ_DATA_ONLY);
+
+// Skip empty cells
+$spreadsheet = IOFactory::load('file.xlsx', IReader::IGNORE_EMPTY_CELLS);
+
+// Combine multiple flags
+$spreadsheet = IOFactory::load(
+    'file.xlsx',
+    IReader::READ_DATA_ONLY | IReader::IGNORE_EMPTY_CELLS
+);
+```
+
+## Related Classes
+
+- [Spreadsheet](/api/spreadsheet) - Main spreadsheet class
+- `IReader` - Reader interface
+- `IWriter` - Writer interface
+- `Reader\Xlsx` - Excel 2007+ reader
+- `Reader\Csv` - CSV reader
+- `Writer\Xlsx` - Excel 2007+ writer
+- `Writer\Csv` - CSV writer

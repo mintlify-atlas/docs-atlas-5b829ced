@@ -1,0 +1,581 @@
+---
+title: Worksheet Class
+description: Class for managing individual worksheets within a spreadsheet
+---
+
+The `Worksheet` class represents a single sheet within a workbook. It provides methods for managing cells, rows, columns, and worksheet-level properties.
+
+## Class Overview
+
+**Namespace:** `PhpOffice\PhpSpreadsheet\Worksheet`
+
+**Source:** `src/PhpSpreadsheet/Worksheet/Worksheet.php`
+
+A Worksheet contains cells, drawings, charts, and various display and print settings.
+
+## Constants
+
+### Sheet State
+
+```php
+Worksheet::SHEETSTATE_VISIBLE    // Sheet is visible
+Worksheet::SHEETSTATE_HIDDEN     // Sheet is hidden but can be unhidden
+Worksheet::SHEETSTATE_VERYHIDDEN // Sheet is hidden and cannot be unhidden via UI
+```
+
+### Break Types
+
+```php
+Worksheet::BREAK_NONE   // No page break
+Worksheet::BREAK_ROW    // Row page break
+Worksheet::BREAK_COLUMN // Column page break
+```
+
+## Constructor
+
+### `__construct(?Spreadsheet $parent = null, string $title = 'Worksheet')`
+
+Create a new worksheet.
+
+<ParamField path="parent" type="Spreadsheet|null">
+  The parent spreadsheet object
+</ParamField>
+
+<ParamField path="title" type="string" default="Worksheet">
+  The worksheet title (max 31 characters)
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = new Worksheet($spreadsheet, 'Sales Data');
+```
+
+## Cell Operations
+
+### `getCell(CellAddress|string|array $coordinate)`
+
+Get a cell at a specific coordinate.
+
+<ParamField path="coordinate" type="CellAddress|string|array">
+  Cell coordinate as string ('A1'), array ([1, 1]), or CellAddress object
+</ParamField>
+
+<ParamField path="Return" type="Cell">
+  The cell object (created if it doesn't exist)
+</ParamField>
+
+```php
+// Different ways to get a cell
+$cell = $worksheet->getCell('A1');
+$cell = $worksheet->getCell([1, 1]); // [column, row]
+```
+
+### `setCellValue(CellAddress|string|array $coordinate, mixed $value, ?IValueBinder $binder = null)`
+
+Set a cell value.
+
+<ParamField path="coordinate" type="CellAddress|string|array">
+  Cell coordinate
+</ParamField>
+
+<ParamField path="value" type="mixed">
+  Value to set in the cell
+</ParamField>
+
+<ParamField path="binder" type="IValueBinder|null">
+  Optional custom value binder
+</ParamField>
+
+```php
+// Set different types of values
+$worksheet->setCellValue('A1', 'Product Name');
+$worksheet->setCellValue('B1', 1234.56);
+$worksheet->setCellValue('C1', new DateTime());
+$worksheet->setCellValue('D1', true);
+```
+
+### `setCellValueExplicit(CellAddress|string|array $coordinate, mixed $value, string $dataType)`
+
+Set a cell value with explicit data type.
+
+<ParamField path="coordinate" type="CellAddress|string|array">
+  Cell coordinate
+</ParamField>
+
+<ParamField path="value" type="mixed">
+  Value to set
+</ParamField>
+
+<ParamField path="dataType" type="string">
+  Explicit data type (see DataType::TYPE_*)
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+
+// Set as text even if it looks like a number
+$worksheet->setCellValueExplicit('A1', '00123', DataType::TYPE_STRING);
+
+// Set a formula
+$worksheet->setCellValueExplicit('B1', '=SUM(A1:A10)', DataType::TYPE_FORMULA);
+```
+
+### `cellExists(CellAddress|string|array $coordinate)`
+
+Check if a cell exists.
+
+<ParamField path="coordinate" type="CellAddress|string|array">
+  Cell coordinate to check
+</ParamField>
+
+<ParamField path="Return" type="bool">
+  True if cell exists
+</ParamField>
+
+```php
+if ($worksheet->cellExists('A1')) {
+    $value = $worksheet->getCell('A1')->getValue();
+}
+```
+
+## Title and State
+
+### `getTitle()`
+
+Get the worksheet title.
+
+<ParamField path="Return" type="string">
+  The worksheet title
+</ParamField>
+
+```php
+$title = $worksheet->getTitle();
+```
+
+### `setTitle(string $title, bool $updateFormulaCellReferences = true, bool $validate = true)`
+
+Set the worksheet title.
+
+<ParamField path="title" type="string">
+  New title (max 31 characters, cannot contain: * : / \\ ? [ ])
+</ParamField>
+
+<ParamField path="updateFormulaCellReferences" type="bool" default="true">
+  Update formula references to this sheet
+</ParamField>
+
+<ParamField path="validate" type="bool" default="true">
+  Validate the title
+</ParamField>
+
+```php
+$worksheet->setTitle('Q4 Sales');
+```
+
+### `getSheetState()`
+
+Get the sheet visibility state.
+
+<ParamField path="Return" type="string">
+  One of: 'visible', 'hidden', or 'veryHidden'
+</ParamField>
+
+```php
+$state = $worksheet->getSheetState();
+```
+
+### `setSheetState(string $value)`
+
+Set the sheet visibility state.
+
+<ParamField path="value" type="string">
+  'visible', 'hidden', or 'veryHidden'
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+$worksheet->setSheetState(Worksheet::SHEETSTATE_HIDDEN);
+```
+
+## Dimensions and Ranges
+
+### `getHighestRow(?string $column = null)`
+
+Get the highest row number.
+
+<ParamField path="column" type="string|null">
+  Optional column letter to check specific column
+</ParamField>
+
+<ParamField path="Return" type="int">
+  Highest row number
+</ParamField>
+
+```php
+// Get highest row in entire sheet
+$maxRow = $worksheet->getHighestRow();
+
+// Get highest row in column A
+$maxRowInA = $worksheet->getHighestRow('A');
+```
+
+### `getHighestColumn($row = null)`
+
+Get the highest column letter.
+
+<ParamField path="row" type="int|string|null">
+  Optional row number to check specific row
+</ParamField>
+
+<ParamField path="Return" type="string">
+  Highest column letter
+</ParamField>
+
+```php
+// Get highest column in entire sheet
+$maxCol = $worksheet->getHighestColumn(); // e.g., 'D'
+
+// Get highest column in row 1
+$maxColInRow1 = $worksheet->getHighestColumn(1);
+```
+
+### `getHighestDataRow(?string $column = null)`
+
+Get the highest row that contains data.
+
+<ParamField path="column" type="string|null">
+  Optional column letter
+</ParamField>
+
+<ParamField path="Return" type="int">
+  Highest row with data
+</ParamField>
+
+```php
+$lastDataRow = $worksheet->getHighestDataRow();
+```
+
+### `getHighestDataColumn($row = null)`
+
+Get the highest column that contains data.
+
+<ParamField path="row" type="int|string|null">
+  Optional row number
+</ParamField>
+
+<ParamField path="Return" type="string">
+  Highest column with data
+</ParamField>
+
+```php
+$lastDataCol = $worksheet->getHighestDataColumn();
+```
+
+### `calculateWorksheetDimension()`
+
+Calculate the dimension of the worksheet.
+
+<ParamField path="Return" type="string">
+  Range string (e.g., 'A1:D10')
+</ParamField>
+
+```php
+$dimension = $worksheet->calculateWorksheetDimension();
+echo "Worksheet range: $dimension"; // e.g., "A1:D10"
+```
+
+## Row and Column Dimensions
+
+### `getRowDimension(int $row)`
+
+Get row dimension at a specific row.
+
+<ParamField path="row" type="int">
+  Row number
+</ParamField>
+
+<ParamField path="Return" type="RowDimension">
+  Row dimension object
+</ParamField>
+
+```php
+// Set row height
+$worksheet->getRowDimension(1)->setRowHeight(30);
+
+// Hide a row
+$worksheet->getRowDimension(2)->setVisible(false);
+```
+
+### `getColumnDimension(string $column)`
+
+Get column dimension at a specific column.
+
+<ParamField path="column" type="string">
+  Column letter (e.g., 'A')
+</ParamField>
+
+<ParamField path="Return" type="ColumnDimension">
+  Column dimension object
+</ParamField>
+
+```php
+// Set column width
+$worksheet->getColumnDimension('A')->setWidth(20);
+
+// Auto-size a column
+$worksheet->getColumnDimension('B')->setAutoSize(true);
+
+// Hide a column
+$worksheet->getColumnDimension('C')->setVisible(false);
+```
+
+### `getColumnDimensionByColumn(int $columnIndex)`
+
+Get column dimension by numeric index.
+
+<ParamField path="columnIndex" type="int">
+  Column index (1-based: 1=A, 2=B, etc.)
+</ParamField>
+
+<ParamField path="Return" type="ColumnDimension">
+  Column dimension object
+</ParamField>
+
+```php
+// Set width of first column (A)
+$worksheet->getColumnDimensionByColumn(1)->setWidth(15);
+```
+
+## Styling
+
+### `getStyle(AddressRange|CellAddress|int|string|array $cellCoordinate)`
+
+Get style for a cell or range.
+
+<ParamField path="cellCoordinate" type="AddressRange|CellAddress|int|string|array">
+  Cell address or range (e.g., 'A1' or 'A1:D10')
+</ParamField>
+
+<ParamField path="Return" type="Style">
+  Style object
+</ParamField>
+
+```php
+// Style a single cell
+$worksheet->getStyle('A1')
+    ->getFont()->setBold(true);
+
+// Style a range
+$worksheet->getStyle('A1:D1')
+    ->getFont()->setBold(true)
+    ->getAlignment()->setHorizontal('center');
+```
+
+### `duplicateStyle(Style $style, string $range)`
+
+Duplicate a style to a range of cells.
+
+<ParamField path="style" type="Style">
+  The style to duplicate
+</ParamField>
+
+<ParamField path="range" type="string">
+  Range to apply style to (e.g., 'A1:D10')
+</ParamField>
+
+```php
+$style = $worksheet->getStyle('A1');
+$style->getFont()->setBold(true);
+
+// Apply same style to other cells
+$worksheet->duplicateStyle($style, 'B1:Z1');
+```
+
+## Page Setup
+
+### `getPageSetup()`
+
+Get page setup settings.
+
+<ParamField path="Return" type="PageSetup">
+  Page setup object
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+
+$pageSetup = $worksheet->getPageSetup();
+$pageSetup->setOrientation(PageSetup::ORIENTATION_LANDSCAPE)
+    ->setPaperSize(PageSetup::PAPERSIZE_A4)
+    ->setFitToPage(true)
+    ->setFitToWidth(1)
+    ->setFitToHeight(0);
+```
+
+### `getPageMargins()`
+
+Get page margins.
+
+<ParamField path="Return" type="PageMargins">
+  Page margins object
+</ParamField>
+
+```php
+$margins = $worksheet->getPageMargins();
+$margins->setTop(1)
+    ->setRight(0.75)
+    ->setBottom(1)
+    ->setLeft(0.75);
+```
+
+### `getHeaderFooter()`
+
+Get header/footer settings.
+
+<ParamField path="Return" type="HeaderFooter">
+  Header/footer object
+</ParamField>
+
+```php
+$headerFooter = $worksheet->getHeaderFooter();
+$headerFooter->setOddHeader('&C&HPage &P of &N');
+$headerFooter->setOddFooter('&L&B' . $worksheet->getTitle() . '&RGenerated: &D');
+```
+
+## Protection
+
+### `getProtection()`
+
+Get worksheet protection settings.
+
+<ParamField path="Return" type="Protection">
+  Protection object
+</ParamField>
+
+```php
+$protection = $worksheet->getProtection();
+$protection->setSheet(true)
+    ->setPassword('secret')
+    ->setFormatCells(false)
+    ->setInsertRows(false);
+```
+
+## Charts and Drawings
+
+### `addChart(Chart $chart)`
+
+Add a chart to the worksheet.
+
+<ParamField path="chart" type="Chart">
+  Chart object to add
+</ParamField>
+
+<ParamField path="Return" type="Chart">
+  The added chart
+</ParamField>
+
+```php
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+
+// Create and add chart
+$chart = new Chart(/* ... */);
+$worksheet->addChart($chart);
+```
+
+### `getChartCount()`
+
+Get the number of charts.
+
+<ParamField path="Return" type="int">
+  Number of charts
+</ParamField>
+
+```php
+$chartCount = $worksheet->getChartCount();
+```
+
+### `getChartByName(string $chartName)`
+
+Get a chart by name.
+
+<ParamField path="chartName" type="string">
+  Name of the chart
+</ParamField>
+
+<ParamField path="Return" type="Chart|false">
+  The chart, or false if not found
+</ParamField>
+
+```php
+$chart = $worksheet->getChartByName('Sales Chart');
+if ($chart !== false) {
+    // Work with chart
+}
+```
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+
+$spreadsheet = new Spreadsheet();
+$worksheet = $spreadsheet->getActiveSheet();
+
+// Set title
+$worksheet->setTitle('Sales Report');
+
+// Add headers
+$worksheet->setCellValue('A1', 'Product');
+$worksheet->setCellValue('B1', 'Quantity');
+$worksheet->setCellValue('C1', 'Price');
+$worksheet->setCellValue('D1', 'Total');
+
+// Style headers
+$worksheet->getStyle('A1:D1')
+    ->getFont()->setBold(true)
+    ->getAlignment()
+    ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+// Add data
+$worksheet->setCellValue('A2', 'Product A');
+$worksheet->setCellValue('B2', 10);
+$worksheet->setCellValue('C2', 25.50);
+$worksheet->setCellValue('D2', '=B2*C2');
+
+// Set column widths
+$worksheet->getColumnDimension('A')->setWidth(20);
+$worksheet->getColumnDimension('B')->setAutoSize(true);
+$worksheet->getColumnDimension('C')->setAutoSize(true);
+$worksheet->getColumnDimension('D')->setAutoSize(true);
+
+// Set row height
+$worksheet->getRowDimension(1)->setRowHeight(30);
+
+// Page setup
+$worksheet->getPageSetup()
+    ->setOrientation(PageSetup::ORIENTATION_LANDSCAPE)
+    ->setPaperSize(PageSetup::PAPERSIZE_A4);
+
+// Get worksheet dimensions
+$highestRow = $worksheet->getHighestRow();
+$highestColumn = $worksheet->getHighestColumn();
+echo "Data range: A1:{$highestColumn}{$highestRow}";
+```
+
+## Related Classes
+
+- [Spreadsheet](/api/spreadsheet) - Parent workbook container
+- [Cell](/api/cell) - Individual cell within the worksheet
+- `RowDimension` - Row height and visibility settings
+- `ColumnDimension` - Column width and visibility settings
+- `PageSetup` - Print and page layout settings
+- `Protection` - Worksheet protection settings

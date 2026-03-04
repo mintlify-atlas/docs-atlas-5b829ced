@@ -1,0 +1,402 @@
+---
+title: Calculation Engine
+description: API reference for the PhpSpreadsheet Calculation Engine
+---
+
+The Calculation Engine is responsible for evaluating formulas in PhpSpreadsheet. It provides comprehensive support for Excel-compatible formula calculations.
+
+## Getting the Calculation Instance
+
+### getInstance()
+
+Get a singleton instance of the Calculation engine.
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+// Get instance for a spreadsheet
+$calculation = Calculation::getInstance($spreadsheet);
+
+// Get standalone instance
+$calculation = Calculation::getInstance();
+```
+
+**Parameters:**
+- `$spreadsheet` (Spreadsheet|null): Optional spreadsheet object to work with
+
+**Returns:** `Calculation` instance
+
+## Calculation Methods
+
+### calculate()
+
+Calculate the value of a cell.
+
+```php
+$result = $calculation->calculate($cell);
+```
+
+**Parameters:**
+- `$cell` (Cell|null): The cell to calculate
+
+**Returns:** Mixed - The calculated cell value
+
+### calculateCellValue()
+
+Calculate a cell value with optional debug log reset.
+
+```php
+$result = $calculation->calculateCellValue($cell, true);
+```
+
+**Parameters:**
+- `$cell` (Cell|null): The cell to calculate
+- `$resetLog` (bool): Whether to reset the debug log (default: true)
+
+**Returns:** Mixed - The calculated cell value
+
+### calculateFormula()
+
+Calculate a formula string directly.
+
+```php
+$result = $calculation->calculateFormula('=SUM(A1:A10)', 'B1', $cell);
+```
+
+**Parameters:**
+- `$formula` (string): The formula to calculate (with or without leading =)
+- `$cellID` (string|null): Optional cell reference for context
+- `$cell` (Cell|null): Optional cell object for context
+
+**Returns:** Mixed - The calculated result
+
+**Example:**
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+$calculation = Calculation::getInstance($spreadsheet);
+
+// Calculate a simple formula
+$result = $calculation->calculateFormula('=2+2');
+// Returns: 4
+
+// Calculate with cell references
+$result = $calculation->calculateFormula('=A1*B1', 'C1');
+
+// Calculate complex formula
+$result = $calculation->calculateFormula('=SUM(A1:A10) + AVERAGE(B1:B10)');
+```
+
+### parseFormula()
+
+Parse a formula into its component tokens without evaluating it.
+
+```php
+$tokens = $calculation->parseFormula('=SUM(A1:A10)');
+```
+
+**Parameters:**
+- `$formula` (string): The formula to parse
+
+**Returns:** `array|bool` - Array of formula tokens or false on failure
+
+## Calculation Cache
+
+The calculation engine includes a cache to improve performance when recalculating formulas.
+
+### enableCalculationCache()
+
+Enable the calculation cache.
+
+```php
+$calculation->enableCalculationCache();
+```
+
+### disableCalculationCache()
+
+Disable the calculation cache.
+
+```php
+$calculation->disableCalculationCache();
+```
+
+### clearCalculationCache()
+
+Clear all cached calculation results.
+
+```php
+$calculation->clearCalculationCache();
+```
+
+### getCalculationCacheEnabled()
+
+Check if calculation cache is enabled.
+
+```php
+$isEnabled = $calculation->getCalculationCacheEnabled();
+```
+
+**Returns:** `bool` - True if cache is enabled
+
+**Example:**
+```php
+// Disable cache for one-time calculations
+$calculation->disableCalculationCache();
+$result = $calculation->calculate($cell);
+
+// Re-enable cache for multiple calculations
+$calculation->enableCalculationCache();
+foreach ($cells as $cell) {
+    $result = $calculation->calculate($cell);
+}
+```
+
+### clearCalculationCacheForWorksheet()
+
+Clear cache for a specific worksheet.
+
+```php
+$calculation->clearCalculationCacheForWorksheet('Sheet1');
+```
+
+**Parameters:**
+- `$worksheetName` (string): Name of the worksheet to clear cache for
+
+## Branch Pruning
+
+Branch pruning optimizes conditional formula evaluation by skipping unnecessary branches.
+
+### enableBranchPruning()
+
+Enable branch pruning optimization.
+
+```php
+$calculation->enableBranchPruning();
+```
+
+### disableBranchPruning()
+
+Disable branch pruning optimization.
+
+```php
+$calculation->disableBranchPruning();
+```
+
+### getBranchPruningEnabled()
+
+Check if branch pruning is enabled.
+
+```php
+$isEnabled = $calculation->getBranchPruningEnabled();
+```
+
+**Returns:** `bool` - True if branch pruning is enabled
+
+**Example:**
+```php
+// Branch pruning improves performance for formulas like:
+// =IF(A1>100, ExpensiveCalculation1(), ExpensiveCalculation2())
+
+$calculation->enableBranchPruning();
+// Only the TRUE or FALSE branch will be evaluated, not both
+```
+
+## Array Return Type
+
+### setInstanceArrayReturnType()
+
+Set how array formulas should return results.
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+$calculation->setInstanceArrayReturnType(Calculation::RETURN_ARRAY_AS_ARRAY);
+```
+
+**Parameters:**
+- `$returnType` (string): One of:
+  - `Calculation::RETURN_ARRAY_AS_VALUE` - Return first element only
+  - `Calculation::RETURN_ARRAY_AS_ERROR` - Return error for arrays
+  - `Calculation::RETURN_ARRAY_AS_ARRAY` - Return full array
+
+**Returns:** `bool` - Success or failure
+
+### getInstanceArrayReturnType()
+
+Get current array return type setting.
+
+```php
+$returnType = $calculation->getInstanceArrayReturnType();
+```
+
+**Returns:** `string` - Current array return type
+
+## Function Information
+
+### isImplemented()
+
+Check if a function is implemented.
+
+```php
+$isImplemented = $calculation->isImplemented('SUM');
+```
+
+**Parameters:**
+- `$function` (string): Function name to check
+
+**Returns:** `bool` - True if function is implemented
+
+### getImplementedFunctionNames()
+
+Get list of all implemented function names.
+
+```php
+$functions = $calculation->getImplementedFunctionNames();
+```
+
+**Returns:** `array` - Array of function names
+
+**Example:**
+```php
+// Check if a function is supported before using it
+if ($calculation->isImplemented('XLOOKUP')) {
+    $result = $calculation->calculateFormula('=XLOOKUP("value", A1:A10, B1:B10)');
+} else {
+    // Use alternative function
+    $result = $calculation->calculateFormula('=VLOOKUP("value", A1:B10, 2, FALSE)');
+}
+
+// Get all available functions
+$allFunctions = $calculation->getImplementedFunctionNames();
+echo count($allFunctions) . " functions available";
+```
+
+## Error Handling
+
+### setSuppressFormulaErrors()
+
+Control whether formula errors should be suppressed.
+
+```php
+$calculation->setSuppressFormulaErrors(true);
+```
+
+**Parameters:**
+- `$suppressFormulaErrors` (bool): Whether to suppress errors
+
+**Returns:** `Calculation` - Returns self for method chaining
+
+### getSuppressFormulaErrors()
+
+Check if formula errors are being suppressed.
+
+```php
+$isSuppressed = $calculation->getSuppressFormulaErrors();
+```
+
+**Returns:** `bool` - True if errors are suppressed
+
+## Debug Logging
+
+### getDebugLog()
+
+Get the debug logger instance.
+
+```php
+use PhpOffice\PhpSpreadsheet\Calculation\Engine\Logger;
+
+$logger = $calculation->getDebugLog();
+```
+
+**Returns:** `Logger` - The debug logger instance
+
+**Example:**
+```php
+// Enable debug logging
+$logger = $calculation->getDebugLog();
+$logger->setWriteDebugLog(true);
+
+// Calculate a formula
+$result = $calculation->calculateFormula('=SUM(A1:A10)');
+
+// Get debug information
+$debugInfo = $logger->getDebugLog();
+```
+
+## Cell Range Extraction
+
+### extractCellRange()
+
+Extract values from a cell range.
+
+```php
+$values = $calculation->extractCellRange($range, $worksheet);
+```
+
+**Parameters:**
+- `$range` (string): Cell range (e.g., 'A1:B10')
+- `$worksheet` (Worksheet|null): Optional worksheet object
+- `$resetLog` (bool): Whether to reset debug log (default: true)
+- `$createCell` (bool): Whether to create cells if they don't exist (default: false)
+
+**Returns:** `array` - Array of cell values
+
+### extractNamedRange()
+
+Extract values from a named range.
+
+```php
+$values = $calculation->extractNamedRange($rangeName, $worksheet);
+```
+
+**Parameters:**
+- `$range` (string): Named range name
+- `$worksheet` (Worksheet|null): Optional worksheet object
+- `$resetLog` (bool): Whether to reset debug log (default: true)
+
+**Returns:** `string|array` - Range definition or array of values
+
+## Complete Example
+
+```php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
+
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+
+// Set some values
+$sheet->setCellValue('A1', 10);
+$sheet->setCellValue('A2', 20);
+$sheet->setCellValue('A3', 30);
+
+// Get calculation engine
+$calculation = Calculation::getInstance($spreadsheet);
+
+// Enable optimizations
+$calculation->enableCalculationCache();
+$calculation->enableBranchPruning();
+
+// Calculate formulas
+$sheet->setCellValue('B1', '=SUM(A1:A3)');
+$result = $calculation->calculateCellValue($sheet->getCell('B1'));
+echo "Sum: $result\n"; // Output: Sum: 60
+
+// Direct formula calculation
+$average = $calculation->calculateFormula('=AVERAGE(A1:A3)');
+echo "Average: $average\n"; // Output: Average: 20
+
+// Check function support
+if ($calculation->isImplemented('TEXTJOIN')) {
+    $joined = $calculation->calculateFormula('=TEXTJOIN(", ", TRUE, A1:A3)');
+    echo "Joined: $joined\n";
+}
+
+// Clear cache when done
+$calculation->clearCalculationCache();
+```
+
+## See Also
+
+- [Function Categories](/api/calculation/functions)
+- [Function Reference](/api/calculation/function-reference)
